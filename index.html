@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 수학 — 이미지 데이터 처리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f0ea;--fg:#1a1714;--card:#ebe5dc;--card-h:#e2dbd1;--muted:#78726a;
+  --accent:#c8b9a6;--border:#d8d0c4;--red:#b44133;--green:#5a7a5a;--blue:#4a6b8a;
+  --radius:0.5rem;--sans:'Noto Sans KR',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--sans);background:var(--bg);color:var(--fg);line-height:1.75;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── NAV ── */
+header{position:sticky;top:0;z-index:100;background:rgba(245,240,234,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+nav{max-width:68rem;margin:0 auto;display:flex;align-items:center;gap:1.5rem;padding:0.75rem 1.5rem;overflow-x:auto;scrollbar-width:none;}
+nav::-webkit-scrollbar{display:none;}
+.logo{font-size:0.95rem;font-weight:600;letter-spacing:-0.02em;color:var(--fg);text-decoration:none;white-space:nowrap;flex-shrink:0;}
+.nav-btn{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.06em;padding:0.45rem 0.9rem;border:1px solid var(--border);border-radius:9999px;background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s;white-space:nowrap;flex-shrink:0;}
+.nav-btn:hover{border-color:var(--muted);color:var(--fg);}
+.nav-btn.active{background:var(--fg);color:var(--bg);border-color:var(--fg);}
+
+/* ── LAYOUT ── */
+main{max-width:68rem;margin:0 auto;padding:0 1.5rem;flex:1;width:100%;}
+.view{display:none;padding:3rem 0 4rem;animation:fadeIn 0.3s ease;}
+.view.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── TYPO ── */
+.mono{font-family:var(--mono);font-size:0.62rem;text-transform:uppercase;letter-spacing:0.18em;color:var(--muted);}
+h1{font-size:clamp(1.6rem,3.8vw,2.4rem);font-weight:600;letter-spacing:-0.03em;line-height:1.25;white-space:nowrap;}
+h2{font-size:clamp(1.3rem,2.5vw,1.7rem);font-weight:600;letter-spacing:-0.02em;margin-bottom:0.3rem;}
+h3{font-size:0.95rem;font-weight:600;margin-bottom:0.5rem;}
+.desc{font-size:0.86rem;color:var(--muted);max-width:42rem;margin-bottom:2rem;line-height:1.85;}
+
+/* ── CARD ── */
+.card{background:var(--card);border-radius:var(--radius);padding:1.4rem;margin-bottom:1.2rem;}
+.card p,.card li{font-size:0.84rem;color:var(--muted);line-height:1.85;}
+
+/* ── MATH ── */
+.math{background:var(--fg);color:var(--bg);border-radius:var(--radius);padding:1.2rem 1.5rem;font-family:var(--mono);font-size:0.8rem;line-height:2;overflow-x:auto;margin:1.2rem 0;white-space:pre-line;}
+.mi{font-family:var(--mono);font-size:0.78em;background:var(--card);padding:0.1rem 0.3rem;border-radius:3px;}
+
+/* ── BTN ── */
+.btn{font-family:var(--mono);font-size:0.66rem;letter-spacing:0.07em;text-transform:uppercase;padding:0.5rem 1rem;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--fg);cursor:pointer;transition:all 0.2s;user-select:none;}
+.btn:hover{background:var(--card-h);}
+.btn.pri{background:var(--fg);color:var(--bg);border-color:var(--fg);}
+.btn.pri:hover{opacity:0.85;}
+.btn:disabled{opacity:0.35;cursor:not-allowed;}
+.btn-row{display:flex;gap:0.4rem;flex-wrap:wrap;margin:0.8rem 0;}
+
+/* ── INFO ── */
+.info{background:var(--card);border-left:3px solid var(--accent);padding:0.9rem 1.1rem;border-radius:0 var(--radius) var(--radius) 0;margin:1.4rem 0;font-size:0.84rem;color:var(--muted);line-height:1.85;}
+.info strong{color:var(--fg);}
+.status{font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin:0.6rem 0;min-height:1.3rem;}
+
+/* ── TAGS ── */
+.tags{display:flex;flex-wrap:wrap;gap:0.35rem;margin-top:1rem;}
+.tag{font-family:var(--mono);font-size:0.6rem;padding:0.22rem 0.55rem;background:var(--card);border-radius:9999px;color:var(--muted);}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1.4rem;}
+.tab{font-family:var(--mono);font-size:0.66rem;letter-spacing:0.05em;padding:0.5rem 1rem;border:none;background:transparent;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;}
+.tab:hover{color:var(--fg);}
+.tab.on{color:var(--fg);border-bottom-color:var(--fg);}
+.tpanel{display:none;}.tpanel.on{display:block;}
+
+/* ── MATRIX ── */
+.grid-wrap{display:flex;flex-wrap:wrap;gap:1.2rem;align-items:flex-start;justify-content:center;margin:1.5rem 0;}
+.mat-label{font-family:var(--mono);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:0.4rem;text-align:center;}
+.mat{display:inline-grid;gap:2px;background:var(--border);border-radius:var(--radius);padding:2px;}
+.mc{width:2.6rem;height:2.6rem;display:flex;align-items:center;justify-content:center;background:var(--card);font-family:var(--mono);font-size:0.78rem;font-weight:500;transition:all 0.25s;user-select:none;}
+.mc.hi{background:var(--fg);color:var(--bg);}.mc.res{background:var(--accent);font-weight:700;}.mc.done{background:var(--green);color:#fff;}
+.op{font-size:1.4rem;color:var(--muted);display:flex;align-items:center;padding:0 0.2rem;font-weight:300;}
+
+/* ── EDIT GRID ── */
+.eg{display:inline-grid;gap:2px;background:var(--border);border-radius:var(--radius);padding:2px;}
+.ec{width:2.6rem;height:2.6rem;display:flex;align-items:center;justify-content:center;background:var(--card);transition:background 0.2s;}
+.ec:focus-within{background:#fff;outline:2px solid var(--fg);outline-offset:-2px;z-index:1;}
+.ec input{width:100%;height:100%;border:none;background:transparent;text-align:center;font-family:var(--mono);font-size:0.78rem;font-weight:500;color:var(--fg);outline:none;padding:0;}
+
+/* ── BITMAP ── */
+.bmp{display:inline-grid;gap:1px;background:var(--border);border-radius:var(--radius);padding:1px;cursor:crosshair;}
+.bc{background:var(--bg);transition:background 0.08s;}
+.bc.on{background:var(--fg);}.bc:hover{background:var(--accent);}.bc.on:hover{background:var(--muted);}
+
+/* ── HAMMING BARS ── */
+.hb{display:flex;align-items:center;gap:0.5rem;margin:0.3rem 0;}
+.hb .dl{font-family:var(--mono);font-size:0.78rem;font-weight:600;width:1.3rem;text-align:center;}
+.hb .tk{flex:1;height:1.2rem;background:var(--card);border-radius:9999px;overflow:hidden;}
+.hb .fl{height:100%;border-radius:9999px;transition:width 0.5s cubic-bezier(0.22,1,0.36,1);background:var(--fg);}
+.hb .fl.best{background:var(--green);}
+.hb .dv{font-family:var(--mono);font-size:0.65rem;color:var(--muted);width:5rem;text-align:right;}
+
+/* ── CHIPS ── */
+.chips{display:flex;flex-wrap:wrap;gap:0.35rem;margin:0.8rem 0;}
+.chip{font-family:var(--mono);font-size:0.6rem;padding:0.3rem 0.65rem;border:1px solid var(--border);border-radius:9999px;background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s;}
+.chip:hover{border-color:var(--muted);}.chip.on{background:var(--fg);color:var(--bg);border-color:var(--fg);}
+
+/* ── UPLOAD ── */
+.upz{border:2px dashed var(--border);border-radius:var(--radius);padding:1.5rem;text-align:center;cursor:pointer;transition:all 0.2s;margin:0.8rem 0;}
+.upz:hover,.upz.dg{border-color:var(--fg);background:var(--card);}
+.upz p{font-size:0.8rem;color:var(--muted);}.upz input{display:none;}
+
+/* ── CANVAS ── */
+.cv{image-rendering:pixelated;border-radius:var(--radius);border:2px solid var(--border);}
+
+/* ── NORM ── */
+.ns{-webkit-appearance:none;width:100%;max-width:26rem;height:6px;background:var(--border);border-radius:9999px;outline:none;}
+.ns::-webkit-slider-thumb{-webkit-appearance:none;width:1.3rem;height:1.3rem;background:var(--fg);border-radius:50%;cursor:pointer;}
+.nout{display:flex;justify-content:center;gap:2rem;margin-top:1rem;flex-wrap:wrap;}
+.nb{text-align:center;}.nb .v{font-family:var(--mono);font-size:1.6rem;font-weight:600;}
+.nb .l{font-family:var(--mono);font-size:0.55rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-top:0.15rem;}
+.sw{width:3rem;height:3rem;border-radius:var(--radius);margin:0.3rem auto;border:1px solid var(--border);}
+
+/* ── COMPARE ── */
+.cmp{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin:1.4rem 0;}
+.cmp-c{padding:1.3rem;}.cmp-c:first-child{border-right:1px solid var(--border);}
+.cmp-c h4{font-size:0.86rem;font-weight:600;margin-bottom:0.6rem;}
+.cr{font-size:0.8rem;color:var(--muted);line-height:1.7;margin-bottom:0.4rem;}
+.cr strong{color:var(--fg);}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--border);margin-top:auto;}
+footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;justify-content:space-between;font-family:var(--mono);font-size:0.65rem;color:var(--muted);}
+
+@media(max-width:640px){
+  h1{font-size:1.4rem;white-space:normal;}
+  .cmp{grid-template-columns:1fr;}.cmp-c:first-child{border-right:none;border-bottom:1px solid var(--border);}
+  .mc,.ec{width:2.1rem;height:2.1rem;font-size:0.68rem;}
+  nav{gap:0.5rem;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <a href="#" class="logo" onclick="go('home');return false;">AI 수학</a>
+    <button class="nav-btn active" data-v="home">홈</button>
+    <button class="nav-btn" data-v="hamming">해밍 거리</button>
+    <button class="nav-btn" data-v="conv">합성곱</button>
+    <button class="nav-btn" data-v="filter">필터 실습</button>
+    <button class="nav-btn" data-v="pool">풀링 · 정규화</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- ═══════════ HOME ═══════════ -->
+<div class="view active" id="v-home">
+  <p class="mono" style="margin-bottom:0.5rem;">인공지능 수학</p>
+  <h1>행렬을 활용한 이미지 표현과 변환</h1>
+  <p class="desc" style="margin-top:0.8rem;">
+    인공지능이 이미지를 인식하는 과정에는 행렬 연산이 핵심적으로 사용됩니다.
+    각 주제를 직접 조작하며 학습할 수 있습니다.
+  </p>
+
+  <div style="margin-top:2.5rem;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:1rem;">
+      <div class="card" style="cursor:pointer;" onclick="go('hamming')">
+        <h3>해밍 거리</h3>
+        <p>두 이진 데이터 사이의 차이를 XOR 연산으로 측정합니다. 이미지를 행렬로 변환한 뒤 유사도를 비교하는 기본적인 분류 방법입니다.</p>
+      </div>
+      <div class="card" style="cursor:pointer;" onclick="go('conv')">
+        <h3>합성곱 연산</h3>
+        <p>CNN의 핵심 연산인 합성곱(아다마르 곱)의 원리를 이해합니다. 필터가 이미지 위를 이동하며 특징을 추출하는 과정을 다룹니다.</p>
+      </div>
+      <div class="card" style="cursor:pointer;" onclick="go('filter')">
+        <h3>필터 실습</h3>
+        <p>직접 이미지를 업로드하고, 다양한 커널(세로선, 가로선, 블러, 윤곽선 등)을 적용하여 결과를 확인합니다.</p>
+      </div>
+      <div class="card" style="cursor:pointer;" onclick="go('pool')">
+        <h3>풀링과 정규화</h3>
+        <p>맥스 풀링으로 데이터를 압축하는 과정과, 학습 효율을 위한 데이터 정규화를 체험합니다.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ HAMMING ═══════════ -->
+<div class="view" id="v-hamming">
+  <p class="mono" style="margin-bottom:0.4rem;">해밍 거리</p>
+  <h2>XOR 연산과 유사도 측정</h2>
+  <p class="desc">
+    같은 길이의 두 이진 문자열에서 대응하는 위치의 값이 서로 다른 개수를 해밍 거리라 합니다.
+    XOR 연산 결과에서 1의 개수를 세면 됩니다.
+  </p>
+
+  <div class="tabs">
+    <button class="tab on" onclick="htab(0,this)">XOR 원리</button>
+    <button class="tab" onclick="htab(1,this)">비트맵 실습</button>
+  </div>
+
+  <!-- TAB 0: XOR -->
+  <div class="tpanel on" id="ht0">
+    <div class="card">
+      <h3>XOR 연산 진리표</h3>
+      <p>두 비트가 서로 다를 때 1, 같을 때 0을 출력합니다.</p>
+      <div class="math">0 ⊕ 0 = 0   (같음)
+0 ⊕ 1 = 1   (다름)
+1 ⊕ 0 = 1   (다름)
+1 ⊕ 1 = 0   (같음)
+
+해밍 거리 d(A,B) = Σ (Aᵢ ⊕ Bᵢ)</div>
+    </div>
+
+    <div class="card">
+      <h3>직접 해보기 — 비트를 클릭하여 값을 바꿔보세요</h3>
+      <p style="margin-bottom:0.8rem;">각 비트를 클릭하면 0과 1이 토글됩니다. XOR 결과와 해밍 거리가 실시간으로 계산됩니다.</p>
+      <div id="hd-box" style="display:flex;flex-direction:column;gap:0.5rem;align-items:center;"></div>
+      <div id="hd-res" class="status" style="text-align:center;font-size:0.85rem;font-weight:600;"></div>
+    </div>
+
+    <div class="info">
+      <strong>대칭차집합과의 관계:</strong>
+      XOR 연산은 대칭차집합 <span class="mi">(A∪B)−(A∩B)</span>과 동일한 결과를 보입니다.
+      이 연산에 최소 2단계가 필요하므로, 다층 퍼셉트론에서 은닉층이 2개 이상 필요한 이유와 연결됩니다.
+    </div>
+  </div>
+
+  <!-- TAB 1: BITMAP -->
+  <div class="tpanel" id="ht1">
+    <p class="desc" style="margin-bottom:1rem;">
+      격자에 숫자를 직접 그려보세요. 클릭/드래그로 흑백을 토글합니다.
+      참조 데이터(0~9)와의 해밍 거리를 계산하여 가장 유사한 숫자를 자동 분류합니다.
+    </p>
+
+    <div style="display:flex;gap:0.3rem;margin-bottom:1rem;">
+      <button class="btn bsz active" onclick="setSz(6,this)">6×6</button>
+      <button class="btn bsz" onclick="setSz(8,this)">8×8</button>
+      <button class="btn bsz" onclick="setSz(12,this)">12×12</button>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:2rem;align-items:flex-start;">
+      <div>
+        <p class="mat-label">나만의 숫자 그리기</p>
+        <div id="ubmp" class="bmp"></div>
+        <div class="btn-row">
+          <button class="btn" onclick="clrBmp()">초기화</button>
+          <button class="btn pri" onclick="calcH()">해밍 거리 계산</button>
+        </div>
+        <p style="font-size:0.72rem;color:var(--muted);margin-top:0.2rem;">참조 숫자 불러오기</p>
+        <div class="btn-row" id="rbtn"></div>
+      </div>
+      <div style="flex:1;min-width:14rem;">
+        <p class="mat-label">분류 결과</p>
+        <div id="hbars"><p style="font-size:0.8rem;color:var(--muted);">숫자를 그린 후 계산 버튼을 누르세요.</p></div>
+        <div id="hbest" class="status" style="font-weight:600;"></div>
+      </div>
+    </div>
+
+    <div class="info" style="margin-top:1.5rem;">
+      <strong>한계점:</strong> 해밍 거리는 위치 이동, 크기 변화, 획의 굵기 차이에 취약합니다.
+      이를 개선하기 위해 전처리, 데이터 증강, 그리고 CNN 같은 딥러닝이 사용됩니다.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ CONV ═══════════ -->
+<div class="view" id="v-conv">
+  <p class="mono" style="margin-bottom:0.4rem;">합성곱 연산</p>
+  <h2>CNN의 핵심 — 아다마르 곱</h2>
+  <p class="desc">
+    같은 크기의 두 행렬에서 동일 위치의 성분끼리 곱한 후 모두 더하는 연산입니다.
+    필터가 이미지 위를 한 칸씩 이동하며 이 연산을 반복하여 특징 맵을 생성합니다.
+  </p>
+
+  <div class="cmp" style="margin-bottom:2rem;">
+    <div class="cmp-c">
+      <h4>인간의 눈</h4>
+      <div class="cr"><strong>망막</strong> — 빛을 전기 신호로 변환</div>
+      <div class="cr"><strong>시각 피질</strong> — 가로선, 세로선, 색상 등 기초 특징 감지</div>
+      <div class="cr"><strong>측두엽</strong> — 형태를 조합하여 사물 인식</div>
+    </div>
+    <div class="cmp-c">
+      <h4>CNN 인공신경망</h4>
+      <div class="cr"><strong>입력층</strong> — 이미지를 픽셀(숫자) 데이터로 변환</div>
+      <div class="cr"><strong>합성곱층</strong> — 필터로 외곽선, 질감 등 특징 추출</div>
+      <div class="cr"><strong>완전연결층</strong> — 추출된 특징을 종합하여 최종 분류</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" onclick="ctab(0,this)">직접 계산</button>
+    <button class="tab" onclick="ctab(1,this)">단계별 시각화</button>
+  </div>
+
+  <!-- TAB 0: manual -->
+  <div class="tpanel on" id="ct0">
+    <div class="card">
+      <h3>합성곱 결과를 직접 계산해보세요</h3>
+      <p>입력 행렬과 커널의 값을 편집할 수 있습니다. 출력에 답을 입력한 뒤 정답을 확인하세요.</p>
+    </div>
+
+    <div class="grid-wrap">
+      <div style="text-align:center;"><p class="mat-label">입력 (4×4) — 편집 가능</p><div class="eg" id="mi" style="grid-template-columns:repeat(4,1fr);"></div></div>
+      <div class="op">*</div>
+      <div style="text-align:center;"><p class="mat-label">커널 (3×3) — 편집 가능</p><div class="eg" id="mk" style="grid-template-columns:repeat(3,1fr);"></div></div>
+      <div class="op">=</div>
+      <div style="text-align:center;"><p class="mat-label">출력 (2×2) — 답 입력</p><div class="eg" id="mo" style="grid-template-columns:repeat(2,1fr);"></div></div>
+    </div>
+    <div class="btn-row" style="justify-content:center;">
+      <button class="btn pri" onclick="chkMan()">정답 확인</button>
+      <button class="btn" onclick="newMan()">새 문제</button>
+    </div>
+    <div id="mres" class="info" style="text-align:center;display:none;"></div>
+    <div id="msol" style="display:none;margin-top:0.8rem;"></div>
+  </div>
+
+  <!-- TAB 1: auto viz -->
+  <div class="tpanel" id="ct1">
+    <div class="card">
+      <h3>5×5 입력에 3×3 필터를 적용하는 과정</h3>
+      <p>각 단계마다 어떤 성분이 곱해지고 합산되어 출력값이 되는지 확인하세요.</p>
+    </div>
+
+    <div class="grid-wrap">
+      <div style="text-align:center;"><p class="mat-label">입력 (5×5)</p><div class="mat" id="ai" style="grid-template-columns:repeat(5,1fr);"></div></div>
+      <div class="op">×</div>
+      <div style="text-align:center;"><p class="mat-label">필터 (3×3)</p><div class="mat" id="ak" style="grid-template-columns:repeat(3,1fr);"></div></div>
+      <div class="op">=</div>
+      <div style="text-align:center;"><p class="mat-label">특징 맵 (3×3)</p><div class="mat" id="ao" style="grid-template-columns:repeat(3,1fr);"></div></div>
+    </div>
+    <div class="btn-row" style="justify-content:center;">
+      <button class="btn" onclick="aReset()">리셋</button>
+      <button class="btn" onclick="aStep()">한 단계</button>
+      <button class="btn pri" onclick="aAuto()">자동 재생</button>
+    </div>
+    <div id="ast" class="status" style="text-align:center;"></div>
+    <div id="acalc" class="info" style="text-align:center;">시작 버튼을 눌러 연산 과정을 확인하세요.</div>
+  </div>
+
+  <div class="math" style="margin-top:2rem;">Y = Σᵢ Σⱼ (Kᵢⱼ × Xᵢⱼ)
+
+K: 필터(커널)  X: 입력의 일부  Y: 출력값
+벡터로 펼치면 내적과 동일 — Y가 클수록 해당 영역이 필터 패턴과 유사</div>
+</div>
+
+<!-- ═══════════ FILTER ═══════════ -->
+<div class="view" id="v-filter">
+  <p class="mono" style="margin-bottom:0.4rem;">이미지 필터 실습</p>
+  <h2>커널을 적용하여 특징 추출하기</h2>
+  <p class="desc">
+    이미지에 다양한 3×3 커널을 적용하여 결과를 확인하세요.
+    직접 이미지를 업로드하거나, 커널 값을 편집하여 커스텀 필터를 만들 수 있습니다.
+  </p>
+
+  <div class="upz" id="upz">
+    <p style="font-weight:500;color:var(--fg);margin-bottom:0.2rem;">이미지를 드래그하거나 클릭하여 업로드하세요</p>
+    <p style="font-size:0.7rem;margin-top:0.15rem;">jpg, png 등 이미지 파일을 지원합니다</p>
+    <input type="file" id="fup" accept="image/*">
+  </div>
+  <div id="up-status" class="status"></div>
+  <div class="btn-row">
+    <button class="btn" onclick="createDefImg();applyF();document.getElementById('up-status').textContent='기본 도형 이미지가 적용되었습니다.';">기본 이미지 사용</button>
+  </div>
+
+  <div class="chips" id="fc"></div>
+
+  <div class="card" style="text-align:center;">
+    <p class="mono" style="margin-bottom:0.4rem;">적용 커널 — 값을 편집할 수 있습니다</p>
+    <div class="eg" id="fk" style="grid-template-columns:repeat(3,1fr);display:inline-grid;"></div>
+    <p id="fd" style="font-size:0.78rem;color:var(--muted);margin-top:0.6rem;max-width:30rem;margin-left:auto;margin-right:auto;"></p>
+    <div class="btn-row" style="justify-content:center;margin-top:0.5rem;">
+      <button class="btn pri" onclick="applyCustom()">커스텀 커널 적용</button>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:1.5rem;justify-content:center;margin:1.5rem 0;">
+    <div style="text-align:center;"><p class="mono" style="margin-bottom:0.3rem;">입력</p><canvas id="fin" class="cv" width="240" height="240"></canvas></div>
+    <div style="display:flex;align-items:center;color:var(--muted);">→</div>
+    <div style="text-align:center;"><p class="mono" style="margin-bottom:0.3rem;">출력 (필터 적용 후)</p><canvas id="fout" class="cv" width="240" height="240"></canvas></div>
+  </div>
+</div>
+
+<!-- ═══════════ POOL + NORM ═══════════ -->
+<div class="view" id="v-pool">
+  <p class="mono" style="margin-bottom:0.4rem;">데이터 처리</p>
+  <h2>풀링과 정규화</h2>
+  <p class="desc">
+    풀링은 이미지 크기를 줄이면서 핵심 정보를 보존하고,
+    정규화는 학습 효율을 높이기 위해 값의 범위를 조정합니다.
+  </p>
+
+  <div class="tabs">
+    <button class="tab on" onclick="ptab(0,this)">맥스 풀링</button>
+    <button class="tab" onclick="ptab(1,this)">정규화</button>
+  </div>
+
+  <!-- TAB 0: pooling -->
+  <div class="tpanel on" id="pt0">
+    <div class="card">
+      <h3>맥스 풀링 (Max Pooling)</h3>
+      <p>4×4 입력에서 2×2씩 묶어 최대값만 선택하여 2×2로 압축합니다.
+        입력값을 직접 편집하여 다양한 경우를 실험해보세요.</p>
+    </div>
+
+    <div class="grid-wrap">
+      <div style="text-align:center;"><p class="mat-label">입력 (4×4) — 편집 가능</p><div class="eg" id="pi" style="grid-template-columns:repeat(4,1fr);"></div></div>
+      <div class="op">→</div>
+      <div style="text-align:center;"><p class="mat-label">출력 (2×2)</p><div class="mat" id="po" style="grid-template-columns:repeat(2,1fr);"></div></div>
+    </div>
+    <div class="btn-row" style="justify-content:center;">
+      <button class="btn" onclick="pRst()">리셋</button>
+      <button class="btn" onclick="pStp()">한 단계</button>
+      <button class="btn pri" onclick="pAut()">자동 실행</button>
+    </div>
+    <div id="pst" class="status" style="text-align:center;"></div>
+    <div class="info">
+      <strong>효과:</strong> 이미지 크기는 줄지만 주요 특징은 유지됩니다.
+      연산량을 줄이고, 물체 위치가 조금 바뀌어도 동일하게 인식하는 이동 불변성을 제공합니다.
+    </div>
+  </div>
+
+  <!-- TAB 1: normalization -->
+  <div class="tpanel" id="pt1">
+    <div class="card">
+      <h3>데이터 정규화 (Normalization)</h3>
+      <p>이미지 픽셀은 0(검은색)~255(흰색)의 정수값을 가집니다.
+        AI 모델 학습 시 0.0~1.0 사이의 실수로 변환합니다. 이는 행렬의 실수배 연산입니다.</p>
+    </div>
+    <div class="math" style="text-align:center;">X_normalized = X / 255</div>
+    <div style="text-align:center;margin:2rem 0;">
+      <p class="mono" style="margin-bottom:0.6rem;">슬라이더를 움직여 정규화를 체험하세요</p>
+      <input type="range" class="ns" id="nsl" min="0" max="255" value="128">
+      <div class="nout">
+        <div class="nb"><div class="v" id="ni">128</div><div class="l">Integer (0–255)</div></div>
+        <div class="nb"><div style="font-size:1.2rem;color:var(--muted);padding-top:0.3rem;">÷ 255 =</div></div>
+        <div class="nb"><div class="v" id="nf">0.502</div><div class="l">Float (0.0–1.0)</div></div>
+        <div class="nb"><div class="sw" id="nsw" style="background:rgb(128,128,128);"></div><div class="l">실제 색상</div></div>
+      </div>
+    </div>
+    <div class="info">
+      <strong>왜 필요한가:</strong> 경사 하강법의 수렴 속도를 높이고, 오버플로우를 방지합니다.
+    </div>
+  </div>
+</div>
+
+</main>
+
+<footer><div class="inner"><span>인공지능 수학 — 대전대신고등학교</span><span>2025</span></div></footer>
+
+<script>
+// ═══════════════════════════════════════════
+//  NAVIGATION (SPA-style)
+// ═══════════════════════════════════════════
+function go(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.getElementById('v-'+v).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`.nav-btn[data-v="${v}"]`).classList.add('active');
+  window.scrollTo(0,0);
+  // lazy init
+  if(v==='filter'&&!srcImg){createDefImg();applyF();document.getElementById('up-status').textContent='기본 도형 이미지가 적용되었습니다. 직접 업로드하여 변경할 수 있습니다.';}
+  if(v==='pool'){pRst();}
+}
+document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>go(b.dataset.v)));
+
+function htab(n,el){document.querySelectorAll('#v-hamming .tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.querySelectorAll('#v-hamming .tpanel').forEach(p=>p.classList.remove('on'));document.getElementById('ht'+n).classList.add('on');}
+function ctab(n,el){document.querySelectorAll('#v-conv .tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.querySelectorAll('#v-conv .tpanel').forEach(p=>p.classList.remove('on'));document.getElementById('ct'+n).classList.add('on');}
+function ptab(n,el){document.querySelectorAll('#v-pool .tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.querySelectorAll('#v-pool .tpanel').forEach(p=>p.classList.remove('on'));document.getElementById('pt'+n).classList.add('on');}
+
+// ═══════════════════════════════════════════
+//  HAMMING XOR DEMO
+// ═══════════════════════════════════════════
+let hA=[1,0,1,1,0,0,1,0,1,0],hB=[1,1,0,1,0,1,1,0,0,1];
+function rHD(){
+  const box=document.getElementById('hd-box');box.innerHTML='';
+  const mkRow=(lbl,arr,tog)=>{
+    const r=document.createElement('div');r.style.cssText='display:flex;align-items:center;gap:2px;';
+    const lb=document.createElement('span');lb.style.cssText='font-family:var(--mono);font-size:0.62rem;color:var(--muted);width:2.2rem;text-align:right;margin-right:0.3rem;';lb.textContent=lbl;r.appendChild(lb);
+    arr.forEach((v,i)=>{const e=document.createElement('span');e.style.cssText=`display:inline-flex;align-items:center;justify-content:center;width:2.1rem;height:2.1rem;background:${v?'var(--fg)':'var(--card)'};color:${v?'var(--bg)':'var(--fg)'};font-family:var(--mono);font-size:0.8rem;font-weight:600;border-radius:4px;cursor:pointer;transition:all 0.12s;border:1px solid var(--border);`;e.textContent=v;if(tog)e.onclick=()=>{arr[i]^=1;rHD();};r.appendChild(e);});
+    return r;
+  };
+  box.appendChild(mkRow('A',hA,true));box.appendChild(mkRow('B',hB,true));
+  const xr=document.createElement('div');xr.style.cssText='display:flex;align-items:center;gap:2px;';
+  const xl=document.createElement('span');xl.style.cssText='font-family:var(--mono);font-size:0.62rem;color:var(--muted);width:2.2rem;text-align:right;margin-right:0.3rem;';xl.textContent='A⊕B';xr.appendChild(xl);
+  let d=0;for(let i=0;i<hA.length;i++){const x=hA[i]^hB[i];d+=x;const e=document.createElement('span');e.style.cssText=`display:inline-flex;align-items:center;justify-content:center;width:2.1rem;height:2.1rem;background:${x?'var(--red)':'var(--card)'};color:${x?'#fff':'var(--muted)'};font-family:var(--mono);font-size:0.8rem;font-weight:600;border-radius:4px;border:1px solid ${x?'var(--red)':'var(--border)'};`;e.textContent=x;xr.appendChild(e);}
+  box.appendChild(xr);document.getElementById('hd-res').textContent=`해밍 거리 = ${d}`;
+}
+rHD();
+
+// ═══════════════════════════════════════════
+//  BITMAP
+// ═══════════════════════════════════════════
+let bSz=6,uBmp=[],isDraw=false,dVal=1;
+const REFS={};
+REFS[6]=[
+  [0,1,1,1,1,0,1,1,0,0,1,1,1,0,0,0,0,1,1,0,0,0,0,1,1,1,0,0,1,1,0,1,1,1,1,0],
+  [0,0,1,1,0,0,0,1,1,1,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,1,1,1,1,1],
+  [0,1,1,1,1,0,1,0,0,0,0,1,0,0,0,1,1,0,0,0,1,1,0,0,0,1,1,0,0,0,1,1,1,1,1,1],
+  [1,1,1,1,1,0,0,0,0,0,1,1,0,0,1,1,1,0,0,0,0,0,1,1,0,0,0,0,1,1,1,1,1,1,1,0],
+  [1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,1,1,1,1,1,0,0,0,1,0,0,0,0,0,1,0,0],
+  [1,1,1,1,1,1,1,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,1,1,1,1,1,1,0],
+  [0,1,1,1,1,0,1,1,0,0,0,0,1,1,1,1,1,0,1,0,0,0,0,1,1,1,0,0,1,1,0,1,1,1,1,0],
+  [1,1,1,1,1,1,0,0,0,0,1,1,0,0,0,1,1,0,0,0,1,1,0,0,0,0,1,0,0,0,0,0,1,0,0,0],
+  [0,1,1,1,1,0,1,1,0,0,1,1,0,1,1,1,1,0,1,1,0,0,1,1,1,1,0,0,1,1,0,1,1,1,1,0],
+  [0,1,1,1,1,0,1,1,0,0,1,1,1,0,0,0,0,1,0,1,1,1,1,1,0,0,0,0,1,1,0,1,1,1,1,0],
+];
+REFS[8]=[
+  [0,0,1,1,1,1,0,0,0,1,1,0,0,1,1,0,1,1,0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0,0,0,1,1,0,1,1,0,0,1,1,0,0,0,1,1,1,1,0,0],
+  [0,0,0,1,1,0,0,0,0,0,1,1,1,0,0,0,0,1,1,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,1,1,1,1,1,0],
+  [0,0,1,1,1,1,0,0,0,1,1,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,1,1,1,1,0],
+  [0,0,1,1,1,1,0,0,0,1,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,1,1,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,1,0,0,0,1,1,0,0,0,1,1,1,1,0,0],
+  [0,0,0,0,1,1,0,0,0,0,0,1,1,1,0,0,0,0,1,1,0,1,0,0,0,1,1,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0],
+  [0,1,1,1,1,1,1,0,0,1,1,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,1,0,0,0,1,1,0,0,0,1,1,1,1,0,0],
+  [0,0,1,1,1,1,0,0,0,1,1,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,1,1,1,1,0,0,1,1,0,0,0,1,1,0,1,1,0,0,0,1,1,0,0,1,1,0,0,1,1,0,0,0,1,1,1,1,0,0],
+  [0,1,1,1,1,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,1,1,0,0,0,0,0,1,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0],
+  [0,0,1,1,1,1,0,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,0,1,1,1,1,0,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,0,1,1,1,1,0,0],
+  [0,0,1,1,1,1,0,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,0,1,1,1,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,1,1,0,0,0,0,1,1,1,0,0,0],
+];
+REFS[12]=(()=>{const r=[];for(let d=0;d<10;d++){const s=REFS[6][d],o=[];for(let y=0;y<6;y++){const r1=[],r2=[];for(let x=0;x<6;x++){const v=s[y*6+x];r1.push(v,v);r2.push(v,v);}o.push(...r1,...r2);}r.push(o);}return r;})();
+
+function setSz(n,el){bSz=n;uBmp=Array(n*n).fill(0);document.querySelectorAll('.bsz').forEach(b=>b.classList.remove('active'));el.classList.add('active');rBmp();document.getElementById('hbars').innerHTML='<p style="font-size:0.8rem;color:var(--muted);">숫자를 그린 후 계산 버튼을 누르세요.</p>';document.getElementById('hbest').textContent='';rRef();}
+
+function rBmp(){
+  const g=document.getElementById('ubmp');const cs=bSz<=6?'2rem':bSz<=8?'1.6rem':'1.2rem';
+  g.style.gridTemplateColumns=`repeat(${bSz},1fr)`;g.innerHTML='';
+  for(let i=0;i<bSz*bSz;i++){const c=document.createElement('div');c.className='bc'+(uBmp[i]?' on':'');c.style.width=cs;c.style.height=cs;
+    c.addEventListener('mousedown',e=>{e.preventDefault();isDraw=true;dVal=uBmp[i]?0:1;uBmp[i]=dVal;rBmp();});
+    c.addEventListener('mouseenter',()=>{if(isDraw){uBmp[i]=dVal;rBmp();}});
+    c.addEventListener('touchstart',e=>{e.preventDefault();uBmp[i]=uBmp[i]?0:1;rBmp();});
+    g.appendChild(c);}
+}
+document.addEventListener('mouseup',()=>{isDraw=false;});
+
+function rRef(){const b=document.getElementById('rbtn');b.innerHTML='';for(let d=0;d<10;d++){const e=document.createElement('button');e.className='btn';e.textContent=d;e.style.padding='0.35rem 0.55rem';e.onclick=()=>{uBmp=[...REFS[bSz][d]];rBmp();};b.appendChild(e);}}
+
+function clrBmp(){uBmp=Array(bSz*bSz).fill(0);rBmp();document.getElementById('hbars').innerHTML='<p style="font-size:0.8rem;color:var(--muted);">숫자를 그린 후 계산 버튼을 누르세요.</p>';document.getElementById('hbest').textContent='';}
+
+function calcH(){
+  const refs=REFS[bSz];if(!refs)return;const tot=bSz*bSz;
+  const ds=refs.map((ref,i)=>{let d=0;for(let j=0;j<tot;j++)d+=(uBmp[j]^ref[j]);return{digit:i,dist:d,sim:((tot-d)/tot*100).toFixed(1)};});
+  const mx=Math.max(...ds.map(d=>d.dist),1),mn=Math.min(...ds.map(d=>d.dist));
+  const box=document.getElementById('hbars');box.innerHTML='';
+  ds.forEach(({digit,dist,sim})=>{const e=document.createElement('div');e.className='hb';e.innerHTML=`<span class="dl">${digit}</span><div class="tk"><div class="fl ${dist===mn?'best':''}" style="width:${dist/mx*100}%"></div></div><span class="dv">${dist} (${sim}%)</span>`;box.appendChild(e);});
+  const best=ds.reduce((a,b)=>a.dist<b.dist?a:b);
+  document.getElementById('hbest').textContent=`가장 유사: ${best.digit} (거리 ${best.dist}, 유사도 ${best.sim}%)`;
+}
+
+uBmp=Array(bSz*bSz).fill(0);rBmp();rRef();
+
+// ═══════════════════════════════════════════
+//  EDIT GRID HELPER
+// ═══════════════════════════════════════════
+function mkEG(id,data,rows,cols,onCh){
+  const g=document.getElementById(id);g.innerHTML='';g.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const cell=document.createElement('div');cell.className='ec';
+    const inp=document.createElement('input');inp.type='number';inp.value=data[r][c];
+    inp.addEventListener('change',()=>{data[r][c]=parseInt(inp.value)||0;if(onCh)onCh();});
+    inp.addEventListener('focus',()=>inp.select());
+    cell.appendChild(inp);g.appendChild(cell);
+  }
+}
+
+// ═══════════════════════════════════════════
+//  MANUAL CONV
+// ═══════════════════════════════════════════
+let mI=[[1,2,0,1],[0,1,3,2],[1,0,2,1],[2,1,0,3]],mK=[[1,0,-1],[0,1,0],[-1,0,1]],mO=[[0,0],[0,0]];
+
+function newMan(){
+  for(let r=0;r<4;r++)for(let c=0;c<4;c++)mI[r][c]=Math.floor(Math.random()*5);
+  const ks=[[[1,0,-1],[0,1,0],[-1,0,1]],[[0,-1,0],[-1,5,-1],[0,-1,0]],[[1,1,1],[0,0,0],[-1,-1,-1]]];
+  const p=ks[Math.floor(Math.random()*ks.length)];for(let r=0;r<3;r++)for(let c=0;c<3;c++)mK[r][c]=p[r][c];
+  mO=[[0,0],[0,0]];mkEG('mi',mI,4,4);mkEG('mk',mK,3,3);mkEG('mo',mO,2,2);
+  document.getElementById('mres').style.display='none';document.getElementById('msol').style.display='none';
+}
+
+function chkMan(){
+  const cor=[];
+  for(let r=0;r<2;r++){cor.push([]);for(let c=0;c<2;c++){let s=0;for(let kr=0;kr<3;kr++)for(let kc=0;kc<3;kc++)s+=mI[r+kr][c+kc]*mK[kr][kc];cor[r].push(s);}}
+  let ok=true;const det=[];
+  for(let r=0;r<2;r++)for(let c=0;c<2;c++){
+    const right=mO[r][c]===cor[r][c];if(!right)ok=false;
+    let t=[];for(let kr=0;kr<3;kr++)for(let kc=0;kc<3;kc++)t.push(`${mI[r+kr][c+kc]}×(${mK[kr][kc]})`);
+    det.push(`위치(${r},${c}): ${t.join(' + ')} = ${cor[r][c]}${right?'':' (입력값: '+mO[r][c]+')'}`);
+  }
+  const res=document.getElementById('mres');res.style.display='block';
+  res.innerHTML=ok?'<strong>정답입니다.</strong>':'<strong>일부 틀렸습니다.</strong> 아래 풀이를 확인하세요.';
+  res.style.borderLeftColor=ok?'var(--green)':'var(--red)';
+  const sol=document.getElementById('msol');sol.style.display='block';
+  sol.innerHTML=`<div class="card"><h3>풀이 과정</h3>${det.map(d=>'<p style="font-size:0.8rem;color:var(--muted);font-family:var(--mono);margin:0.25rem 0;">'+d+'</p>').join('')}</div>`;
+}
+newMan();
+
+// ═══════════════════════════════════════════
+//  AUTO CONV VIZ
+// ═══════════════════════════════════════════
+const AI=[[0,0,0,0,0],[0,1,1,1,0],[0,1,0,1,0],[0,1,1,1,0],[0,0,0,0,0]];
+const AK=[[1,0,1],[0,1,0],[1,0,1]];
+let ap=-1,ar=Array(9).fill('?'),aPlaying=false;
+
+function bldA(){
+  ['ai','ak','ao'].forEach(id=>document.getElementById(id).innerHTML='');
+  for(let r=0;r<5;r++)for(let c=0;c<5;c++){const e=document.createElement('div');e.className='mc';e.id=`ai${r}${c}`;e.textContent=AI[r][c];document.getElementById('ai').appendChild(e);}
+  for(let r=0;r<3;r++)for(let c=0;c<3;c++){const e=document.createElement('div');e.className='mc';e.textContent=AK[r][c];document.getElementById('ak').appendChild(e);}
+  for(let i=0;i<9;i++){const e=document.createElement('div');e.className='mc';e.id=`ao${i}`;e.textContent=ar[i];document.getElementById('ao').appendChild(e);}
+}
+bldA();
+
+function aReset(){ap=-1;ar=Array(9).fill('?');aPlaying=false;bldA();document.getElementById('ast').textContent='';document.getElementById('acalc').innerHTML='시작 버튼을 눌러 연산 과정을 확인하세요.';}
+
+function aStep(){
+  ap++;if(ap>=9){ap=8;return;}
+  const row=Math.floor(ap/3),col=ap%3;
+  for(let r=0;r<5;r++)for(let c=0;c<5;c++)document.getElementById(`ai${r}${c}`).className='mc';
+  let sum=0,terms=[];
+  for(let kr=0;kr<3;kr++)for(let kc=0;kc<3;kc++){
+    const ir=row+kr,ic=col+kc;document.getElementById(`ai${ir}${ic}`).className='mc hi';
+    const p=AI[ir][ic]*AK[kr][kc];sum+=p;terms.push(`(${AI[ir][ic]}×${AK[kr][kc]})`);
+  }
+  ar[ap]=sum;
+  for(let i=0;i<9;i++){const e=document.getElementById(`ao${i}`);e.textContent=ar[i];e.className=i===ap?'mc res':ar[i]!=='?'?'mc done':'mc';}
+  document.getElementById('ast').textContent=`위치 (${row}, ${col}) → ${sum}`;
+  document.getElementById('acalc').innerHTML=`<strong>계산:</strong> ${terms.join(' + ')} = <strong>${sum}</strong>`;
+}
+
+function aAuto(){if(aPlaying)return;aPlaying=true;aReset();let s=0;const iv=setInterval(()=>{aStep();s++;if(s>=9){clearInterval(iv);aPlaying=false;}},800);}
+
+// ═══════════════════════════════════════════
+//  FILTER PLAYGROUND
+// ═══════════════════════════════════════════
+const FL={
+  'Identity':{k:[[0,0,0],[0,1,0],[0,0,0]],d:'원본 그대로 출력합니다.'},
+  'Sobel X':{k:[[-1,0,1],[-2,0,2],[-1,0,1]],d:'세로선(수직 경계)을 검출합니다.'},
+  'Sobel Y':{k:[[-1,-2,-1],[0,0,0],[1,2,1]],d:'가로선(수평 경계)을 검출합니다.'},
+  'Sharpen':{k:[[0,-1,0],[-1,5,-1],[0,-1,0]],d:'경계를 또렷하게 선명화합니다.'},
+  'Box Blur':{k:[[1,1,1],[1,1,1],[1,1,1]],d:'주변 9픽셀 평균으로 흐리게 합니다.',n:9},
+  'Edge':{k:[[-1,-1,-1],[-1,8,-1],[-1,-1,-1]],d:'윤곽선만 추출합니다.'},
+};
+let aF='Identity',srcImg=null,cK=[[0,0,0],[0,1,0],[0,0,0]];
+
+function bldFC(){
+  const box=document.getElementById('fc');box.innerHTML='';
+  Object.keys(FL).forEach(n=>{const ch=document.createElement('button');ch.className='chip'+(n===aF?' on':'');ch.textContent=n;
+    ch.onclick=()=>{aF=n;document.querySelectorAll('#fc .chip').forEach(c=>c.classList.remove('on'));ch.classList.add('on');cK=FL[n].k.map(r=>[...r]);rFK();applyF();};
+    box.appendChild(ch);});
+}
+function rFK(){mkEG('fk',cK,3,3);const f=FL[aF];document.getElementById('fd').textContent=f?f.d:'커스텀 커널';}
+function applyCustom(){aF='Custom';document.querySelectorAll('#fc .chip').forEach(c=>c.classList.remove('on'));document.getElementById('fd').textContent='사용자 정의 커널 적용';applyF();}
+
+function createDefImg(){
+  const cv=document.getElementById('fin'),ctx=cv.getContext('2d'),W=240;
+  ctx.fillStyle='#e8e0d6';ctx.fillRect(0,0,W,W);
+  ctx.fillStyle='#3a342e';ctx.beginPath();ctx.arc(120,75,45,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#78726a';ctx.fillRect(35,155,70,55);
+  ctx.fillStyle='#a89888';ctx.beginPath();ctx.moveTo(180,210);ctx.lineTo(145,155);ctx.lineTo(215,155);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#1a1714';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(25,25);ctx.lineTo(70,70);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(165,25);ctx.lineTo(215,25);ctx.stroke();ctx.beginPath();ctx.moveTo(190,15);ctx.lineTo(190,55);ctx.stroke();
+  for(let i=0;i<10;i++){ctx.fillStyle='#1a1714';ctx.beginPath();ctx.arc(25+i*21,120,3,0,Math.PI*2);ctx.fill();}
+  srcImg=ctx.getImageData(0,0,W,W);
+}
+
+function loadImg(file){
+  const reader=new FileReader();reader.onload=e=>{const img=new Image();img.onload=()=>{
+    const cv=document.getElementById('fin'),ctx=cv.getContext('2d');ctx.clearRect(0,0,240,240);
+    const sc=Math.min(240/img.width,240/img.height),w=img.width*sc,h=img.height*sc;
+    ctx.fillStyle='#e8e0d6';ctx.fillRect(0,0,240,240);ctx.drawImage(img,(240-w)/2,(240-h)/2,w,h);
+    srcImg=ctx.getImageData(0,0,240,240);applyF();
+    document.getElementById('up-status').textContent='이미지가 적용되었습니다. (' +file.name+')';
+    document.getElementById('upz').style.borderColor='var(--green)';
+    setTimeout(()=>{document.getElementById('upz').style.borderColor='';},2000);
+  };img.src=e.target.result;};reader.readAsDataURL(file);
+}
+
+const uz=document.getElementById('upz'),fi=document.getElementById('fup');
+uz.onclick=()=>fi.click();fi.onchange=e=>{if(e.target.files[0])loadImg(e.target.files[0]);};
+uz.ondragover=e=>{e.preventDefault();uz.classList.add('dg');};uz.ondragleave=()=>uz.classList.remove('dg');
+uz.ondrop=e=>{e.preventDefault();uz.classList.remove('dg');if(e.dataTransfer.files[0])loadImg(e.dataTransfer.files[0]);};
+
+function applyF(){
+  if(!srcImg)return;const k=cK,f=FL[aF],norm=f&&f.n?f.n:1;
+  const W=srcImg.width,H=srcImg.height,oc=document.getElementById('fout'),octx=oc.getContext('2d'),out=octx.createImageData(W,H);
+  for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){
+    let r=0,g=0,b=0;
+    for(let ky=-1;ky<=1;ky++)for(let kx=-1;kx<=1;kx++){const idx=((y+ky)*W+(x+kx))*4,w=k[ky+1][kx+1];r+=srcImg.data[idx]*w;g+=srcImg.data[idx+1]*w;b+=srcImg.data[idx+2]*w;}
+    const oi=(y*W+x)*4;out.data[oi]=Math.min(255,Math.max(0,r/norm));out.data[oi+1]=Math.min(255,Math.max(0,g/norm));out.data[oi+2]=Math.min(255,Math.max(0,b/norm));out.data[oi+3]=255;
+  }
+  octx.putImageData(out,0,0);
+}
+
+bldFC();rFK();
+
+// ═══════════════════════════════════════════
+//  POOLING
+// ═══════════════════════════════════════════
+let pI=[[9,8,4,8],[7,9,4,8],[2,8,9,7],[6,5,9,5]],pP=-1,pR=['?','?','?','?'],pPl=false;
+
+function bldP(){
+  mkEG('pi',pI,4,4);
+  const o=document.getElementById('po');o.innerHTML='';
+  for(let i=0;i<4;i++){const e=document.createElement('div');e.className='mc';e.id=`po${i}`;e.textContent=pR[i];o.appendChild(e);}
+}
+
+function pRst(){pP=-1;pR=['?','?','?','?'];pPl=false;bldP();document.getElementById('pst').textContent='';}
+
+function pStp(){
+  pP++;if(pP>=4){pP=3;return;}
+  const sr=pP<2?0:2,sc=pP%2===0?0:2;
+  document.querySelectorAll('#pi .ec').forEach(c=>{c.style.background='';const inp=c.querySelector('input');if(inp)inp.style.color='';});
+  let mx=-Infinity;
+  for(let r=sr;r<sr+2;r++)for(let c=sc;c<sc+2;c++){
+    const idx=r*4+c,cells=document.getElementById('pi').children;
+    cells[idx].style.background='var(--fg)';cells[idx].querySelector('input').style.color='var(--bg)';
+    if(pI[r][c]>mx)mx=pI[r][c];
+  }
+  setTimeout(()=>{for(let r=sr;r<sr+2;r++)for(let c=sc;c<sc+2;c++){const idx=r*4+c,cells=document.getElementById('pi').children;if(pI[r][c]===mx){cells[idx].style.background='var(--green)';cells[idx].querySelector('input').style.color='#fff';}}},300);
+  pR[pP]=mx;
+  for(let i=0;i<4;i++){const e=document.getElementById(`po${i}`);e.textContent=pR[i];e.className=i===pP?'mc res':pR[i]!=='?'?'mc done':'mc';}
+  document.getElementById('pst').textContent=`${sr}~${sr+1}행, ${sc}~${sc+1}열 → max = ${mx}`;
+}
+
+function pAut(){if(pPl)return;pPl=true;pRst();let s=0;const iv=setInterval(()=>{pStp();s++;if(s>=4){clearInterval(iv);pPl=false;}},1000);}
+
+pRst();
+
+// ═══════════════════════════════════════════
+//  NORMALIZATION
+// ═══════════════════════════════════════════
+document.getElementById('nsl').addEventListener('input',function(){
+  const v=parseInt(this.value);
+  document.getElementById('ni').textContent=v;
+  document.getElementById('nf').textContent=(v/255).toFixed(3);
+  document.getElementById('nsw').style.background=`rgb(${v},${v},${v})`;
+});
+</script>
+</body>
+</html>
