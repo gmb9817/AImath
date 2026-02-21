@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <link rel="manifest" href="manifest.json">
-<script>
+  <script>
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
 <meta charset="UTF-8">
@@ -45,6 +45,12 @@ h3{font-size:0.95rem;font-weight:600;margin-bottom:0.5rem;}
 /* ── CARD ── */
 .card{background:var(--card);border-radius:var(--radius);padding:1.4rem;margin-bottom:1.2rem;}
 .card p,.card li{font-size:0.84rem;color:var(--muted);line-height:1.85;}
+.card-link{background:var(--card);border-radius:var(--radius);padding:1.4rem;cursor:pointer;transition:all 0.2s;border:1px solid transparent;position:relative;}
+.card-link:hover{background:var(--card-h);border-color:var(--border);transform:translateY(-2px);box-shadow:0 2px 8px rgba(26,23,20,0.06);}
+.card-link::after{content:'→';position:absolute;top:1.4rem;right:1.4rem;font-size:0.9rem;color:var(--muted);transition:transform 0.2s;}
+.card-link:hover::after{transform:translateX(3px);color:var(--fg);}
+.card-link h3{font-size:0.95rem;font-weight:600;margin-bottom:0.5rem;}
+.card-link p{font-size:0.84rem;color:var(--muted);line-height:1.85;padding-right:1.5rem;}
 
 /* ── MATH ── */
 .math{background:var(--fg);color:var(--bg);border-radius:var(--radius);padding:1.2rem 1.5rem;font-family:var(--mono);font-size:0.8rem;line-height:2;overflow-x:auto;margin:1.2rem 0;white-space:pre-line;}
@@ -79,7 +85,7 @@ h3{font-size:0.95rem;font-weight:600;margin-bottom:0.5rem;}
 .mat-label{font-family:var(--mono);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:0.4rem;text-align:center;}
 .mat{display:inline-grid;gap:2px;background:var(--border);border-radius:var(--radius);padding:2px;}
 .mc{width:2.6rem;height:2.6rem;display:flex;align-items:center;justify-content:center;background:var(--card);font-family:var(--mono);font-size:0.78rem;font-weight:500;transition:all 0.25s;user-select:none;}
-.mc.hi{background:var(--fg);color:var(--bg);}.mc.res{background:var(--accent);font-weight:700;}.mc.done{background:var(--green);color:#fff;}
+.mc.hi{background:var(--fg);color:var(--bg);}.mc.hi0{background:var(--accent);color:var(--fg);}.mc.res{background:var(--accent);font-weight:700;}.mc.done{background:var(--green);color:#fff;}
 .op{font-size:1.4rem;color:var(--muted);display:flex;align-items:center;padding:0 0.2rem;font-weight:300;}
 
 /* ── EDIT GRID ── */
@@ -167,19 +173,19 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
 
   <div style="margin-top:2.5rem;">
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:1rem;">
-      <div class="card" style="cursor:pointer;" onclick="go('hamming')">
+      <div class="card-link" onclick="go('hamming')">
         <h3>해밍 거리</h3>
         <p>두 이진 데이터 사이의 차이를 XOR 연산으로 측정합니다. 이미지를 행렬로 변환한 뒤 유사도를 비교하는 기본적인 분류 방법입니다.</p>
       </div>
-      <div class="card" style="cursor:pointer;" onclick="go('conv')">
+      <div class="card-link" onclick="go('conv')">
         <h3>합성곱 연산</h3>
         <p>CNN의 핵심 연산인 합성곱(아다마르 곱)의 원리를 이해합니다. 필터가 이미지 위를 이동하며 특징을 추출하는 과정을 다룹니다.</p>
       </div>
-      <div class="card" style="cursor:pointer;" onclick="go('filter')">
+      <div class="card-link" onclick="go('filter')">
         <h3>필터 실습</h3>
         <p>직접 이미지를 업로드하고, 다양한 커널(세로선, 가로선, 블러, 윤곽선 등)을 적용하여 결과를 확인합니다.</p>
       </div>
-      <div class="card" style="cursor:pointer;" onclick="go('pool')">
+      <div class="card-link" onclick="go('pool')">
         <h3>풀링과 정규화</h3>
         <p>맥스 풀링으로 데이터를 압축하는 과정과, 학습 효율을 위한 데이터 정규화를 체험합니다.</p>
       </div>
@@ -454,17 +460,29 @@ K: 필터(커널)  X: 입력의 일부  Y: 출력값
 // ═══════════════════════════════════════════
 //  NAVIGATION (SPA-style)
 // ═══════════════════════════════════════════
-function go(v){
+let currentView='home';
+function go(v,pushState=true){
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.getElementById('v-'+v).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.querySelector(`.nav-btn[data-v="${v}"]`).classList.add('active');
   window.scrollTo(0,0);
+  currentView=v;
+  if(pushState)try{history.pushState({view:v},'','#'+v);}catch(e){}
   // lazy init
   if(v==='filter'&&!srcImg){createDefImg();applyF();document.getElementById('up-status').textContent='기본 도형 이미지가 적용되었습니다. 직접 업로드하여 변경할 수 있습니다.';}
   if(v==='pool'){pRst();}
 }
 document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>go(b.dataset.v)));
+
+window.addEventListener('popstate',e=>{
+  if(e.state&&e.state.view){go(e.state.view,false);}
+  else{go('home',false);}
+});
+
+(()=>{try{const h=location.hash.replace('#','');if(h&&document.getElementById('v-'+h)){go(h);}else{history.replaceState({view:'home'},'','#home');}}catch(e){}})();
+
+window.addEventListener('beforeunload',e=>{if(currentView!=='home'){e.preventDefault();}});
 
 function htab(n,el){document.querySelectorAll('#v-hamming .tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.querySelectorAll('#v-hamming .tpanel').forEach(p=>p.classList.remove('on'));document.getElementById('ht'+n).classList.add('on');}
 function ctab(n,el){document.querySelectorAll('#v-conv .tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.querySelectorAll('#v-conv .tpanel').forEach(p=>p.classList.remove('on'));document.getElementById('ct'+n).classList.add('on');}
@@ -599,7 +617,7 @@ newMan();
 // ═══════════════════════════════════════════
 const AI=[[0,0,0,0,0],[0,1,1,1,0],[0,1,0,1,0],[0,1,1,1,0],[0,0,0,0,0]];
 const AK=[[1,0,1],[0,1,0],[1,0,1]];
-let ap=-1,ar=Array(9).fill('?'),aPlaying=false;
+let ap=-1,ar=Array(9).fill('?');
 
 function bldA(){
   ['ai','ak','ao'].forEach(id=>document.getElementById(id).innerHTML='');
@@ -609,7 +627,7 @@ function bldA(){
 }
 bldA();
 
-function aReset(){ap=-1;ar=Array(9).fill('?');aPlaying=false;bldA();document.getElementById('ast').textContent='';document.getElementById('acalc').innerHTML='시작 버튼을 눌러 연산 과정을 확인하세요.';}
+
 
 function aStep(){
   ap++;if(ap>=9){ap=8;return;}
@@ -617,16 +635,21 @@ function aStep(){
   for(let r=0;r<5;r++)for(let c=0;c<5;c++)document.getElementById(`ai${r}${c}`).className='mc';
   let sum=0,terms=[];
   for(let kr=0;kr<3;kr++)for(let kc=0;kc<3;kc++){
-    const ir=row+kr,ic=col+kc;document.getElementById(`ai${ir}${ic}`).className='mc hi';
-    const p=AI[ir][ic]*AK[kr][kc];sum+=p;terms.push(`(${AI[ir][ic]}×${AK[kr][kc]})`);
+    const ir=row+kr,ic=col+kc;
+    const kv=AK[kr][kc];
+    // hi = kernel nonzero (active multiplier), hi0 = kernel zero (multiplied by 0)
+    document.getElementById(`ai${ir}${ic}`).className=kv!==0?'mc hi':'mc hi0';
+    const p=AI[ir][ic]*kv;sum+=p;terms.push(`(${AI[ir][ic]}×${kv})`);
   }
   ar[ap]=sum;
   for(let i=0;i<9;i++){const e=document.getElementById(`ao${i}`);e.textContent=ar[i];e.className=i===ap?'mc res':ar[i]!=='?'?'mc done':'mc';}
   document.getElementById('ast').textContent=`위치 (${row}, ${col}) → ${sum}`;
-  document.getElementById('acalc').innerHTML=`<strong>계산:</strong> ${terms.join(' + ')} = <strong>${sum}</strong>`;
+  document.getElementById('acalc').innerHTML=`<strong>계산:</strong> ${terms.join(' + ')} = <strong>${sum}</strong><br><span style="font-size:0.65rem;">진한 색 = 필터값이 0이 아닌 구역 · 연한 색 = 필터값 0 · 흰색 = 현재 윈도우 밖</span>`;
 }
 
-function aAuto(){if(aPlaying)return;aPlaying=true;aReset();let s=0;const iv=setInterval(()=>{aStep();s++;if(s>=9){clearInterval(iv);aPlaying=false;}},800);}
+let aIv=null;
+function aAuto(){if(aIv){clearInterval(aIv);aIv=null;}aReset();let s=0;aIv=setInterval(()=>{aStep();s++;if(s>=9){clearInterval(aIv);aIv=null;}},800);}
+function aReset(){if(aIv){clearInterval(aIv);aIv=null;}ap=-1;ar=Array(9).fill('?');bldA();document.getElementById('ast').textContent='';document.getElementById('acalc').innerHTML='시작 버튼을 눌러 연산 과정을 확인하세요.';}
 
 // ═══════════════════════════════════════════
 //  FILTER PLAYGROUND
@@ -695,7 +718,7 @@ bldFC();rFK();
 // ═══════════════════════════════════════════
 //  POOLING
 // ═══════════════════════════════════════════
-let pI=[[9,8,4,8],[7,9,4,8],[2,8,9,7],[6,5,9,5]],pP=-1,pR=['?','?','?','?'],pPl=false;
+let pI=[[9,8,4,8],[7,9,4,8],[2,8,9,7],[6,5,9,5]],pP=-1,pR=['?','?','?','?'],pIv=null;
 
 function bldP(){
   mkEG('pi',pI,4,4);
@@ -703,7 +726,7 @@ function bldP(){
   for(let i=0;i<4;i++){const e=document.createElement('div');e.className='mc';e.id=`po${i}`;e.textContent=pR[i];o.appendChild(e);}
 }
 
-function pRst(){pP=-1;pR=['?','?','?','?'];pPl=false;bldP();document.getElementById('pst').textContent='';}
+function pRst(){if(pIv){clearInterval(pIv);pIv=null;}pP=-1;pR=['?','?','?','?'];bldP();document.getElementById('pst').textContent='';}
 
 function pStp(){
   pP++;if(pP>=4){pP=3;return;}
@@ -721,7 +744,7 @@ function pStp(){
   document.getElementById('pst').textContent=`${sr}~${sr+1}행, ${sc}~${sc+1}열 → max = ${mx}`;
 }
 
-function pAut(){if(pPl)return;pPl=true;pRst();let s=0;const iv=setInterval(()=>{pStp();s++;if(s>=4){clearInterval(iv);pPl=false;}},1000);}
+function pAut(){if(pIv){clearInterval(pIv);pIv=null;}pRst();let s=0;pIv=setInterval(()=>{pStp();s++;if(s>=4){clearInterval(pIv);pIv=null;}},1000);}
 
 pRst();
 
