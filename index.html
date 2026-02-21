@@ -150,6 +150,7 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
   .cmp{grid-template-columns:1fr;}.cmp-c:first-child{border-right:none;border-bottom:1px solid var(--border);}
   .mc,.ec{width:2.1rem;height:2.1rem;font-size:0.68rem;}
   nav{gap:0.5rem;}
+  #v-perceptron>div{grid-template-columns:1fr !important;}
 }
 </style>
 </head>
@@ -163,6 +164,8 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
     <button class="nav-btn" data-v="conv">합성곱</button>
     <button class="nav-btn" data-v="filter">필터 실습</button>
     <button class="nav-btn" data-v="pool">풀링 · 정규화</button>
+    <button class="nav-btn" data-v="perceptron">퍼셉트론</button>
+    <button class="nav-btn" data-v="text">텍스트 데이터</button>
   </nav>
 </header>
 
@@ -171,10 +174,10 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
 <!-- ═══════════ HOME ═══════════ -->
 <div class="view active" id="v-home">
   <p class="mono" style="margin-bottom:0.5rem;">인공지능 수학</p>
-  <h1>행렬을 활용한 이미지 표현과 변환</h1>
+  <h1>인공지능의 수학적 원리</h1>
   <p class="desc" style="margin-top:0.8rem;">
-    인공지능이 이미지를 인식하는 과정에는 행렬 연산이 핵심적으로 사용됩니다.
-    각 주제를 직접 조작하며 학습할 수 있습니다.
+    인공지능의 핵심 개념들을 수학적으로 이해하고,
+    직접 조작하며 학습할 수 있습니다.
   </p>
 
   <div style="margin-top:2.5rem;">
@@ -194,6 +197,14 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
       <div class="card-link" onclick="go('pool')">
         <h3>풀링과 정규화</h3>
         <p>맥스 풀링으로 데이터를 압축하는 과정과, 학습 효율을 위한 데이터 정규화를 체험합니다.</p>
+      </div>
+      <div class="card-link" onclick="go('perceptron')">
+        <h3>퍼셉트론</h3>
+        <p>신경망의 기본 단위인 퍼셉트론의 작동 원리를 시각화합니다. 입력, 가중치, 활성화 함수의 관계를 직접 조작하며 확인합니다.</p>
+      </div>
+      <div class="card-link" onclick="go('text')">
+        <h3>텍스트 데이터</h3>
+        <p>자연어를 수치 벡터로 변환하는 과정을 학습합니다. 원-핫 인코딩과 빈도수 벡터(BoW)를 직접 체험합니다.</p>
       </div>
     </div>
   </div>
@@ -459,6 +470,124 @@ K: 필터(커널)  X: 입력의 일부  Y: 출력값
   </div>
 </div>
 
+<!-- ═══════════ PERCEPTRON ═══════════ -->
+<div class="view" id="v-perceptron">
+  <p class="mono" style="margin-bottom:0.4rem;">퍼셉트론</p>
+  <h2>신경망의 기본 단위</h2>
+  <p class="desc">
+    퍼셉트론은 입력값에 가중치를 곱하고 편향을 더한 뒤, 활성화 함수를 통과시켜 출력을 결정합니다.
+    아래에서 입력, 가중치, 편향, 활성화 함수를 직접 조작해보세요.
+  </p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+    <!-- LEFT: Controls -->
+    <div>
+      <div class="card">
+        <h3>입력과 가중치</h3>
+        <p style="margin-bottom:1rem;">슬라이더로 입력값을, 숫자 입력으로 가중치를 조절하세요.</p>
+        <div id="pc-inputs"></div>
+      </div>
+
+      <div class="card">
+        <h3>편향 (Bias)</h3>
+        <div style="display:flex;align-items:center;gap:0.8rem;margin-top:0.5rem;">
+          <span class="mono" style="width:1rem;">b</span>
+          <input type="range" class="ns" id="pc-bias" min="-5" max="5" step="0.1" value="0" style="max-width:12rem;">
+          <span id="pc-bias-val" style="font-family:var(--mono);font-size:0.8rem;min-width:3rem;text-align:right;">0.0</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>활성화 함수</h3>
+        <div class="chips" id="pc-act-chips"></div>
+        <div id="pc-threshold-wrap" style="margin-top:0.8rem;">
+          <div style="display:flex;align-items:center;gap:0.8rem;">
+            <span style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);">임계값 (θ)</span>
+            <input type="range" class="ns" id="pc-theta" min="-5" max="5" step="0.1" value="0" style="max-width:10rem;">
+            <span id="pc-theta-val" style="font-family:var(--mono);font-size:0.8rem;min-width:3rem;text-align:right;">0.0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="pc-result-card">
+        <h3>계산 과정</h3>
+        <div id="pc-calc" style="font-family:var(--mono);font-size:0.78rem;line-height:2.2;color:var(--muted);"></div>
+        <div style="margin-top:0.8rem;display:flex;align-items:baseline;gap:0.5rem;">
+          <span style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);">출력 y =</span>
+          <span id="pc-output" style="font-family:var(--mono);font-size:1.6rem;font-weight:700;"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Graph -->
+    <div>
+      <div class="card" style="height:100%;display:flex;flex-direction:column;">
+        <h3>활성화 함수 그래프</h3>
+        <p style="margin-bottom:0.5rem;">빨간 점은 현재 가중합 x와 출력 y의 위치입니다.</p>
+        <canvas id="pc-graph" width="480" height="360" style="width:100%;border-radius:var(--radius);border:1px solid var(--border);background:#fff;flex:1;"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ TEXT DATA ═══════════ -->
+<div class="view" id="v-text">
+  <p class="mono" style="margin-bottom:0.4rem;">텍스트 데이터</p>
+  <h2>자연어의 수치 표현</h2>
+  <p class="desc">
+    인공지능이 텍스트를 처리하려면 단어를 숫자로 변환해야 합니다.
+    문장을 입력하면 원-핫 벡터와 빈도수 벡터로 변환하는 과정을 확인할 수 있습니다.
+  </p>
+
+  <div class="tabs">
+    <button class="tab on" onclick="ttab(0,this)">원-핫 인코딩</button>
+    <button class="tab" onclick="ttab(1,this)">빈도수 벡터</button>
+  </div>
+
+  <!-- TAB 0: One-Hot -->
+  <div class="tpanel on" id="tt0">
+    <div class="card">
+      <h3>원-핫 인코딩 (One-Hot Encoding)</h3>
+      <p>단어 집합에서 각 단어의 위치만 1이고 나머지는 모두 0인 벡터로 표현합니다.
+        아래에 문장을 입력하면 각 단어의 원-핫 벡터를 확인할 수 있습니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>문장 입력</h3>
+      <input type="text" id="oh-input" placeholder="예: 나는 인공지능 수학을 좋아한다" value="나는 인공지능 수학을 좋아한다"
+        style="width:100%;padding:0.6rem 0.8rem;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--sans);font-size:0.88rem;background:var(--bg);color:var(--fg);margin-top:0.5rem;">
+      <div class="btn-row">
+        <button class="btn pri" onclick="ohVocabUser=null;ohEncode()">인코딩</button>
+      </div>
+    </div>
+
+    <div id="oh-result"></div>
+  </div>
+
+  <!-- TAB 1: BoW -->
+  <div class="tpanel" id="tt1">
+    <div class="card">
+      <h3>빈도수 벡터 (Bag of Words)</h3>
+      <p>문장에서 조사를 제거하고, 남은 단어들의 등장 횟수를 벡터로 표현합니다.
+        여러 문장을 입력하면 각 문장의 빈도수 벡터를 비교할 수 있습니다.</p>
+    </div>
+
+    <div class="card">
+      <h3>문장 입력 (줄바꿈으로 여러 문장 입력)</h3>
+      <textarea id="bow-input" rows="4" placeholder="문장 1&#10;문장 2&#10;..."
+        style="width:100%;padding:0.6rem 0.8rem;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--sans);font-size:0.86rem;background:var(--bg);color:var(--fg);resize:vertical;margin-top:0.5rem;">오늘 날씨가 좋다
+오늘 공부를 한다
+인공지능 수학 공부가 재미있다</textarea>
+      <div class="btn-row">
+        <button class="btn pri" onclick="bowAnalyze()">분석</button>
+        <button class="btn" onclick="bowAnimate()">단계별 애니메이션</button>
+      </div>
+    </div>
+
+    <div id="bow-result"></div>
+  </div>
+</div>
+
 </main>
 
 <footer><div class="inner"><span>인공지능 수학 — 대전대신고등학교</span><span>2026</span></div></footer>
@@ -479,6 +608,7 @@ function go(v,pushState=true){
   // lazy init
   if(v==='filter'&&!srcImg){createDefImg();applyF();document.getElementById('up-status').textContent='기본 도형 이미지가 적용되었습니다. 직접 업로드하여 변경할 수 있습니다.';}
   if(v==='pool'){pRst();}
+  if(v==='perceptron'&&!pcInited){pcInited=true;pcInit();}
 }
 document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>go(b.dataset.v)));
 
@@ -791,6 +921,610 @@ function pStp(){
 function pAut(){if(pIv){clearInterval(pIv);pIv=null;}pRst();let s=0;pIv=setInterval(()=>{pStp();s++;if(s>=4){clearInterval(pIv);pIv=null;}},1000);}
 
 pRst();
+
+// ═══════════════════════════════════════════
+//  PERCEPTRON
+// ═══════════════════════════════════════════
+const PC_N=3;
+let pcInputs=[1,0.5,-0.3];
+let pcWeights=[0.8,-0.5,0.6];
+let pcBias=0;
+let pcAct='step';
+let pcTheta=0;
+
+const PC_ACTS={
+  'step':{name:'계단 함수',hasTheta:true},
+  'relu':{name:'ReLU',hasTheta:true},
+  'sigmoid':{name:'시그모이드',hasTheta:false},
+};
+
+function pcInit(){
+  // Build input controls
+  const box=document.getElementById('pc-inputs');
+  box.innerHTML='';
+  for(let i=0;i<PC_N;i++){
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:0.6rem;margin-bottom:0.8rem;';
+    row.innerHTML=`
+      <span class="mono" style="width:1.5rem;flex-shrink:0;">x${i+1}</span>
+      <input type="range" class="ns" id="pc-x${i}" min="-2" max="2" step="0.05" value="${pcInputs[i]}" style="max-width:10rem;flex:1;">
+      <span id="pc-xv${i}" style="font-family:var(--mono);font-size:0.78rem;min-width:2.5rem;text-align:right;">${pcInputs[i].toFixed(2)}</span>
+      <span class="mono" style="color:var(--muted);flex-shrink:0;">w${i+1}</span>
+      <input type="number" id="pc-w${i}" value="${pcWeights[i]}" step="0.1" style="width:4rem;font-family:var(--mono);font-size:0.78rem;padding:0.3rem 0.4rem;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--fg);text-align:center;">
+    `;
+    box.appendChild(row);
+    // Events
+    document.getElementById(`pc-x${i}`).addEventListener('input',function(){
+      pcInputs[i]=parseFloat(this.value);
+      document.getElementById(`pc-xv${i}`).textContent=pcInputs[i].toFixed(2);
+      pcUpdate();
+    });
+    document.getElementById(`pc-w${i}`).addEventListener('input',function(){
+      pcWeights[i]=parseFloat(this.value)||0;
+      pcUpdate();
+    });
+  }
+
+  // Bias slider
+  document.getElementById('pc-bias').addEventListener('input',function(){
+    pcBias=parseFloat(this.value);
+    document.getElementById('pc-bias-val').textContent=pcBias.toFixed(1);
+    pcUpdate();
+  });
+
+  // Activation chips
+  const actBox=document.getElementById('pc-act-chips');
+  actBox.innerHTML='';
+  Object.keys(PC_ACTS).forEach(key=>{
+    const ch=document.createElement('button');
+    ch.className='chip'+(key===pcAct?' on':'');
+    ch.textContent=PC_ACTS[key].name;
+    ch.onclick=()=>{
+      pcAct=key;
+      actBox.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+      ch.classList.add('on');
+      document.getElementById('pc-threshold-wrap').style.display=PC_ACTS[key].hasTheta?'block':'none';
+      pcUpdate();
+    };
+    actBox.appendChild(ch);
+  });
+
+  // Theta slider
+  document.getElementById('pc-theta').addEventListener('input',function(){
+    pcTheta=parseFloat(this.value);
+    document.getElementById('pc-theta-val').textContent=pcTheta.toFixed(1);
+    pcUpdate();
+  });
+
+  pcUpdate();
+}
+
+function pcActivate(x){
+  switch(pcAct){
+    case 'step': return x>=pcTheta?1:0;
+    case 'relu': return x>=pcTheta?x-pcTheta:0;
+    case 'sigmoid': return 1/(1+Math.exp(-(x)));
+  }
+}
+
+function pcUpdate(){
+  // Weighted sum
+  let wsum=pcBias;
+  const terms=[];
+  for(let i=0;i<PC_N;i++){
+    wsum+=pcInputs[i]*pcWeights[i];
+    terms.push(`(${pcInputs[i].toFixed(2)} × ${pcWeights[i].toFixed(1)})`);
+  }
+  const y=pcActivate(wsum);
+
+  // Show calc
+  const calcEl=document.getElementById('pc-calc');
+  calcEl.innerHTML=
+    `가중합: ${terms.join(' + ')} + ${pcBias.toFixed(1)}<br>`+
+    `<span style="color:var(--fg);font-weight:600;">x = ${wsum.toFixed(3)}</span><br>`+
+    `f(x) = ${pcAct==='step'?'계단(θ='+pcTheta.toFixed(1)+')':pcAct==='relu'?'ReLU(θ='+pcTheta.toFixed(1)+')':'σ(x)'}`;
+
+  document.getElementById('pc-output').textContent=y.toFixed(4);
+
+  pcDrawGraph(wsum,y);
+}
+
+function pcDrawGraph(curX,curY){
+  const cv=document.getElementById('pc-graph');
+  const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  const pad=40;
+
+  ctx.clearRect(0,0,W,H);
+
+  // Graph range
+  const xMin=-6,xMax=6,yMin=-0.5,yMax=pcAct==='relu'?4:1.5;
+
+  const toSX=x=>pad+(x-xMin)/(xMax-xMin)*(W-2*pad);
+  const toSY=y=>H-pad-(y-yMin)/(yMax-yMin)*(H-2*pad);
+
+  // Grid
+  ctx.strokeStyle='#e8e0d6';
+  ctx.lineWidth=1;
+  for(let gx=Math.ceil(xMin);gx<=Math.floor(xMax);gx++){
+    const sx=toSX(gx);
+    ctx.beginPath();ctx.moveTo(sx,pad);ctx.lineTo(sx,H-pad);ctx.stroke();
+  }
+  for(let gy=Math.ceil(yMin*2)/2;gy<=yMax;gy+=0.5){
+    const sy=toSY(gy);
+    ctx.beginPath();ctx.moveTo(pad,sy);ctx.lineTo(W-pad,sy);ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle='#c8b9a6';
+  ctx.lineWidth=1.5;
+  // X axis
+  const ax0=toSY(0);
+  ctx.beginPath();ctx.moveTo(pad,ax0);ctx.lineTo(W-pad,ax0);ctx.stroke();
+  // Y axis
+  const ay0=toSX(0);
+  ctx.beginPath();ctx.moveTo(ay0,pad);ctx.lineTo(ay0,H-pad);ctx.stroke();
+
+  // Axis labels
+  ctx.fillStyle='#78726a';
+  ctx.font='11px "JetBrains Mono"';
+  ctx.textAlign='center';
+  for(let gx=Math.ceil(xMin);gx<=Math.floor(xMax);gx++){
+    if(gx===0)continue;
+    ctx.fillText(gx,toSX(gx),ax0+14);
+  }
+  ctx.textAlign='right';
+  for(let gy=0;gy<=yMax;gy+=0.5){
+    if(gy===0)continue;
+    const sy=toSY(gy);
+    if(sy>pad&&sy<H-pad) ctx.fillText(gy.toFixed(1),ay0-6,sy+4);
+  }
+
+  // Threshold line (for step and relu)
+  if(pcAct!=='sigmoid'){
+    const tx=toSX(pcTheta);
+    ctx.strokeStyle='#4a6b8a';
+    ctx.lineWidth=1;
+    ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(tx,pad);ctx.lineTo(tx,H-pad);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#4a6b8a';
+    ctx.textAlign='center';
+    ctx.fillText('θ='+pcTheta.toFixed(1),tx,pad-6);
+  }
+
+  // Function curve
+  ctx.strokeStyle='#1a1714';
+  ctx.lineWidth=2.5;
+  ctx.beginPath();
+  let first=true;
+  for(let px=pad;px<=W-pad;px++){
+    const x=xMin+(px-pad)/(W-2*pad)*(xMax-xMin);
+    const y=pcActivate(x);
+    const sy=toSY(y);
+    if(sy<pad-10||sy>H-pad+10){if(!first){ctx.stroke();ctx.beginPath();first=true;}continue;}
+    if(first){ctx.moveTo(px,sy);first=false;}
+    else ctx.lineTo(px,sy);
+  }
+  ctx.stroke();
+
+  // Current point
+  const px=toSX(curX),py=toSY(curY);
+  // Dashed lines to point
+  ctx.strokeStyle='#b44133';
+  ctx.lineWidth=1;
+  ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(px,ax0);ctx.lineTo(px,py);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ay0,py);ctx.lineTo(px,py);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Point
+  ctx.fillStyle='#b44133';
+  ctx.beginPath();ctx.arc(px,py,6,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#fff';
+  ctx.beginPath();ctx.arc(px,py,2.5,0,Math.PI*2);ctx.fill();
+
+  // Label
+  ctx.fillStyle='#b44133';
+  ctx.font='bold 11px "JetBrains Mono"';
+  ctx.textAlign='left';
+  ctx.fillText(`(${curX.toFixed(2)}, ${curY.toFixed(4)})`,px+10,py-8);
+
+  // Function name
+  ctx.fillStyle='#1a1714';
+  ctx.font='bold 12px "Noto Sans KR"';
+  ctx.textAlign='left';
+  const fname=pcAct==='step'?'계단 함수':pcAct==='relu'?'ReLU':'시그모이드';
+  ctx.fillText('f(x) = '+fname,pad+4,pad-8);
+}
+
+// Lazy init on first visit
+let pcInited=false;
+
+function ttab(n,el){document.querySelectorAll('#v-text .tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.querySelectorAll('#v-text .tpanel').forEach(p=>p.classList.remove('on'));document.getElementById('tt'+n).classList.add('on');}
+
+// ═══════════════════════════════════════════
+//  ONE-HOT ENCODING
+// ═══════════════════════════════════════════
+function ohTokenize(text){
+  return text.trim().replace(/[.,!?;:'"()]/g,'').split(/\s+/).filter(w=>w.length>0);
+}
+
+let ohVocabUser=null; // user-edited vocabulary
+
+function ohEncode(){
+  const text=document.getElementById('oh-input').value;
+  const tokens=tokenizeWithParticles(text);
+  if(tokens.length===0)return;
+
+  const stems=tokens.map(t=>t.stem);
+
+  // Build default vocabulary from stems (unique, order of appearance)
+  const defaultVocab=[];
+  stems.forEach(s=>{if(!defaultVocab.includes(s))defaultVocab.push(s);});
+
+  // Use user-edited vocab if available, otherwise default
+  const vocab=ohVocabUser||defaultVocab;
+
+  const box=document.getElementById('oh-result');
+  const colors=['#b44133','#4a6b8a','#5a7a5a','#8a6a4a','#6a4a8a','#4a8a7a','#8a4a6a','#7a8a4a','#4a5a8a','#8a7a4a'];
+  let html='';
+
+  // Step 1: Particle removal visualization
+  html+=`<div class="card"><h3>조사 제거</h3>`;
+  html+=`<div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.5rem;">`;
+  tokens.forEach(t=>{
+    if(t.particle){
+      html+=`<span style="display:inline-flex;align-items:center;gap:0;font-family:var(--mono);font-size:0.82rem;">`;
+      html+=`<span style="padding:0.25rem 0.35rem;background:var(--fg);color:var(--bg);border-radius:var(--radius) 0 0 var(--radius);font-weight:600;">${t.stem}</span>`;
+      html+=`<span style="padding:0.25rem 0.35rem;background:var(--card);color:var(--muted);border-radius:0 var(--radius) var(--radius) 0;text-decoration:line-through;border:1px solid var(--border);border-left:none;">${t.particle}</span>`;
+      html+=`</span>`;
+    }else{
+      html+=`<span style="padding:0.25rem 0.45rem;border-radius:var(--radius);font-family:var(--mono);font-size:0.82rem;background:var(--fg);color:var(--bg);font-weight:600;">${t.stem}</span>`;
+    }
+  });
+  html+=`</div></div>`;
+
+  // Step 2: Editable vocabulary
+  html+=`<div class="card"><h3>단어 집합 (편집 가능)</h3>`;
+  html+=`<p style="margin-bottom:0.5rem;">단어를 추가/삭제하여 집합을 직접 수정할 수 있습니다.</p>`;
+  html+=`<div style="display:flex;flex-wrap:wrap;gap:0.3rem;margin-bottom:0.6rem;" id="oh-vocab-tags">`;
+  vocab.forEach((w,i)=>{
+    const c=colors[i%colors.length];
+    html+=`<span style="display:inline-flex;align-items:center;gap:0.25rem;font-family:var(--mono);font-size:0.72rem;padding:0.2rem 0.5rem;border-radius:9999px;background:${c}18;color:${c};border:1px solid ${c}30;">[${i}] ${w}<button onclick="ohRemoveVocab(${i})" style="border:none;background:none;color:${c};cursor:pointer;font-size:0.8rem;padding:0;line-height:1;">×</button></span>`;
+  });
+  html+=`</div>`;
+  html+=`<div style="display:flex;gap:0.3rem;align-items:center;">`;
+  html+=`<input type="text" id="oh-vocab-add" placeholder="단어 추가" style="padding:0.35rem 0.6rem;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--mono);font-size:0.75rem;background:var(--bg);color:var(--fg);width:8rem;">`;
+  html+=`<button class="btn" onclick="ohAddVocab()">추가</button>`;
+  html+=`<button class="btn" onclick="ohResetVocab()">기본값 복원</button>`;
+  html+=`</div></div>`;
+
+  // Step 3: Highlighted sentence with vocab matches
+  html+=`<div class="card"><h3>단어 집합 매칭</h3>`;
+  html+=`<div style="display:flex;flex-wrap:wrap;gap:0.3rem;">`;
+  stems.forEach(s=>{
+    const vi=vocab.indexOf(s);
+    if(vi>=0){
+      const c=colors[vi%colors.length];
+      html+=`<span style="display:inline-block;padding:0.25rem 0.5rem;border-radius:var(--radius);font-family:var(--mono);font-size:0.82rem;font-weight:600;background:${c}20;color:${c};border:1px solid ${c}40;">${s}</span>`;
+    }else{
+      html+=`<span style="display:inline-block;padding:0.25rem 0.5rem;border-radius:var(--radius);font-family:var(--mono);font-size:0.82rem;background:var(--card);color:var(--muted);opacity:0.5;">${s}</span>`;
+    }
+  });
+  html+=`</div></div>`;
+
+  // Step 4: One-hot vectors table
+  html+=`<div class="card"><h3>원-핫 벡터</h3>`;
+  html+=`<div style="overflow-x:auto;"><table style="border-collapse:collapse;margin-top:0.5rem;width:100%;">`;
+  html+=`<tr><td style="padding:0.4rem 0.6rem;font-family:var(--mono);font-size:0.62rem;color:var(--muted);border-bottom:1px solid var(--border);">단어</td>`;
+  vocab.forEach((w,i)=>{
+    const c=colors[i%colors.length];
+    html+=`<td style="padding:0.4rem 0.3rem;text-align:center;font-family:var(--mono);font-size:0.58rem;color:${c};border-bottom:1px solid var(--border);min-width:2rem;">${w}</td>`;
+  });
+  html+=`</tr>`;
+  vocab.forEach((w,wi)=>{
+    const c=colors[wi%colors.length];
+    html+=`<tr><td style="padding:0.4rem 0.6rem;font-family:var(--mono);font-size:0.78rem;font-weight:600;color:${c};border-bottom:1px solid var(--border);white-space:nowrap;">${w}</td>`;
+    vocab.forEach((_,j)=>{
+      const v=j===wi?1:0;
+      const bg=v?c:'transparent';
+      html+=`<td style="padding:0.4rem 0.3rem;text-align:center;font-family:var(--mono);font-size:0.78rem;font-weight:${v?'700':'400'};background:${v?bg+'dd':'transparent'};color:${v?'#fff':'var(--muted)'};border-bottom:1px solid var(--border);border-radius:${v?'3px':'0'};">${v}</td>`;
+    });
+    html+=`</tr>`;
+  });
+  html+=`</table></div></div>`;
+
+  html+=`<div class="info"><strong>원-핫 인코딩의 한계:</strong> 단어 집합이 커지면 벡터 차원이 급격히 증가하고, 단어 간 유사도를 표현할 수 없습니다. 이를 개선한 것이 Word2Vec 등의 워드 임베딩 방법입니다.</div>`;
+
+  box.innerHTML=html;
+}
+
+function ohRemoveVocab(idx){
+  const text=document.getElementById('oh-input').value;
+  const tokens=tokenizeWithParticles(text);
+  const stems=tokens.map(t=>t.stem);
+  const defaultVocab=[];stems.forEach(s=>{if(!defaultVocab.includes(s))defaultVocab.push(s);});
+  const current=ohVocabUser||[...defaultVocab];
+  current.splice(idx,1);
+  ohVocabUser=current;
+  ohEncode();
+}
+
+function ohAddVocab(){
+  const inp=document.getElementById('oh-vocab-add');
+  const w=inp.value.trim();
+  if(!w)return;
+  const text=document.getElementById('oh-input').value;
+  const tokens=tokenizeWithParticles(text);
+  const stems=tokens.map(t=>t.stem);
+  const defaultVocab=[];stems.forEach(s=>{if(!defaultVocab.includes(s))defaultVocab.push(s);});
+  const current=ohVocabUser||[...defaultVocab];
+  if(!current.includes(w)){current.push(w);ohVocabUser=current;ohEncode();}
+}
+
+function ohResetVocab(){
+  ohVocabUser=null;
+  ohEncode();
+}
+
+// ═══════════════════════════════════════════
+//  BAG OF WORDS
+// ═══════════════════════════════════════════
+const PARTICLES=['에서','으로','에게','까지','부터','는','은','이','가','을','를','의','에','와','과','도','로','만','든','라','며','나','다'];
+
+function stripParticle(word){
+  for(const p of PARTICLES){
+    if(word.length>p.length && word.endsWith(p)){
+      return {stem:word.slice(0,-p.length),particle:p};
+    }
+  }
+  return {stem:word,particle:null};
+}
+
+function tokenizeWithParticles(text){
+  const raw=text.trim().replace(/[.,!?;:'"()]/g,'').split(/\s+/).filter(w=>w.length>0);
+  return raw.map(w=>{
+    const {stem,particle}=stripParticle(w);
+    return {original:w, stem, particle};
+  });
+}
+
+function bowTokenize(text){
+  return text.trim().replace(/[.,!?;:'"()]/g,'').split(/\s+/).filter(w=>w.length>0);
+}
+
+function bowProcess(sentences){
+  const results=sentences.map(s=>{
+    const tokens=tokenizeWithParticles(s);
+    return {
+      original:s,
+      tokens,
+      stems:tokens.map(t=>t.stem),
+    };
+  });
+
+  // Build vocabulary from all stems
+  const vocab=[];
+  results.forEach(r=>r.stems.forEach(s=>{if(!vocab.includes(s))vocab.push(s);}));
+  vocab.sort();
+
+  // Count frequencies
+  results.forEach(r=>{
+    r.freq={};
+    vocab.forEach(w=>{r.freq[w]=0;});
+    r.stems.forEach(s=>{r.freq[s]++;});
+  });
+
+  return {results,vocab};
+}
+
+function bowRenderResult(data){
+  const {results,vocab}=data;
+  const box=document.getElementById('bow-result');
+  const colors=['#b44133','#4a6b8a','#5a7a5a','#8a6a4a','#6a4a8a','#4a8a7a','#8a4a6a','#7a8a4a'];
+  let html='';
+
+  // Step 1: Show particle removal per sentence
+  results.forEach((r,si)=>{
+    html+=`<div class="card"><h3>문장 ${si+1}: ${r.original}</h3>`;
+    html+=`<p class="mono" style="margin-bottom:0.4rem;">조사 제거</p>`;
+    html+=`<div style="display:flex;flex-wrap:wrap;gap:0.4rem;">`;
+    r.tokens.forEach(t=>{
+      if(t.particle){
+        html+=`<span style="display:inline-flex;align-items:center;font-family:var(--mono);font-size:0.78rem;">`;
+        html+=`<span style="padding:0.2rem 0.35rem;background:var(--fg);color:var(--bg);border-radius:var(--radius) 0 0 var(--radius);font-weight:600;">${t.stem}</span>`;
+        html+=`<span style="padding:0.2rem 0.35rem;background:var(--card);color:var(--muted);border-radius:0 var(--radius) var(--radius) 0;text-decoration:line-through;border:1px solid var(--border);border-left:none;">${t.particle}</span>`;
+        html+=`</span>`;
+      }else{
+        html+=`<span style="padding:0.2rem 0.45rem;border-radius:var(--radius);font-family:var(--mono);font-size:0.78rem;background:var(--fg);color:var(--bg);font-weight:500;">${t.stem}</span>`;
+      }
+    });
+    html+=`</div></div>`;
+  });
+
+  // Step 2: Vocabulary
+  html+=`<div class="card"><h3>단어 집합 (조사 제거 후)</h3>`;
+  html+=`<div style="display:flex;flex-wrap:wrap;gap:0.3rem;">`;
+  vocab.forEach((w,i)=>{
+    const c=colors[i%colors.length];
+    html+=`<span style="font-family:var(--mono);font-size:0.72rem;padding:0.2rem 0.5rem;border-radius:9999px;background:${c}18;color:${c};border:1px solid ${c}30;">${w}</span>`;
+  });
+  html+=`</div></div>`;
+
+  // Step 3: Frequency table with bars
+  html+=`<div class="card"><h3>빈도수 벡터</h3>`;
+  html+=`<div style="overflow-x:auto;"><table style="border-collapse:collapse;width:100%;margin-top:0.5rem;">`;
+  // Header
+  html+=`<tr><td style="padding:0.4rem 0.6rem;font-family:var(--mono);font-size:0.62rem;color:var(--muted);border-bottom:2px solid var(--border);"></td>`;
+  vocab.forEach((w,i)=>{
+    const c=colors[i%colors.length];
+    html+=`<td style="padding:0.4rem 0.3rem;text-align:center;font-family:var(--mono);font-size:0.6rem;color:${c};border-bottom:2px solid var(--border);min-width:2.5rem;">${w}</td>`;
+  });
+  html+=`</tr>`;
+  // Rows
+  results.forEach((r,si)=>{
+    html+=`<tr>`;
+    html+=`<td style="padding:0.5rem 0.6rem;font-size:0.78rem;border-bottom:1px solid var(--border);white-space:nowrap;">문장 ${si+1}</td>`;
+    vocab.forEach((w,i)=>{
+      const v=r.freq[w];
+      const c=colors[i%colors.length];
+      html+=`<td style="padding:0.3rem;text-align:center;border-bottom:1px solid var(--border);">`;
+      if(v>0){
+        html+=`<div style="display:inline-flex;align-items:center;justify-content:center;width:1.6rem;height:1.6rem;border-radius:50%;background:${c}22;color:${c};font-family:var(--mono);font-size:0.82rem;font-weight:700;">${v}</div>`;
+      }else{
+        html+=`<span style="font-family:var(--mono);font-size:0.78rem;color:var(--border);">0</span>`;
+      }
+      html+=`</td>`;
+    });
+    html+=`</tr>`;
+  });
+  html+=`</table></div></div>`;
+
+  // Vector representation
+  html+=`<div class="card"><h3>벡터 표현</h3>`;
+  results.forEach((r,si)=>{
+    const vec=vocab.map(w=>r.freq[w]);
+    html+=`<p style="font-family:var(--mono);font-size:0.78rem;margin:0.3rem 0;"><span style="color:var(--muted);">문장 ${si+1} =</span> <span style="font-weight:600;">[${vec.join(', ')}]</span></p>`;
+  });
+  html+=`</div>`;
+
+  box.innerHTML=html;
+}
+
+function bowAnalyze(){
+  const text=document.getElementById('bow-input').value;
+  const sentences=text.split('\n').map(s=>s.trim()).filter(s=>s.length>0);
+  if(sentences.length===0)return;
+  const data=bowProcess(sentences);
+  bowRenderResult(data);
+}
+
+// Animated version
+let bowAnimIv=null;
+function bowAnimate(){
+  if(bowAnimIv){clearInterval(bowAnimIv);bowAnimIv=null;}
+  const text=document.getElementById('bow-input').value;
+  const sentences=text.split('\n').map(s=>s.trim()).filter(s=>s.length>0);
+  if(sentences.length===0)return;
+  const data=bowProcess(sentences);
+  const {results,vocab}=data;
+  const box=document.getElementById('bow-result');
+  const colors=['#b44133','#4a6b8a','#5a7a5a','#8a6a4a','#6a4a8a','#4a8a7a','#8a4a6a','#7a8a4a'];
+
+  // Animation steps:
+  // 0: show original sentences
+  // 1..N: show stopword removal per sentence
+  // N+1: show vocabulary
+  // N+2: show frequency counting animated
+  const steps=[];
+  steps.push('sentences');
+  results.forEach((_,i)=>steps.push('stop_'+i));
+  steps.push('vocab');
+  steps.push('freq');
+
+  let si=0;
+  function renderStep(){
+    const step=steps[si];
+    let html='';
+
+    // Always show completed previous steps
+    if(si>=1){
+      // Show sentences header
+      html+=`<div class="card"><h3>입력 문장</h3>`;
+      results.forEach((r,i)=>{html+=`<p style="font-size:0.84rem;margin:0.2rem 0;">${r.original}</p>`;});
+      html+=`</div>`;
+    }
+
+    // Stopword removal steps
+    for(let i=0;i<results.length;i++){
+      const stepKey='stop_'+i;
+      const idx=steps.indexOf(stepKey);
+      if(si>=idx){
+        const r=results[i];
+        html+=`<div class="card" style="${si===idx?'outline:2px solid var(--fg);outline-offset:-2px;':''}">`
+        html+=`<h3>문장 ${i+1}: 조사 제거</h3>`;
+        html+=`<div style="display:flex;flex-wrap:wrap;gap:0.4rem;">`;
+        r.tokens.forEach(t=>{
+          if(t.particle){
+            html+=`<span style="display:inline-flex;align-items:center;font-family:var(--mono);font-size:0.78rem;">`;
+            html+=`<span style="padding:0.2rem 0.35rem;background:var(--fg);color:var(--bg);border-radius:var(--radius) 0 0 var(--radius);font-weight:600;">${t.stem}</span>`;
+            html+=`<span style="padding:0.2rem 0.35rem;background:var(--card);color:var(--muted);border-radius:0 var(--radius) var(--radius) 0;text-decoration:line-through;border:1px solid var(--border);border-left:none;">${t.particle}</span>`;
+            html+=`</span>`;
+          }else{
+            html+=`<span style="padding:0.2rem 0.45rem;border-radius:var(--radius);font-family:var(--mono);font-size:0.78rem;background:var(--fg);color:var(--bg);font-weight:500;">${t.stem}</span>`;
+          }
+        });
+        html+=`</div></div>`;
+      }
+    }
+
+    // Vocabulary
+    if(si>=steps.indexOf('vocab')){
+      html+=`<div class="card" style="${step==='vocab'?'outline:2px solid var(--fg);outline-offset:-2px;':''}"><h3>단어 집합</h3>`;
+      html+=`<div style="display:flex;flex-wrap:wrap;gap:0.3rem;">`;
+      vocab.forEach((w,i)=>{
+        const c=colors[i%colors.length];
+        html+=`<span style="font-family:var(--mono);font-size:0.72rem;padding:0.2rem 0.5rem;border-radius:9999px;background:${c}18;color:${c};border:1px solid ${c}30;">${w}</span>`;
+      });
+      html+=`</div></div>`;
+    }
+
+    // Frequency
+    if(si>=steps.indexOf('freq')){
+      bowRenderFreqTable(html,results,vocab,colors,box);
+      return;
+    }
+
+    if(step==='sentences'){
+      html=`<div class="card" style="outline:2px solid var(--fg);outline-offset:-2px;"><h3>입력 문장</h3>`;
+      results.forEach((r,i)=>{html+=`<p style="font-size:0.84rem;margin:0.2rem 0;">${r.original}</p>`;});
+      html+=`</div>`;
+    }
+
+    box.innerHTML=html;
+    si++;
+    if(si<steps.length){
+      bowAnimIv=setTimeout(renderStep,1200);
+    }
+  }
+  renderStep();
+}
+
+function bowRenderFreqTable(prefix,results,vocab,colors,box){
+  let html=prefix;
+  html+=`<div class="card" style="outline:2px solid var(--fg);outline-offset:-2px;"><h3>빈도수 벡터</h3>`;
+  html+=`<div style="overflow-x:auto;"><table style="border-collapse:collapse;width:100%;margin-top:0.5rem;">`;
+  html+=`<tr><td style="padding:0.4rem 0.6rem;font-family:var(--mono);font-size:0.62rem;color:var(--muted);border-bottom:2px solid var(--border);"></td>`;
+  vocab.forEach((w,i)=>{
+    const c=colors[i%colors.length];
+    html+=`<td style="padding:0.4rem 0.3rem;text-align:center;font-family:var(--mono);font-size:0.6rem;color:${c};border-bottom:2px solid var(--border);min-width:2.5rem;">${w}</td>`;
+  });
+  html+=`</tr>`;
+  results.forEach((r,si)=>{
+    html+=`<tr><td style="padding:0.5rem 0.6rem;font-size:0.78rem;border-bottom:1px solid var(--border);white-space:nowrap;">문장 ${si+1}</td>`;
+    vocab.forEach((w,i)=>{
+      const v=r.freq[w];
+      const c=colors[i%colors.length];
+      html+=`<td style="padding:0.3rem;text-align:center;border-bottom:1px solid var(--border);">`;
+      if(v>0){
+        html+=`<div style="display:inline-flex;align-items:center;justify-content:center;width:1.6rem;height:1.6rem;border-radius:50%;background:${c}22;color:${c};font-family:var(--mono);font-size:0.82rem;font-weight:700;">${v}</div>`;
+      }else{
+        html+=`<span style="font-family:var(--mono);font-size:0.78rem;color:var(--border);">0</span>`;
+      }
+      html+=`</td>`;
+    });
+    html+=`</tr>`;
+  });
+  html+=`</table></div></div>`;
+  results.forEach((r,si)=>{
+    const vec=vocab.map(w=>r.freq[w]);
+    if(si===0) html+=`<div class="card"><h3>벡터 표현</h3>`;
+    html+=`<p style="font-family:var(--mono);font-size:0.78rem;margin:0.3rem 0;"><span style="color:var(--muted);">문장 ${si+1} =</span> <span style="font-weight:600;">[${vec.join(', ')}]</span></p>`;
+    if(si===results.length-1) html+=`</div>`;
+  });
+  box.innerHTML=html;
+}
 
 // ═══════════════════════════════════════════
 //  NORMALIZATION
