@@ -568,7 +568,7 @@ K: 필터(커널)  X: 입력의 일부  Y: 출력값
   <div class="tpanel" id="tt1">
     <div class="card">
       <h3>빈도수 벡터 (Bag of Words)</h3>
-      <p>문장에서 조사를 제거하고, 남은 단어들의 등장 횟수를 벡터로 표현합니다.
+      <p>문장을 띄어쓰기 기준으로 분리하고, 각 단어의 등장 횟수를 벡터로 표현합니다.
         여러 문장을 입력하면 각 문장의 빈도수 벡터를 비교할 수 있습니다.</p>
     </div>
 
@@ -1146,49 +1146,25 @@ function ttab(n,el){document.querySelectorAll('#v-text .tab').forEach(t=>t.class
 // ═══════════════════════════════════════════
 //  ONE-HOT ENCODING
 // ═══════════════════════════════════════════
-function ohTokenize(text){
-  return text.trim().replace(/[.,!?;:'"()]/g,'').split(/\s+/).filter(w=>w.length>0);
-}
-
-let ohVocabUser=null; // user-edited vocabulary
-
 function ohEncode(){
   const text=document.getElementById('oh-input').value;
-  const tokens=tokenizeWithParticles(text);
-  if(tokens.length===0)return;
+  const words=text.trim().replace(/[.,!?;:'"()]/g,'').split(/\s+/).filter(w=>w.length>0);
+  if(words.length===0)return;
 
-  const stems=tokens.map(t=>t.stem);
-
-  // Build default vocabulary from stems (unique, order of appearance)
+  // Build default vocabulary (unique words in order of appearance)
   const defaultVocab=[];
-  stems.forEach(s=>{if(!defaultVocab.includes(s))defaultVocab.push(s);});
+  words.forEach(w=>{if(!defaultVocab.includes(w))defaultVocab.push(w);});
 
-  // Use user-edited vocab if available, otherwise default
   const vocab=ohVocabUser||defaultVocab;
 
   const box=document.getElementById('oh-result');
   const colors=['#b44133','#4a6b8a','#5a7a5a','#8a6a4a','#6a4a8a','#4a8a7a','#8a4a6a','#7a8a4a','#4a5a8a','#8a7a4a'];
   let html='';
 
-  // Step 1: Particle removal visualization
-  html+=`<div class="card"><h3>조사 제거</h3>`;
-  html+=`<div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.5rem;">`;
-  tokens.forEach(t=>{
-    if(t.particle){
-      html+=`<span style="display:inline-flex;align-items:center;gap:0;font-family:var(--mono);font-size:0.82rem;">`;
-      html+=`<span style="padding:0.25rem 0.35rem;background:var(--fg);color:var(--bg);border-radius:var(--radius) 0 0 var(--radius);font-weight:600;">${t.stem}</span>`;
-      html+=`<span style="padding:0.25rem 0.35rem;background:var(--card);color:var(--muted);border-radius:0 var(--radius) var(--radius) 0;text-decoration:line-through;border:1px solid var(--border);border-left:none;">${t.particle}</span>`;
-      html+=`</span>`;
-    }else{
-      html+=`<span style="padding:0.25rem 0.45rem;border-radius:var(--radius);font-family:var(--mono);font-size:0.82rem;background:var(--fg);color:var(--bg);font-weight:600;">${t.stem}</span>`;
-    }
-  });
-  html+=`</div></div>`;
-
-  // Step 2: Editable vocabulary
+  // Editable vocabulary
   html+=`<div class="card"><h3>단어 집합 (편집 가능)</h3>`;
-  html+=`<p style="margin-bottom:0.5rem;">단어를 추가/삭제하여 집합을 직접 수정할 수 있습니다.</p>`;
-  html+=`<div style="display:flex;flex-wrap:wrap;gap:0.3rem;margin-bottom:0.6rem;" id="oh-vocab-tags">`;
+  html+=`<p style="margin-bottom:0.5rem;">총 ${vocab.length}개 — 단어를 추가/삭제하여 직접 수정할 수 있습니다.</p>`;
+  html+=`<div style="display:flex;flex-wrap:wrap;gap:0.3rem;margin-bottom:0.6rem;">`;
   vocab.forEach((w,i)=>{
     const c=colors[i%colors.length];
     html+=`<span style="display:inline-flex;align-items:center;gap:0.25rem;font-family:var(--mono);font-size:0.72rem;padding:0.2rem 0.5rem;border-radius:9999px;background:${c}18;color:${c};border:1px solid ${c}30;">[${i}] ${w}<button onclick="ohRemoveVocab(${i})" style="border:none;background:none;color:${c};cursor:pointer;font-size:0.8rem;padding:0;line-height:1;">×</button></span>`;
@@ -1200,21 +1176,21 @@ function ohEncode(){
   html+=`<button class="btn" onclick="ohResetVocab()">기본값 복원</button>`;
   html+=`</div></div>`;
 
-  // Step 3: Highlighted sentence with vocab matches
-  html+=`<div class="card"><h3>단어 집합 매칭</h3>`;
+  // Highlighted sentence
+  html+=`<div class="card"><h3>단어 집합 매칭</h3><p style="margin-bottom:0.5rem;">집합에 포함된 단어만 색상으로 표시됩니다.</p>`;
   html+=`<div style="display:flex;flex-wrap:wrap;gap:0.3rem;">`;
-  stems.forEach(s=>{
-    const vi=vocab.indexOf(s);
+  words.forEach(w=>{
+    const vi=vocab.indexOf(w);
     if(vi>=0){
       const c=colors[vi%colors.length];
-      html+=`<span style="display:inline-block;padding:0.25rem 0.5rem;border-radius:var(--radius);font-family:var(--mono);font-size:0.82rem;font-weight:600;background:${c}20;color:${c};border:1px solid ${c}40;">${s}</span>`;
+      html+=`<span style="display:inline-block;padding:0.25rem 0.5rem;border-radius:var(--radius);font-family:var(--mono);font-size:0.82rem;font-weight:600;background:${c}20;color:${c};border:1px solid ${c}40;">${w}</span>`;
     }else{
-      html+=`<span style="display:inline-block;padding:0.25rem 0.5rem;border-radius:var(--radius);font-family:var(--mono);font-size:0.82rem;background:var(--card);color:var(--muted);opacity:0.5;">${s}</span>`;
+      html+=`<span style="display:inline-block;padding:0.25rem 0.5rem;border-radius:var(--radius);font-family:var(--mono);font-size:0.82rem;background:var(--card);color:var(--muted);opacity:0.5;">${w}</span>`;
     }
   });
   html+=`</div></div>`;
 
-  // Step 4: One-hot vectors table
+  // One-hot vectors table
   html+=`<div class="card"><h3>원-핫 벡터</h3>`;
   html+=`<div style="overflow-x:auto;"><table style="border-collapse:collapse;margin-top:0.5rem;width:100%;">`;
   html+=`<tr><td style="padding:0.4rem 0.6rem;font-family:var(--mono);font-size:0.62rem;color:var(--muted);border-bottom:1px solid var(--border);">단어</td>`;
@@ -1228,8 +1204,7 @@ function ohEncode(){
     html+=`<tr><td style="padding:0.4rem 0.6rem;font-family:var(--mono);font-size:0.78rem;font-weight:600;color:${c};border-bottom:1px solid var(--border);white-space:nowrap;">${w}</td>`;
     vocab.forEach((_,j)=>{
       const v=j===wi?1:0;
-      const bg=v?c:'transparent';
-      html+=`<td style="padding:0.4rem 0.3rem;text-align:center;font-family:var(--mono);font-size:0.78rem;font-weight:${v?'700':'400'};background:${v?bg+'dd':'transparent'};color:${v?'#fff':'var(--muted)'};border-bottom:1px solid var(--border);border-radius:${v?'3px':'0'};">${v}</td>`;
+      html+=`<td style="padding:0.4rem 0.3rem;text-align:center;font-family:var(--mono);font-size:0.78rem;font-weight:${v?'700':'400'};background:${v?c+'dd':'transparent'};color:${v?'#fff':'var(--muted)'};border-bottom:1px solid var(--border);border-radius:${v?'3px':'0'};">${v}</td>`;
     });
     html+=`</tr>`;
   });
@@ -1242,9 +1217,8 @@ function ohEncode(){
 
 function ohRemoveVocab(idx){
   const text=document.getElementById('oh-input').value;
-  const tokens=tokenizeWithParticles(text);
-  const stems=tokens.map(t=>t.stem);
-  const defaultVocab=[];stems.forEach(s=>{if(!defaultVocab.includes(s))defaultVocab.push(s);});
+  const words=text.trim().replace(/[.,!?;:'"()]/g,'').split(/\s+/).filter(w=>w.length>0);
+  const defaultVocab=[];words.forEach(w=>{if(!defaultVocab.includes(w))defaultVocab.push(w);});
   const current=ohVocabUser||[...defaultVocab];
   current.splice(idx,1);
   ohVocabUser=current;
@@ -1253,67 +1227,40 @@ function ohRemoveVocab(idx){
 
 function ohAddVocab(){
   const inp=document.getElementById('oh-vocab-add');
-  const w=inp.value.trim();
-  if(!w)return;
+  const w=inp.value.trim();if(!w)return;
   const text=document.getElementById('oh-input').value;
-  const tokens=tokenizeWithParticles(text);
-  const stems=tokens.map(t=>t.stem);
-  const defaultVocab=[];stems.forEach(s=>{if(!defaultVocab.includes(s))defaultVocab.push(s);});
+  const words=text.trim().replace(/[.,!?;:'"()]/g,'').split(/\s+/).filter(w=>w.length>0);
+  const defaultVocab=[];words.forEach(w=>{if(!defaultVocab.includes(w))defaultVocab.push(w);});
   const current=ohVocabUser||[...defaultVocab];
   if(!current.includes(w)){current.push(w);ohVocabUser=current;ohEncode();}
 }
 
-function ohResetVocab(){
-  ohVocabUser=null;
-  ohEncode();
-}
+function ohResetVocab(){ohVocabUser=null;ohEncode();}
 
 // ═══════════════════════════════════════════
 //  BAG OF WORDS
 // ═══════════════════════════════════════════
-const PARTICLES=['에서','으로','에게','까지','부터','는','은','이','가','을','를','의','에','와','과','도','로','만','든','라','며','나','다'];
-
-function stripParticle(word){
-  for(const p of PARTICLES){
-    if(word.length>p.length && word.endsWith(p)){
-      return {stem:word.slice(0,-p.length),particle:p};
-    }
-  }
-  return {stem:word,particle:null};
-}
-
-function tokenizeWithParticles(text){
-  const raw=text.trim().replace(/[.,!?;:'"()]/g,'').split(/\s+/).filter(w=>w.length>0);
-  return raw.map(w=>{
-    const {stem,particle}=stripParticle(w);
-    return {original:w, stem, particle};
-  });
-}
-
-function bowTokenize(text){
-  return text.trim().replace(/[.,!?;:'"()]/g,'').split(/\s+/).filter(w=>w.length>0);
-}
+// ═══════════════════════════════════════════
+//  ONE-HOT ENCODING
+// ═══════════════════════════════════════════
+let ohVocabUser=null;
 
 function bowProcess(sentences){
   const results=sentences.map(s=>{
-    const tokens=tokenizeWithParticles(s);
-    return {
-      original:s,
-      tokens,
-      stems:tokens.map(t=>t.stem),
-    };
+    const words=s.trim().replace(/[.,!?;:'"()]/g,'').split(/\s+/).filter(w=>w.length>0);
+    return {original:s, words};
   });
 
-  // Build vocabulary from all stems
+  // Build vocabulary from all words
   const vocab=[];
-  results.forEach(r=>r.stems.forEach(s=>{if(!vocab.includes(s))vocab.push(s);}));
+  results.forEach(r=>r.words.forEach(w=>{if(!vocab.includes(w))vocab.push(w);}));
   vocab.sort();
 
   // Count frequencies
   results.forEach(r=>{
     r.freq={};
     vocab.forEach(w=>{r.freq[w]=0;});
-    r.stems.forEach(s=>{r.freq[s]++;});
+    r.words.forEach(w=>{r.freq[w]++;});
   });
 
   return {results,vocab};
@@ -1325,26 +1272,19 @@ function bowRenderResult(data){
   const colors=['#b44133','#4a6b8a','#5a7a5a','#8a6a4a','#6a4a8a','#4a8a7a','#8a4a6a','#7a8a4a'];
   let html='';
 
-  // Step 1: Show particle removal per sentence
+  // Step 1: Show word splitting per sentence
   results.forEach((r,si)=>{
     html+=`<div class="card"><h3>문장 ${si+1}: ${r.original}</h3>`;
-    html+=`<p class="mono" style="margin-bottom:0.4rem;">조사 제거</p>`;
-    html+=`<div style="display:flex;flex-wrap:wrap;gap:0.4rem;">`;
-    r.tokens.forEach(t=>{
-      if(t.particle){
-        html+=`<span style="display:inline-flex;align-items:center;font-family:var(--mono);font-size:0.78rem;">`;
-        html+=`<span style="padding:0.2rem 0.35rem;background:var(--fg);color:var(--bg);border-radius:var(--radius) 0 0 var(--radius);font-weight:600;">${t.stem}</span>`;
-        html+=`<span style="padding:0.2rem 0.35rem;background:var(--card);color:var(--muted);border-radius:0 var(--radius) var(--radius) 0;text-decoration:line-through;border:1px solid var(--border);border-left:none;">${t.particle}</span>`;
-        html+=`</span>`;
-      }else{
-        html+=`<span style="padding:0.2rem 0.45rem;border-radius:var(--radius);font-family:var(--mono);font-size:0.78rem;background:var(--fg);color:var(--bg);font-weight:500;">${t.stem}</span>`;
-      }
+    html+=`<p class="mono" style="margin-bottom:0.4rem;">띄어쓰기 기준 분리</p>`;
+    html+=`<div style="display:flex;flex-wrap:wrap;gap:0.3rem;">`;
+    r.words.forEach(w=>{
+      html+=`<span style="display:inline-block;padding:0.2rem 0.45rem;border-radius:var(--radius);font-family:var(--mono);font-size:0.78rem;background:var(--fg);color:var(--bg);font-weight:500;">${w}</span>`;
     });
     html+=`</div></div>`;
   });
 
   // Step 2: Vocabulary
-  html+=`<div class="card"><h3>단어 집합 (조사 제거 후)</h3>`;
+  html+=`<div class="card"><h3>단어 집합</h3>`;
   html+=`<div style="display:flex;flex-wrap:wrap;gap:0.3rem;">`;
   vocab.forEach((w,i)=>{
     const c=colors[i%colors.length];
@@ -1443,17 +1383,10 @@ function bowAnimate(){
       if(si>=idx){
         const r=results[i];
         html+=`<div class="card" style="${si===idx?'outline:2px solid var(--fg);outline-offset:-2px;':''}">`
-        html+=`<h3>문장 ${i+1}: 조사 제거</h3>`;
-        html+=`<div style="display:flex;flex-wrap:wrap;gap:0.4rem;">`;
-        r.tokens.forEach(t=>{
-          if(t.particle){
-            html+=`<span style="display:inline-flex;align-items:center;font-family:var(--mono);font-size:0.78rem;">`;
-            html+=`<span style="padding:0.2rem 0.35rem;background:var(--fg);color:var(--bg);border-radius:var(--radius) 0 0 var(--radius);font-weight:600;">${t.stem}</span>`;
-            html+=`<span style="padding:0.2rem 0.35rem;background:var(--card);color:var(--muted);border-radius:0 var(--radius) var(--radius) 0;text-decoration:line-through;border:1px solid var(--border);border-left:none;">${t.particle}</span>`;
-            html+=`</span>`;
-          }else{
-            html+=`<span style="padding:0.2rem 0.45rem;border-radius:var(--radius);font-family:var(--mono);font-size:0.78rem;background:var(--fg);color:var(--bg);font-weight:500;">${t.stem}</span>`;
-          }
+        html+=`<h3>문장 ${i+1}: 단어 분리</h3>`;
+        html+=`<div style="display:flex;flex-wrap:wrap;gap:0.3rem;">`;
+        r.words.forEach(w=>{
+          html+=`<span style="display:inline-block;padding:0.2rem 0.45rem;border-radius:var(--radius);font-family:var(--mono);font-size:0.78rem;background:var(--fg);color:var(--bg);font-weight:500;">${w}</span>`;
         });
         html+=`</div></div>`;
       }
