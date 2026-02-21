@@ -461,7 +461,7 @@ K: 필터(커널)  X: 입력의 일부  Y: 출력값
 
 </main>
 
-<footer><div class="inner"><span>인공지능 수학 — 대전대신고등학교</span><span>2026</span></div></footer>
+<footer><div class="inner"><span>인공지능 수학 — 대전대신고등학교</span><span>2025</span></div></footer>
 
 <script>
 // ═══════════════════════════════════════════
@@ -770,14 +770,19 @@ function pRst(){if(pIv){clearInterval(pIv);pIv=null;}pP=-1;pR=['?','?','?','?'];
 function pStp(){
   pP++;if(pP>=4){pP=3;return;}
   const sr=pP<2?0:2,sc=pP%2===0?0:2;
-  document.querySelectorAll('#pi .ec').forEach(c=>{c.style.background='';const inp=c.querySelector('input');if(inp)inp.style.color='';});
+  // Clear all highlights
+  document.querySelectorAll('#pi .ec').forEach(c=>{c.style.background='';c.style.outline='';const inp=c.querySelector('input');if(inp)inp.style.color='';});
+  // Find max
   let mx=-Infinity;
+  for(let r=sr;r<sr+2;r++)for(let c=sc;c<sc+2;c++){if(pI[r][c]>mx)mx=pI[r][c];}
+  // Highlight: window cells get accent, max cell gets green
   for(let r=sr;r<sr+2;r++)for(let c=sc;c<sc+2;c++){
     const idx=r*4+c,cells=document.getElementById('pi').children;
-    cells[idx].style.background='var(--fg)';cells[idx].querySelector('input').style.color='var(--bg)';
-    if(pI[r][c]>mx)mx=pI[r][c];
+    const isMax=pI[r][c]===mx;
+    cells[idx].style.background=isMax?'var(--green)':'var(--fg)';
+    cells[idx].querySelector('input').style.color=isMax?'#fff':'var(--bg)';
+    if(isMax)cells[idx].style.outline='2px solid var(--green)';
   }
-  setTimeout(()=>{for(let r=sr;r<sr+2;r++)for(let c=sc;c<sc+2;c++){const idx=r*4+c,cells=document.getElementById('pi').children;if(pI[r][c]===mx){cells[idx].style.background='var(--green)';cells[idx].querySelector('input').style.color='#fff';}}},300);
   pR[pP]=mx;
   for(let i=0;i<4;i++){const e=document.getElementById(`po${i}`);e.textContent=pR[i];e.className=i===pP?'mc res':pR[i]!=='?'?'mc done':'mc';}
   document.getElementById('pst').textContent=`${sr}~${sr+1}행, ${sc}~${sc+1}열 → max = ${mx}`;
@@ -803,7 +808,7 @@ if('serviceWorker' in navigator)try{navigator.serviceWorker.register('sw.js');}c
 // Credits
 console.log('%c AI 수학 ','background:#1a1714;color:#f5f0ea;font-size:14px;font-weight:bold;padding:4px 8px;border-radius:4px;');
 console.log('%c제작: gmb9817','font-size:12px;color:#1a1714;');
-console.log('%c도움을 준 사람들: nflight11, frozenca, wizardrabbit','font-size:11px;color:#78726a;');
+console.log('%c도움을 준 사람들: nflight11, frozenca, wizardrabbit, cubic','font-size:11px;color:#78726a;');
 </script>
 </body>
 </html>
