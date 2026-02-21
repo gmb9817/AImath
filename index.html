@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <link rel="manifest" href="manifest.json">
-  <script>
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 수학 — 이미지 데이터 처리</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a1714">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -85,7 +83,7 @@ h3{font-size:0.95rem;font-weight:600;margin-bottom:0.5rem;}
 .mat-label{font-family:var(--mono);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:0.4rem;text-align:center;}
 .mat{display:inline-grid;gap:2px;background:var(--border);border-radius:var(--radius);padding:2px;}
 .mc{width:2.6rem;height:2.6rem;display:flex;align-items:center;justify-content:center;background:var(--card);font-family:var(--mono);font-size:0.78rem;font-weight:500;transition:all 0.25s;user-select:none;}
-.mc.hi{background:var(--fg);color:var(--bg);}.mc.hi0{background:var(--accent);color:var(--fg);}.mc.res{background:var(--accent);font-weight:700;}.mc.done{background:var(--green);color:#fff;}
+.mc.win{background:var(--accent);color:var(--fg);}.mc.win-active{background:var(--fg);color:var(--bg);font-weight:700;}.mc.res{background:var(--accent);font-weight:700;}.mc.done{background:var(--green);color:#fff;}
 .op{font-size:1.4rem;color:var(--muted);display:flex;align-items:center;padding:0 0.2rem;font-weight:300;}
 
 /* ── EDIT GRID ── */
@@ -98,6 +96,14 @@ h3{font-size:0.95rem;font-weight:600;margin-bottom:0.5rem;}
 .bmp{display:inline-grid;gap:1px;background:var(--border);border-radius:var(--radius);padding:1px;cursor:crosshair;}
 .bc{background:var(--bg);transition:background 0.08s;}
 .bc.on{background:var(--fg);}.bc:hover{background:var(--accent);}.bc.on:hover{background:var(--muted);}
+
+/* ── OVERLAP GRID ── */
+.ovlap{display:inline-grid;gap:1px;background:var(--border);border-radius:var(--radius);padding:1px;}
+.oc{transition:background 0.15s;}
+.oc.both{background:var(--fg);}
+.oc.match{background:var(--card);}
+.oc.only-user{background:var(--red);opacity:0.7;}
+.oc.only-ref{background:var(--blue);opacity:0.7;}
 
 /* ── HAMMING BARS ── */
 .hb{display:flex;align-items:center;gap:0.5rem;margin:0.3rem 0;}
@@ -262,6 +268,7 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
         <p class="mat-label">분류 결과</p>
         <div id="hbars"><p style="font-size:0.8rem;color:var(--muted);">숫자를 그린 후 계산 버튼을 누르세요.</p></div>
         <div id="hbest" class="status" style="font-weight:600;"></div>
+        <div id="hoverlap" style="margin-top:1rem;"></div>
       </div>
     </div>
 
@@ -454,7 +461,7 @@ K: 필터(커널)  X: 입력의 일부  Y: 출력값
 
 </main>
 
-<footer><div class="inner"><span>인공지능 수학 — 대전대신고등학교</span><span>2025</span></div></footer>
+<footer><div class="inner"><span>인공지능 수학 — 대전대신고등학교</span><span>2026</span></div></footer>
 
 <script>
 // ═══════════════════════════════════════════
@@ -545,10 +552,14 @@ function rBmp(){
   const g=document.getElementById('ubmp');const cs=bSz<=6?'2rem':bSz<=8?'1.6rem':'1.2rem';
   g.style.gridTemplateColumns=`repeat(${bSz},1fr)`;g.innerHTML='';
   for(let i=0;i<bSz*bSz;i++){const c=document.createElement('div');c.className='bc'+(uBmp[i]?' on':'');c.style.width=cs;c.style.height=cs;
+    c.dataset.idx=i;
     c.addEventListener('mousedown',e=>{e.preventDefault();isDraw=true;dVal=uBmp[i]?0:1;uBmp[i]=dVal;rBmp();});
     c.addEventListener('mouseenter',()=>{if(isDraw){uBmp[i]=dVal;rBmp();}});
-    c.addEventListener('touchstart',e=>{e.preventDefault();uBmp[i]=uBmp[i]?0:1;rBmp();});
     g.appendChild(c);}
+  // Touch handling on grid level
+  g.ontouchstart=e=>{e.preventDefault();const t=e.touches[0];const el=document.elementFromPoint(t.clientX,t.clientY);if(el&&el.dataset.idx!==undefined){const idx=parseInt(el.dataset.idx);isDraw=true;dVal=uBmp[idx]?0:1;uBmp[idx]=dVal;rBmp();}};
+  g.ontouchmove=e=>{e.preventDefault();if(!isDraw)return;const t=e.touches[0];const el=document.elementFromPoint(t.clientX,t.clientY);if(el&&el.dataset.idx!==undefined){const idx=parseInt(el.dataset.idx);if(uBmp[idx]!==dVal){uBmp[idx]=dVal;rBmp();}}};
+  g.ontouchend=()=>{isDraw=false;};
 }
 document.addEventListener('mouseup',()=>{isDraw=false;});
 
@@ -564,6 +575,29 @@ function calcH(){
   ds.forEach(({digit,dist,sim})=>{const e=document.createElement('div');e.className='hb';e.innerHTML=`<span class="dl">${digit}</span><div class="tk"><div class="fl ${dist===mn?'best':''}" style="width:${dist/mx*100}%"></div></div><span class="dv">${dist} (${sim}%)</span>`;box.appendChild(e);});
   const best=ds.reduce((a,b)=>a.dist<b.dist?a:b);
   document.getElementById('hbest').textContent=`가장 유사: ${best.digit} (거리 ${best.dist}, 유사도 ${best.sim}%)`;
+
+  // Overlap comparison grid
+  const ovBox=document.getElementById('hoverlap');
+  const bestRef=refs[best.digit];
+  const cs=bSz<=6?'1.4rem':bSz<=8?'1.1rem':'0.8rem';
+  let ovHtml=`<p class="mat-label" style="margin-bottom:0.4rem;">내 그림 vs 숫자 ${best.digit} 겹침 비교</p>`;
+  ovHtml+=`<div class="ovlap" style="grid-template-columns:repeat(${bSz},1fr);">`;
+  for(let i=0;i<tot;i++){
+    const u=uBmp[i],r=bestRef[i];
+    let cls;
+    if(u===1&&r===1) cls='both';       // 둘 다 검정
+    else if(u===0&&r===0) cls='match';  // 둘 다 흰색
+    else if(u===1&&r===0) cls='only-user'; // 내 그림에만 있음
+    else cls='only-ref';                // 참조에만 있음
+    ovHtml+=`<div class="oc ${cls}" style="width:${cs};height:${cs};"></div>`;
+  }
+  ovHtml+=`</div>`;
+  ovHtml+=`<div style="display:flex;gap:0.8rem;margin-top:0.5rem;flex-wrap:wrap;">`;
+  ovHtml+=`<span style="font-size:0.62rem;color:var(--muted);display:flex;align-items:center;gap:0.25rem;"><span style="display:inline-block;width:0.6rem;height:0.6rem;background:var(--fg);border-radius:2px;"></span>일치 (둘 다 검정)</span>`;
+  ovHtml+=`<span style="font-size:0.62rem;color:var(--muted);display:flex;align-items:center;gap:0.25rem;"><span style="display:inline-block;width:0.6rem;height:0.6rem;background:var(--red);opacity:0.7;border-radius:2px;"></span>내 그림에만</span>`;
+  ovHtml+=`<span style="font-size:0.62rem;color:var(--muted);display:flex;align-items:center;gap:0.25rem;"><span style="display:inline-block;width:0.6rem;height:0.6rem;background:var(--blue);opacity:0.7;border-radius:2px;"></span>참조에만</span>`;
+  ovHtml+=`</div>`;
+  ovBox.innerHTML=ovHtml;
 }
 
 uBmp=Array(bSz*bSz).fill(0);rBmp();rRef();
@@ -634,17 +668,22 @@ function aStep(){
   const row=Math.floor(ap/3),col=ap%3;
   for(let r=0;r<5;r++)for(let c=0;c<5;c++)document.getElementById(`ai${r}${c}`).className='mc';
   let sum=0,terms=[];
+  // First pass: highlight entire window
+  for(let kr=0;kr<3;kr++)for(let kc=0;kc<3;kc++){
+    const ir=row+kr,ic=col+kc;
+    document.getElementById(`ai${ir}${ic}`).className='mc win';
+  }
+  // Second pass: emphasize cells where kernel is nonzero (active multipliers)
   for(let kr=0;kr<3;kr++)for(let kc=0;kc<3;kc++){
     const ir=row+kr,ic=col+kc;
     const kv=AK[kr][kc];
-    // hi = kernel nonzero (active multiplier), hi0 = kernel zero (multiplied by 0)
-    document.getElementById(`ai${ir}${ic}`).className=kv!==0?'mc hi':'mc hi0';
+    if(kv!==0) document.getElementById(`ai${ir}${ic}`).className='mc win-active';
     const p=AI[ir][ic]*kv;sum+=p;terms.push(`(${AI[ir][ic]}×${kv})`);
   }
   ar[ap]=sum;
   for(let i=0;i<9;i++){const e=document.getElementById(`ao${i}`);e.textContent=ar[i];e.className=i===ap?'mc res':ar[i]!=='?'?'mc done':'mc';}
   document.getElementById('ast').textContent=`위치 (${row}, ${col}) → ${sum}`;
-  document.getElementById('acalc').innerHTML=`<strong>계산:</strong> ${terms.join(' + ')} = <strong>${sum}</strong><br><span style="font-size:0.65rem;">진한 색 = 필터값이 0이 아닌 구역 · 연한 색 = 필터값 0 · 흰색 = 현재 윈도우 밖</span>`;
+  document.getElementById('acalc').innerHTML=`<strong>계산:</strong> ${terms.join(' + ')} = <strong>${sum}</strong><br><span style="font-size:0.65rem;">진한 색 = 필터값이 0이 아닌 곳 (실제 곱셈 발생) · 연한 색 = 필터값 0 (곱해도 0)</span>`;
 }
 
 let aIv=null;
@@ -757,6 +796,14 @@ document.getElementById('nsl').addEventListener('input',function(){
   document.getElementById('nf').textContent=(v/255).toFixed(3);
   document.getElementById('nsw').style.background=`rgb(${v},${v},${v})`;
 });
+
+// Service Worker
+if('serviceWorker' in navigator)try{navigator.serviceWorker.register('sw.js');}catch(e){}
+
+// Credits
+console.log('%c AI 수학 ','background:#1a1714;color:#f5f0ea;font-size:14px;font-weight:bold;padding:4px 8px;border-radius:4px;');
+console.log('%c제작: gmb9817','font-size:12px;color:#1a1714;');
+console.log('%c도움을 준 사람들: nflight11, frozenca, wizardrabbit','font-size:11px;color:#78726a;');
 </script>
 </body>
 </html>
