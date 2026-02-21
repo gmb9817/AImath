@@ -90,7 +90,8 @@ h3{font-size:0.95rem;font-weight:600;margin-bottom:0.5rem;}
 .eg{display:inline-grid;gap:2px;background:var(--border);border-radius:var(--radius);padding:2px;}
 .ec{width:2.6rem;height:2.6rem;display:flex;align-items:center;justify-content:center;background:var(--card);transition:background 0.2s;}
 .ec:focus-within{background:#fff;outline:2px solid var(--fg);outline-offset:-2px;z-index:1;}
-.ec input{width:100%;height:100%;border:none;background:transparent;text-align:center;font-family:var(--mono);font-size:0.78rem;font-weight:500;color:var(--fg);outline:none;padding:0;}
+.ec input{width:100%;height:100%;border:none;background:transparent;text-align:center;font-family:var(--mono);font-size:0.85rem;font-weight:600;color:var(--fg);outline:none;padding:0;-moz-appearance:textfield;}
+.ec input::-webkit-outer-spin-button,.ec input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 
 /* ── BITMAP ── */
 .bmp{display:inline-grid;gap:1px;background:var(--border);border-radius:var(--radius);padding:1px;cursor:crosshair;}
@@ -272,8 +273,9 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
           <button class="btn" onclick="clrBmp()">초기화</button>
           <button class="btn pri" onclick="calcH()">해밍 거리 계산</button>
         </div>
-        <p style="font-size:0.72rem;color:var(--muted);margin-top:0.2rem;">참조 숫자 불러오기</p>
+        <p style="font-size:0.72rem;color:var(--muted);margin-top:0.3rem;">참조 숫자 미리보기</p>
         <div class="btn-row" id="rbtn"></div>
+        <div id="refpreview" style="margin-top:0.5rem;"></div>
       </div>
       <div style="flex:1;min-width:14rem;">
         <p class="mat-label">분류 결과</p>
@@ -302,12 +304,14 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
   <div class="cmp" style="margin-bottom:2rem;">
     <div class="cmp-c">
       <h4>인간의 눈</h4>
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Schematic_diagram_of_the_human_eye_en.svg/400px-Schematic_diagram_of_the_human_eye_en.svg.png" alt="인간 눈의 구조" style="width:100%;max-width:220px;border-radius:var(--radius);margin:0.6rem 0;opacity:0.85;">
       <div class="cr"><strong>망막</strong> — 빛을 전기 신호로 변환</div>
       <div class="cr"><strong>시각 피질</strong> — 가로선, 세로선, 색상 등 기초 특징 감지</div>
       <div class="cr"><strong>측두엽</strong> — 형태를 조합하여 사물 인식</div>
     </div>
     <div class="cmp-c">
       <h4>CNN 인공신경망</h4>
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Typical_cnn.png/400px-Typical_cnn.png" alt="CNN 구조" style="width:100%;max-width:220px;border-radius:var(--radius);margin:0.6rem 0;opacity:0.85;">
       <div class="cr"><strong>입력층</strong> — 이미지를 픽셀(숫자) 데이터로 변환</div>
       <div class="cr"><strong>합성곱층</strong> — 필터로 외곽선, 질감 등 특징 추출</div>
       <div class="cr"><strong>완전연결층</strong> — 추출된 특징을 종합하여 최종 분류</div>
@@ -693,9 +697,22 @@ function rBmp(){
 }
 document.addEventListener('mouseup',()=>{isDraw=false;});
 
-function rRef(){const b=document.getElementById('rbtn');b.innerHTML='';for(let d=0;d<10;d++){const e=document.createElement('button');e.className='btn';e.textContent=d;e.style.padding='0.35rem 0.55rem';e.onclick=()=>{uBmp=[...REFS[bSz][d]];rBmp();};b.appendChild(e);}}
+function rRef(){const b=document.getElementById('rbtn');b.innerHTML='';for(let d=0;d<10;d++){const e=document.createElement('button');e.className='btn';e.textContent=d;e.style.padding='0.35rem 0.55rem';e.onclick=()=>showRefPreview(d);b.appendChild(e);}}
 
-function clrBmp(){uBmp=Array(bSz*bSz).fill(0);rBmp();document.getElementById('hbars').innerHTML='<p style="font-size:0.8rem;color:var(--muted);">숫자를 그린 후 계산 버튼을 누르세요.</p>';document.getElementById('hbest').textContent='';}
+function showRefPreview(digit){
+  const ref=REFS[bSz][digit];
+  const cs=bSz<=6?'1.2rem':bSz<=8?'1rem':'0.7rem';
+  const box=document.getElementById('refpreview');
+  let html=`<p class="mat-label" style="margin-bottom:0.3rem;">참조: 숫자 ${digit}</p>`;
+  html+=`<div class="bmp" style="grid-template-columns:repeat(${bSz},1fr);cursor:default;">`;
+  for(let i=0;i<bSz*bSz;i++){
+    html+=`<div class="bc${ref[i]?' on':''}" style="width:${cs};height:${cs};pointer-events:none;"></div>`;
+  }
+  html+=`</div>`;
+  box.innerHTML=html;
+}
+
+function clrBmp(){uBmp=Array(bSz*bSz).fill(0);rBmp();document.getElementById('hbars').innerHTML='<p style="font-size:0.8rem;color:var(--muted);">숫자를 그린 후 계산 버튼을 누르세요.</p>';document.getElementById('hbest').textContent='';document.getElementById('hoverlap').innerHTML='';document.getElementById('refpreview').innerHTML='';}
 
 function calcH(){
   const refs=REFS[bSz];if(!refs)return;const tot=bSz*bSz;
