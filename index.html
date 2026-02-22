@@ -64,6 +64,7 @@ h3{font-size:1.05rem;font-weight:600;margin-bottom:0.5rem;}
 
 /* ── INFO ── */
 .info{background:var(--card);border-left:3px solid var(--accent);padding:0.9rem 1.1rem;border-radius:0 var(--radius) var(--radius) 0;margin:1.4rem 0;font-size:0.9rem;color:var(--muted);line-height:1.9;}
+.cnn-step .card{border-left:4px solid var(--accent);}
 .info strong{color:var(--fg);}
 .status{font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin:0.6rem 0;min-height:1.3rem;}
 
@@ -379,87 +380,30 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
     <p style="margin-top:0.5rem;">합성곱 신경망(CNN)은 1989년 얀 르쿤(Yann LeCun)이 손글씨 숫자 인식을 위해 제안한 이래, 의료 영상 진단, 자율주행 차량의 물체 인식, 얼굴 인식, 위성 사진 분석 등 시각 정보를 다루는 거의 모든 AI 분야에서 사용됩니다.</p>
   </div>
 
+  <div class="card">
+    <h3>인간의 시각 처리 vs CNN</h3>
+    <p>CNN(합성곱 신경망)은 인간의 시각 처리 과정을 수학적으로 모방한 구조입니다.
+      인간의 눈이 빛을 받아들이고 뇌에서 사물을 인식하는 과정과, CNN이 이미지를 처리하여 분류하는 과정은 놀랍도록 유사합니다.</p>
+  </div>
+
   <div class="cmp" style="margin-bottom:2rem;">
     <div class="cmp-c">
-      <h4>인간의 눈</h4>
-      <svg viewBox="0 0 320 220" style="width:100%;max-width:320px;margin:0.6rem 0;" xmlns="http://www.w3.org/2000/svg">
-        <defs><marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#78726a"/></marker></defs>
-        <!-- Eye shape -->
-        <ellipse cx="130" cy="110" rx="100" ry="70" fill="#f0ece6" stroke="#1a1714" stroke-width="2"/>
-        <circle cx="150" cy="110" r="35" fill="#4a6b8a" stroke="#1a1714" stroke-width="1.5"/>
-        <circle cx="150" cy="110" r="16" fill="#1a1714"/>
-        <circle cx="155" cy="104" r="5" fill="#fff" opacity="0.6"/>
-        <!-- Retina -->
-        <path d="M 40 65 Q 30 110 40 155" fill="none" stroke="#b44133" stroke-width="4" stroke-linecap="round"/>
-        <!-- Optic nerve -->
-        <line x1="30" y1="110" x2="10" y2="110" stroke="#b44133" stroke-width="3"/>
-        <!-- Labels -->
-        <line x1="40" y1="60" x2="40" y2="35" stroke="#78726a" stroke-width="1" marker-end="url(#ah)"/>
-        <text x="44" y="30" font-size="11" fill="#1a1714" font-family="Noto Sans KR" font-weight="500">망막</text>
-        <text x="44" y="44" font-size="9" fill="#78726a" font-family="Noto Sans KR">빛 → 전기 신호</text>
-        <line x1="150" y1="150" x2="150" y2="180" stroke="#78726a" stroke-width="1"/>
-        <text x="115" y="195" font-size="11" fill="#1a1714" font-family="Noto Sans KR" font-weight="500">수정체 (렌즈)</text>
-        <text x="115" y="209" font-size="9" fill="#78726a" font-family="Noto Sans KR">초점 조절</text>
-        <!-- Light arrows -->
-        <line x1="270" y1="80" x2="195" y2="100" stroke="#8a6a4a" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#ah)"/>
-        <line x1="270" y1="110" x2="195" y2="110" stroke="#8a6a4a" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#ah)"/>
-        <line x1="270" y1="140" x2="195" y2="120" stroke="#8a6a4a" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#ah)"/>
-        <text x="275" y="114" font-size="10" fill="#8a6a4a" font-family="Noto Sans KR">빛</text>
-      </svg>
-      <div class="cr"><strong>① 망막</strong> — 빛을 전기 신호로 변환</div>
-      <div class="cr"><strong>② 시각 피질 (V1)</strong> — 가로선, 세로선, 색상 등 기초 특징 감지</div>
-      <div class="cr"><strong>③ 측두엽 (IT)</strong> — 형태를 조합하여 사물 인식</div>
+      <h4>인간의 시각 시스템</h4>
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Schematic_diagram_of_the_human_eye_en.svg/500px-Schematic_diagram_of_the_human_eye_en.svg.png" alt="사람 눈의 구조" style="width:100%;max-width:380px;border-radius:var(--radius);margin:0.8rem 0;border:1px solid var(--border);">
+      <div class="cr"><strong>① 각막(Cornea) · 수정체(Lens)</strong> — 빛을 굴절시켜 망막에 상을 맺음. 카메라의 렌즈와 같은 역할을 하며, CNN에서는 입력 이미지의 전처리(리사이즈, 정규화)에 해당합니다.</div>
+      <div class="cr"><strong>② 망막(Retina)</strong> — 약 1억 3천만 개의 광수용체(간상세포+원추세포)가 빛을 전기 신호로 변환합니다. CNN의 입력층이 이미지를 픽셀 숫자 행렬로 변환하는 것과 동일한 역할입니다.</div>
+      <div class="cr"><strong>③ 시각 피질 V1</strong> — 뇌의 후두엽에 위치하며, 특정 방향의 선분(가로, 세로, 대각선)에 반응하는 뉴런들이 있습니다. 1981년 노벨 생리의학상을 수상한 휴벨과 비셀의 발견으로, 이것이 CNN의 합성곱층에 영감을 주었습니다.</div>
+      <div class="cr"><strong>④ V2 → V4 → IT 피질</strong> — 기초 특징들을 점점 조합하여 복잡한 형태(눈, 코, 바퀴 등)를 인식합니다. CNN의 깊은 합성곱층이 저수준 특징에서 고수준 특징으로 추상화하는 과정과 같습니다.</div>
+      <div class="cr"><strong>⑤ 측두엽(Temporal Lobe)</strong> — "이것은 고양이다"라는 최종 인식을 수행합니다. CNN의 완전연결층 + Softmax가 확률을 계산하여 분류하는 것에 해당합니다.</div>
     </div>
     <div class="cmp-c">
       <h4>CNN 인공신경망</h4>
-      <svg viewBox="0 0 320 220" style="width:100%;max-width:320px;margin:0.6rem 0;" xmlns="http://www.w3.org/2000/svg">
-        <defs><marker id="ah2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#4a6b8a"/></marker></defs>
-        <!-- Input -->
-        <rect x="10" y="50" width="50" height="50" rx="4" fill="#e2dbd1" stroke="#1a1714" stroke-width="1.5"/>
-        <text x="18" y="70" font-size="7" fill="#78726a" font-family="JetBrains Mono">128 45</text>
-        <text x="18" y="82" font-size="7" fill="#78726a" font-family="JetBrains Mono">255 12</text>
-        <text x="15" y="118" font-size="10" fill="#1a1714" font-family="Noto Sans KR" font-weight="500">입력층</text>
-        <text x="10" y="132" font-size="8" fill="#78726a" font-family="Noto Sans KR">픽셀→숫자</text>
-        <!-- Arrow -->
-        <line x1="65" y1="75" x2="85" y2="75" stroke="#4a6b8a" stroke-width="1.5" marker-end="url(#ah2)"/>
-        <!-- Conv layers -->
-        <rect x="90" y="40" width="18" height="70" rx="3" fill="#4a6b8a" opacity="0.7"/>
-        <rect x="112" y="45" width="16" height="60" rx="3" fill="#4a6b8a" opacity="0.5"/>
-        <rect x="132" y="50" width="14" height="50" rx="3" fill="#4a6b8a" opacity="0.35"/>
-        <text x="85" y="130" font-size="10" fill="#1a1714" font-family="Noto Sans KR" font-weight="500">합성곱층</text>
-        <text x="85" y="144" font-size="8" fill="#78726a" font-family="Noto Sans KR">특징 추출</text>
-        <!-- Arrow -->
-        <line x1="150" y1="75" x2="170" y2="75" stroke="#4a6b8a" stroke-width="1.5" marker-end="url(#ah2)"/>
-        <!-- Pool -->
-        <rect x="175" y="50" width="12" height="50" rx="3" fill="#5a7a5a" opacity="0.6"/>
-        <rect x="190" y="55" width="10" height="40" rx="3" fill="#5a7a5a" opacity="0.4"/>
-        <text x="170" y="118" font-size="10" fill="#1a1714" font-family="Noto Sans KR" font-weight="500">풀링</text>
-        <text x="170" y="132" font-size="8" fill="#78726a" font-family="Noto Sans KR">압축</text>
-        <!-- Arrow -->
-        <line x1="205" y1="75" x2="225" y2="75" stroke="#4a6b8a" stroke-width="1.5" marker-end="url(#ah2)"/>
-        <!-- FC -->
-        <g transform="translate(230,50)">
-          <circle cx="10" cy="8" r="5" fill="#b44133" opacity="0.7"/><circle cx="10" cy="25" r="5" fill="#b44133" opacity="0.7"/>
-          <circle cx="10" cy="42" r="5" fill="#b44133" opacity="0.7"/>
-          <circle cx="35" cy="16" r="5" fill="#b44133" opacity="0.5"/><circle cx="35" cy="33" r="5" fill="#b44133" opacity="0.5"/>
-          <line x1="15" y1="8" x2="30" y2="16" stroke="#b44133" stroke-width="0.5" opacity="0.4"/>
-          <line x1="15" y1="8" x2="30" y2="33" stroke="#b44133" stroke-width="0.5" opacity="0.4"/>
-          <line x1="15" y1="25" x2="30" y2="16" stroke="#b44133" stroke-width="0.5" opacity="0.4"/>
-          <line x1="15" y1="25" x2="30" y2="33" stroke="#b44133" stroke-width="0.5" opacity="0.4"/>
-          <line x1="15" y1="42" x2="30" y2="16" stroke="#b44133" stroke-width="0.5" opacity="0.4"/>
-          <line x1="15" y1="42" x2="30" y2="33" stroke="#b44133" stroke-width="0.5" opacity="0.4"/>
-        </g>
-        <text x="225" y="118" font-size="10" fill="#1a1714" font-family="Noto Sans KR" font-weight="500">완전연결</text>
-        <text x="225" y="132" font-size="8" fill="#78726a" font-family="Noto Sans KR">분류</text>
-        <!-- Arrow -->
-        <line x1="275" y1="75" x2="295" y2="75" stroke="#4a6b8a" stroke-width="1.5" marker-end="url(#ah2)"/>
-        <!-- Output -->
-        <text x="298" y="72" font-size="11" fill="#1a1714" font-family="Noto Sans KR" font-weight="600">🍎</text>
-        <text x="296" y="88" font-size="8" fill="#78726a" font-family="Noto Sans KR">사과!</text>
-      </svg>
-      <div class="cr"><strong>① 입력층</strong> — 이미지를 픽셀(숫자) 데이터로 변환</div>
-      <div class="cr"><strong>② 합성곱층</strong> — 필터로 외곽선, 질감 등 특징 추출</div>
-      <div class="cr"><strong>③ 완전연결층</strong> — 추출된 특징을 종합하여 최종 분류</div>
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Typical_cnn.png/500px-Typical_cnn.png" alt="CNN 구조" style="width:100%;max-width:380px;border-radius:var(--radius);margin:0.8rem 0;border:1px solid var(--border);">
+      <div class="cr"><strong>① 입력층(Input Layer)</strong> — 이미지를 픽셀 단위의 숫자 행렬로 변환합니다. 예를 들어 224×224 크기의 컬러 이미지는 224×224×3(RGB) = 150,528개의 숫자가 됩니다.</div>
+      <div class="cr"><strong>② 합성곱층(Convolution)</strong> — 3×3 크기의 필터(커널)가 이미지 위를 한 칸씩 이동하며 아다마르 곱을 수행합니다. 시각 피질 V1의 방향 선택 뉴런을 수학적으로 구현한 것입니다.</div>
+      <div class="cr"><strong>③ 활성화 함수(ReLU)</strong> — 음수를 0으로 만들어 비선형성을 부여합니다. 생물학적 뉴런의 "발화 임계값"을 모방한 것으로, 이것이 없으면 아무리 깊은 네트워크도 단순 선형 변환에 불과합니다.</div>
+      <div class="cr"><strong>④ 풀링(Pooling)</strong> — 특징 맵을 축소하여 연산량을 줄이고, 물체가 약간 이동해도 동일하게 인식하는 이동 불변성을 확보합니다.</div>
+      <div class="cr"><strong>⑤ 완전연결 + Softmax</strong> — 추출된 특징을 종합하여 "사과 89%, 오렌지 7%, 토마토 3%"처럼 각 클래스에 대한 확률을 출력합니다.</div>
     </div>
   </div>
 
@@ -663,10 +607,10 @@ K: 필터(커널)  X: 입력의 일부  Y: 출력값
   </div>
 
   <div id="cnn-controls" style="display:none;">
-    <div class="btn-row" style="justify-content:center;margin-bottom:1.5rem;">
-      <button class="btn" onclick="cnnPrevStep()">← 이전 단계</button>
-      <span id="cnn-step-label" style="font-family:var(--mono);font-size:0.75rem;color:var(--muted);min-width:6rem;text-align:center;padding:0.5rem;">1 / 6</span>
-      <button class="btn pri" onclick="cnnNextStep()">다음 단계 →</button>
+    <div style="display:flex;justify-content:center;align-items:center;gap:1rem;margin-bottom:1.5rem;padding:1rem;background:var(--card);border-radius:var(--radius);">
+      <button class="btn" onclick="cnnPrevStep()" style="padding:0.6rem 1.2rem;font-size:0.72rem;">← 이전 단계</button>
+      <span id="cnn-step-label" style="font-family:var(--mono);font-size:0.85rem;font-weight:600;color:var(--fg);min-width:6rem;text-align:center;">1 / 6</span>
+      <button class="btn pri" onclick="cnnNextStep()" style="padding:0.6rem 1.2rem;font-size:0.72rem;">다음 단계 →</button>
     </div>
   </div>
 
@@ -698,25 +642,23 @@ K: 필터(커널)  X: 입력의 일부  Y: 출력값
   <div id="cnn-step-2" class="cnn-step" style="display:none;">
     <div class="card">
       <h3>3단계: 활성화 (ReLU) — 음수를 제거하여 특징 강조</h3>
-      <p>합성곱 결과에 ReLU(Rectified Linear Unit) 활성화 함수를 적용합니다.
-        0보다 작은 값은 모두 0으로 바꾸고, 양수 값만 남깁니다.
-        이 단순한 연산이 신경망에 <strong>비선형성</strong>을 부여합니다.</p>
+      <p>합성곱 결과에 ReLU 활성화 함수를 적용합니다.
+        0보다 작은 값은 모두 0으로 만들어, 의미 있는 양수 반응만 남깁니다.</p>
       <div class="math" style="text-align:center;">ReLU(x) = max(0, x)
-→ 음수(불필요한 정보)를 제거하고 양수(유의미한 특징)만 유지</div>
-      <p>비선형성이 없으면 아무리 층을 깊이 쌓아도 하나의 선형 함수와 동일해져서,
-        복잡한 패턴(곡선, 원, 얼굴 형태 등)을 학습할 수 없습니다.</p>
+→ 음수 제거, 양수만 유지 → "특징이 있다/없다"로 단순화</div>
+      <p>아래 결과를 2단계와 비교하면, 어두운(음수) 영역이 완전한 검정으로 바뀌어 더 선명한 특징만 남아 있는 것을 확인할 수 있습니다.</p>
+      <div id="cnn-relu-maps" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:1rem;justify-content:center;"></div>
     </div>
   </div>
 
   <div id="cnn-step-3" class="cnn-step" style="display:none;">
     <div class="card">
-      <h3>4단계: 풀링 — 핵심 정보만 압축</h3>
-      <p>맥스 풀링을 통해 특징 맵의 크기를 줄입니다.
-        2×2 영역에서 가장 큰 값만 선택하여, "이 근처에 이런 특징이 있다"는 대략적인 위치 정보만 보존합니다.</p>
-      <p style="margin-top:0.5rem;">풀링의 효과는 세 가지입니다.
-        ① 데이터 크기를 줄여 연산 속도를 높이고,
-        ② 물체가 약간 이동해도 동일하게 인식하는 이동 불변성을 부여하며,
-        ③ 과적합(overfitting)을 방지합니다.</p>
+      <h3>4단계: 맥스 풀링 — 핵심 정보만 압축</h3>
+      <p>2×2 영역에서 가장 큰 값만 선택하여 특징 맵의 크기를 절반으로 줄입니다.
+        이미지 크기가 224×224에서 112×112로 줄어들어 연산량이 4분의 1이 됩니다.</p>
+      <p style="margin-top:0.5rem;">풀링의 효과: ① 연산 속도 향상 ② 물체가 약간 이동해도 동일하게 인식 (이동 불변성) ③ 과적합 방지</p>
+      <div id="cnn-pool-maps" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:1rem;justify-content:center;"></div>
+      <p style="font-size:0.78rem;color:var(--muted);margin-top:0.6rem;text-align:center;" id="cnn-pool-info"></p>
     </div>
   </div>
 
@@ -740,7 +682,12 @@ K: 필터(커널)  X: 입력의 일부  Y: 출력값
         마지막으로 Softmax 함수를 적용하여 각 클래스에 대한 확률을 계산합니다.
         모든 확률의 합은 정확히 1(100%)이 됩니다.</p>
       <div class="math" style="text-align:center;font-size:0.75rem;">Softmax(zᵢ) = exp(zᵢ) / Σ exp(zⱼ)    →    모든 출력의 합 = 1.0 (100%)</div>
-      <div id="cnn-predictions" style="margin-top:1rem;"></div>
+      <p style="margin-top:0.5rem;">Softmax는 모델의 원시 출력(logit)을 확률로 변환합니다.
+        큰 값은 높은 확률로, 작은 값은 낮은 확률로 변환되며, 지수 함수(exp)를 사용하기 때문에
+        가장 큰 값이 압도적으로 높은 확률을 갖게 됩니다.</p>
+      <div id="cnn-predictions" style="margin-top:1rem;">
+        <p style="color:var(--muted);font-size:0.88rem;">이미지를 업로드하면 MobileNet 모델이 분류 결과를 표시합니다.</p>
+      </div>
     </div>
   </div>
 
@@ -1876,136 +1823,115 @@ document.getElementById('nsl').addEventListener('input',function(){
 //  CNN PIPELINE (Feature maps + MobileNet classify)
 // ═══════════════════════════════════════════
 let cnnModel=null,cnnLoading=false,cnnStep=0;
+let cnnConvMaps=null,cnnReluMaps=null,cnnPoolMaps=null,cnnDeepMaps=null;
 const CNN_TOTAL_STEPS=6;
-
-function loadCNNScripts(){
-  return new Promise((res,rej)=>{
-    if(window.tf&&window.mobilenet){res();return;}
-    if(window.tf&&!window.mobilenet){
-      const s2=document.createElement('script');
-      s2.src='https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@1.0.0';
-      s2.onload=res;s2.onerror=()=>rej(new Error('MobileNet 로드 실패'));
-      document.head.appendChild(s2);return;
-    }
-    const s1=document.createElement('script');
-    s1.src='https://cdn.jsdelivr.net/npm/@tensorflow/tfjs';
-    s1.onload=()=>{
-      const s2=document.createElement('script');
-      s2.src='https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@1.0.0';
-      s2.onload=res;s2.onerror=()=>rej(new Error('MobileNet 로드 실패'));
-      document.head.appendChild(s2);
-    };
-    s1.onerror=()=>rej(new Error('TensorFlow.js 로드 실패'));
-    document.head.appendChild(s1);
-  });
-}
 
 async function loadCNNModel(){
   if(cnnModel)return cnnModel;
   if(cnnLoading)return null;
   cnnLoading=true;
   const st=document.getElementById('cnn-status');
-  st.textContent='모델 로딩 중... (처음 실행 시 약 10초 소요)';
   try{
-    await loadCNNScripts();
-    cnnModel=await mobilenet.load({version:1,alpha:1.0});
-    st.textContent='모델 준비 완료!';
+    if(!window.tf){
+      st.textContent='TensorFlow.js 로딩 중...';
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js';
+        s.onload=res;s.onerror=()=>rej(new Error('TF.js CDN 실패'));
+        document.head.appendChild(s);
+      });
+    }
+    if(!window.mobilenet){
+      st.textContent='MobileNet 모듈 로딩 중...';
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js';
+        s.onload=res;s.onerror=()=>rej(new Error('MobileNet CDN 실패'));
+        document.head.appendChild(s);
+      });
+    }
+    st.textContent='MobileNet 모델 다운로드 중... (약 16MB)';
+    cnnModel=await mobilenet.load();
+    st.textContent='';
     cnnLoading=false;
     return cnnModel;
   }catch(err){
-    st.textContent='모델 로딩 실패: '+err.message;
+    st.textContent='모델 로딩 실패: '+err.message+' — 특징 맵 시각화는 정상 작동합니다.';
+    console.error('MobileNet load error:',err);
     cnnLoading=false;return null;
   }
 }
 
-// Real convolution kernels for educational visualization
 const CNN_KERNELS=[
-  {name:'세로 엣지',k:[[-1,0,1],[-2,0,2],[-1,0,1]]},
-  {name:'가로 엣지',k:[[-1,-2,-1],[0,0,0],[1,2,1]]},
-  {name:'대각선(↘)',k:[[0,1,2],[-1,0,1],[-2,-1,0]]},
-  {name:'대각선(↙)',k:[[2,1,0],[1,0,-1],[0,-1,-2]]},
+  {name:'세로 엣지 (Sobel)',k:[[-1,0,1],[-2,0,2],[-1,0,1]]},
+  {name:'가로 엣지 (Sobel)',k:[[-1,-2,-1],[0,0,0],[1,2,1]]},
+  {name:'대각선 (↘)',k:[[0,1,2],[-1,0,1],[-2,-1,0]]},
+  {name:'대각선 (↙)',k:[[2,1,0],[1,0,-1],[0,-1,-2]]},
   {name:'선명화',k:[[0,-1,0],[-1,5,-1],[0,-1,0]]},
-  {name:'가우시안',k:[[1,2,1],[2,4,2],[1,2,1]]},
+  {name:'가우시안 블러',k:[[1,2,1],[2,4,2],[1,2,1]]},
   {name:'엠보스',k:[[-2,-1,0],[-1,1,1],[0,1,2]]},
   {name:'라플라시안',k:[[0,1,0],[1,-4,1],[0,1,0]]},
-  {name:'세로선 강조',k:[[1,0,-1],[1,0,-1],[1,0,-1]]},
-  {name:'가로선 강조',k:[[1,1,1],[0,0,0],[-1,-1,-1]]},
-  {name:'좌상 엣지',k:[[1,0,0],[0,0,0],[0,0,-1]]},
-  {name:'우상 엣지',k:[[0,0,1],[0,0,0],[-1,0,0]]},
-  {name:'약한 블러',k:[[1,1,1],[1,1,1],[1,1,1]]},
+  {name:'세로선',k:[[1,0,-1],[1,0,-1],[1,0,-1]]},
+  {name:'가로선',k:[[1,1,1],[0,0,0],[-1,-1,-1]]},
   {name:'경계 강조',k:[[-1,-1,-1],[-1,8,-1],[-1,-1,-1]]},
-  {name:'수직 프레윗',k:[[-1,0,1],[-1,0,1],[-1,0,1]]},
-  {name:'수평 프레윗',k:[[-1,-1,-1],[0,0,0],[1,1,1]]},
+  {name:'약한 블러',k:[[1,1,1],[1,1,1],[1,1,1]]},
 ];
 
-// Simulate convolution on grayscale image data
 function applyKernel(gray,w,h,kernel){
   const out=new Float32Array(w*h);
   for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
-    let sum=0;
+    let s=0;
     for(let ky=-1;ky<=1;ky++)for(let kx=-1;kx<=1;kx++){
-      sum+=gray[(y+ky)*w+(x+kx)]*kernel[ky+1][kx+1];
+      s+=gray[(y+ky)*w+(x+kx)]*kernel[ky+1][kx+1];
     }
-    out[y*w+x]=sum;
+    out[y*w+x]=s;
   }
   return out;
 }
-
-// ReLU on float array
-function applyReLU(data){
-  const out=new Float32Array(data.length);
-  for(let i=0;i<data.length;i++)out[i]=Math.max(0,data[i]);
-  return out;
-}
-
-// Max pooling 2x2
+function applyReLU(data){const o=new Float32Array(data.length);for(let i=0;i<data.length;i++)o[i]=Math.max(0,data[i]);return o;}
 function applyMaxPool(data,w,h){
-  const ow=Math.floor(w/2),oh=Math.floor(h/2);
-  const out=new Float32Array(ow*oh);
+  const ow=w>>1,oh=h>>1,o=new Float32Array(ow*oh);
   for(let y=0;y<oh;y++)for(let x=0;x<ow;x++){
-    const a=data[(y*2)*w+(x*2)],b=data[(y*2)*w+(x*2+1)];
-    const c=data[(y*2+1)*w+(x*2)],d=data[(y*2+1)*w+(x*2+1)];
-    out[y*ow+x]=Math.max(a,b,c,d);
+    o[y*ow+x]=Math.max(data[(y*2)*w+x*2],data[(y*2)*w+x*2+1],data[(y*2+1)*w+x*2],data[(y*2+1)*w+x*2+1]);
   }
-  return {data:out,w:ow,h:oh};
+  return {data:o,w:ow,h:oh};
 }
 
 function drawFloatMap(data,w,h,sz){
   let min=Infinity,max=-Infinity;
   for(let i=0;i<data.length;i++){if(data[i]<min)min=data[i];if(data[i]>max)max=data[i];}
-  const range=max-min||1;
+  const rng=max-min||1;
   const cv=document.createElement('canvas');
   cv.width=w;cv.height=h;
   cv.style.cssText=`width:${sz}px;height:${sz}px;border-radius:4px;border:1px solid var(--border);image-rendering:pixelated;`;
   const ctx=cv.getContext('2d');
   const img=ctx.createImageData(w,h);
   for(let i=0;i<w*h;i++){
-    const v=Math.round(((data[i]-min)/range)*255);
+    const v=Math.round(((data[i]-min)/rng)*255);
     img.data[i*4]=v;img.data[i*4+1]=v;img.data[i*4+2]=v;img.data[i*4+3]=255;
   }
   ctx.putImageData(img,0,0);
   return cv;
 }
 
-function renderFeatureMaps(container,maps,names,sz){
-  container.innerHTML='';
+function renderMaps(cont,maps,names,sz){
+  cont.innerHTML='';
   maps.forEach((m,i)=>{
     const wrap=document.createElement('div');
-    wrap.style.cssText='text-align:center;display:inline-block;margin:3px;';
+    wrap.style.cssText='text-align:center;display:inline-block;margin:4px;';
     wrap.appendChild(drawFloatMap(m.data,m.w,m.h,sz));
     const lbl=document.createElement('div');
     lbl.style.cssText='font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:2px;max-width:'+sz+'px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
-    lbl.textContent=names[i]||('Filter '+(i+1));
+    lbl.textContent=names[i]||('F'+(i+1));
     wrap.appendChild(lbl);
-    container.appendChild(wrap);
+    cont.appendChild(wrap);
   });
 }
 
-function cnnShowStep(step){
-  cnnStep=Math.max(0,Math.min(CNN_TOTAL_STEPS-1,step));
+function cnnShowStep(n){
+  cnnStep=Math.max(0,Math.min(CNN_TOTAL_STEPS-1,n));
   document.querySelectorAll('.cnn-step').forEach(el=>el.style.display='none');
-  const el=document.getElementById('cnn-step-'+cnnStep);
-  if(el)el.style.display='block';
+  document.getElementById('cnn-step-'+cnnStep).style.display='block';
   document.getElementById('cnn-step-label').textContent=`${cnnStep+1} / ${CNN_TOTAL_STEPS}`;
 }
 function cnnNextStep(){cnnShowStep(cnnStep+1);}
@@ -2013,72 +1939,76 @@ function cnnPrevStep(){cnnShowStep(cnnStep-1);}
 
 async function cnnAnalyze(imgEl){
   const st=document.getElementById('cnn-status');
-  st.textContent='분석 중...';
+  st.textContent='이미지 분석 중...';
 
-  // Step 0: Draw input at 224x224
   const inputCv=document.getElementById('cnn-input-cv');
   const ictx=inputCv.getContext('2d');
   ictx.drawImage(imgEl,0,0,224,224);
 
-  // Extract grayscale from canvas
   const imgData=ictx.getImageData(0,0,224,224);
   const gray=new Float32Array(224*224);
-  for(let i=0;i<224*224;i++){
-    gray[i]=imgData.data[i*4]*0.299+imgData.data[i*4+1]*0.587+imgData.data[i*4+2]*0.114;
-  }
+  for(let i=0;i<224*224;i++) gray[i]=imgData.data[i*4]*0.299+imgData.data[i*4+1]*0.587+imgData.data[i*4+2]*0.114;
 
-  // Step 1: Apply conv kernels (simulate first conv layer)
-  const convMaps=CNN_KERNELS.map(k=>({data:applyKernel(gray,224,224,k.k),w:224,h:224}));
-  renderFeatureMaps(document.getElementById('cnn-conv1-maps'),convMaps,CNN_KERNELS.map(k=>k.name),80);
-  document.getElementById('cnn-conv1-info').textContent=`${CNN_KERNELS.length}개 필터 적용 · 특징 맵 크기: 224×224`;
+  // 2단계: Conv
+  cnnConvMaps=CNN_KERNELS.map(k=>({data:applyKernel(gray,224,224,k.k),w:224,h:224}));
+  renderMaps(document.getElementById('cnn-conv1-maps'),cnnConvMaps,CNN_KERNELS.map(k=>k.name),80);
+  document.getElementById('cnn-conv1-info').textContent=`${CNN_KERNELS.length}개 필터 · 출력 크기: 224×224`;
 
-  // Step 2: ReLU (handled by explanation only, but we'll compute for step 4 deep maps)
-  const reluMaps=convMaps.map(m=>({data:applyReLU(m.data),w:m.w,h:m.h}));
+  // 3단계: ReLU
+  cnnReluMaps=cnnConvMaps.map(m=>({data:applyReLU(m.data),w:m.w,h:m.h}));
+  renderMaps(document.getElementById('cnn-relu-maps'),cnnReluMaps,CNN_KERNELS.map(k=>k.name+' (ReLU)'),80);
 
-  // Step 4: Pooling → ReLU → second conv → pool (simulate deeper layers)
-  const pool1=reluMaps.map(m=>applyMaxPool(m.data,m.w,m.h));
-  // Second round: apply cross-kernels on pooled maps for more abstract features
-  const deepMaps=[];const deepNames=[];
-  for(let i=0;i<Math.min(16,pool1.length);i++){
+  // 4단계: Pooling
+  cnnPoolMaps=cnnReluMaps.map(m=>applyMaxPool(m.data,m.w,m.h));
+  renderMaps(document.getElementById('cnn-pool-maps'),cnnPoolMaps,CNN_KERNELS.map(k=>k.name+' (Pooled)'),72);
+  document.getElementById('cnn-pool-info').textContent=`출력 크기: ${cnnPoolMaps[0].w}×${cnnPoolMaps[0].h} (절반으로 축소)`;
+
+  // 5단계: Deep — 2차 Conv→ReLU→Pool
+  cnnDeepMaps=[];const dNames=[];
+  for(let i=0;i<cnnPoolMaps.length;i++){
     const ki=(i+4)%CNN_KERNELS.length;
-    const conv2=applyKernel(pool1[i].data,pool1[i].w,pool1[i].h,CNN_KERNELS[ki].k);
-    const relu2=applyReLU(conv2);
-    const pool2=applyMaxPool(relu2,pool1[i].w,pool1[i].h);
-    deepMaps.push(pool2);
-    deepNames.push('Deep '+(i+1));
+    const c2=applyKernel(cnnPoolMaps[i].data,cnnPoolMaps[i].w,cnnPoolMaps[i].h,CNN_KERNELS[ki].k);
+    const r2=applyReLU(c2);
+    const p2=applyMaxPool(r2,cnnPoolMaps[i].w,cnnPoolMaps[i].h);
+    cnnDeepMaps.push(p2);
+    dNames.push('Deep '+(i+1));
   }
-  renderFeatureMaps(document.getElementById('cnn-deep-maps'),deepMaps,deepNames,72);
-  document.getElementById('cnn-deep-info').textContent=`${deepMaps.length}개 필터 · 특징 맵 크기: ${deepMaps[0].w}×${deepMaps[0].h} (풀링 2회 적용)`;
+  renderMaps(document.getElementById('cnn-deep-maps'),cnnDeepMaps,dNames,64);
+  document.getElementById('cnn-deep-info').textContent=`${cnnDeepMaps.length}개 필터 · 출력 크기: ${cnnDeepMaps[0].w}×${cnnDeepMaps[0].h}`;
 
-  // Step 5: Classification with MobileNet
+  // 6단계: MobileNet 분류 (비동기로 로드)
+  st.textContent='MobileNet 모델로 분류 중...';
   const model=await loadCNNModel();
+  const predBox=document.getElementById('cnn-predictions');
   if(model){
-    const predictions=await model.classify(inputCv,5);
-    const predBox=document.getElementById('cnn-predictions');
-    let html='<p style="margin-bottom:0.8rem;"><strong>상위 5개 예측 결과</strong></p>';
-    predictions.forEach((p,i)=>{
-      const pct=p.probability*100;
-      const isTop=i===0;
-      const name=p.className.split(',')[0].trim();
-      html+=`<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.6rem;">`;
-      html+=`<span style="font-family:var(--mono);font-size:0.82rem;min-width:3.5rem;text-align:right;font-weight:${isTop?'700':'400'};color:${isTop?'var(--fg)':'var(--muted)'};">${pct.toFixed(1)}%</span>`;
-      html+=`<div style="flex:1;height:1.6rem;background:var(--bg);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);">`;
-      html+=`<div style="width:${Math.max(1,pct)}%;height:100%;background:${isTop?'var(--fg)':'var(--accent)'};border-radius:var(--radius);transition:width 0.6s;"></div>`;
-      html+=`</div>`;
-      html+=`<span style="font-size:0.88rem;min-width:10rem;${isTop?'font-weight:600;color:var(--fg);':'color:var(--muted);'}">${name}</span>`;
-      html+=`</div>`;
-    });
-    predBox.innerHTML=html;
+    try{
+      const predictions=await model.classify(inputCv,5);
+      let html='<p style="margin-bottom:0.8rem;"><strong>상위 5개 예측 결과</strong></p>';
+      predictions.forEach((p,i)=>{
+        const pct=p.probability*100;
+        const isTop=i===0;
+        const name=p.className.split(',')[0].trim();
+        html+=`<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.7rem;">`;
+        html+=`<span style="font-family:var(--mono);font-size:0.85rem;min-width:3.8rem;text-align:right;font-weight:${isTop?'700':'400'};color:${isTop?'var(--fg)':'var(--muted)'};">${pct.toFixed(1)}%</span>`;
+        html+=`<div style="flex:1;height:1.8rem;background:var(--bg);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);">`;
+        html+=`<div style="width:${Math.max(2,pct)}%;height:100%;background:${isTop?'var(--fg)':'var(--accent)'};border-radius:var(--radius);transition:width 0.6s;"></div>`;
+        html+=`</div>`;
+        html+=`<span style="font-size:0.92rem;min-width:10rem;${isTop?'font-weight:600;color:var(--fg);':'color:var(--muted);'}">${name}</span>`;
+        html+=`</div>`;
+      });
+      predBox.innerHTML=html;
+    }catch(err){
+      predBox.innerHTML=`<p style="color:var(--muted);">분류 중 오류 발생: ${err.message}</p>`;
+    }
   }else{
-    document.getElementById('cnn-predictions').innerHTML='<p style="color:var(--muted);">모델 로딩에 실패하여 분류 결과를 표시할 수 없습니다.</p>';
+    predBox.innerHTML='<p style="color:var(--muted);">모델 로딩 실패. 특징 맵 시각화는 정상적으로 표시됩니다.</p>';
   }
 
   document.getElementById('cnn-controls').style.display='block';
   cnnShowStep(0);
-  st.textContent='분석 완료! 버튼을 눌러 단계를 진행하세요.';
+  st.textContent='분석 완료! 아래 버튼으로 단계를 진행하세요.';
 }
 
-// Upload handlers for CNN pipeline
 (()=>{
   const uz=document.getElementById('cnn-upz');
   const fi=document.getElementById('cnn-fup');
@@ -2089,14 +2019,9 @@ async function cnnAnalyze(imgEl){
   uz.ondragleave=()=>uz.classList.remove('dg');
   uz.ondrop=e=>{e.preventDefault();uz.classList.remove('dg');if(e.dataTransfer.files[0])cnnLoadImg(e.dataTransfer.files[0]);};
 })();
-
 function cnnLoadImg(file){
   const reader=new FileReader();
-  reader.onload=e=>{
-    const img=new Image();
-    img.onload=()=>cnnAnalyze(img);
-    img.src=e.target.result;
-  };
+  reader.onload=e=>{const img=new Image();img.onload=()=>cnnAnalyze(img);img.src=e.target.result;};
   reader.readAsDataURL(file);
 }
 
@@ -2110,14 +2035,14 @@ function loadDetScripts(){
     if(window.cocoSsd){resolve();return;}
     const loadSsd=()=>{
       const s2=document.createElement('script');
-      s2.src='https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd';
+      s2.src='https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js';
       s2.onload=()=>resolve();
       s2.onerror=()=>reject(new Error('COCO-SSD 로드 실패'));
       document.head.appendChild(s2);
     };
     if(window.tf){loadSsd();return;}
     const s1=document.createElement('script');
-    s1.src='https://cdn.jsdelivr.net/npm/@tensorflow/tfjs';
+    s1.src='https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js';
     s1.onload=loadSsd;
     s1.onerror=()=>reject(new Error('TensorFlow.js 로드 실패'));
     document.head.appendChild(s1);
