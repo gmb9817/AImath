@@ -16,7 +16,7 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
-body{font-family:var(--sans);background:var(--bg);color:var(--fg);line-height:1.75;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;flex-direction:column;}
+body{font-family:var(--sans);background:var(--bg);color:var(--fg);line-height:1.8;font-size:1.02rem;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;flex-direction:column;}
 
 /* ── NAV ── */
 header{position:sticky;top:0;z-index:100;background:rgba(245,240,234,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
@@ -37,18 +37,18 @@ main{max-width:68rem;margin:0 auto;padding:0 1.5rem;flex:1;width:100%;}
 .mono{font-family:var(--mono);font-size:0.62rem;text-transform:uppercase;letter-spacing:0.18em;color:var(--muted);}
 h1{font-size:clamp(1.6rem,3.8vw,2.4rem);font-weight:600;letter-spacing:-0.03em;line-height:1.25;white-space:nowrap;}
 h2{font-size:clamp(1.3rem,2.5vw,1.7rem);font-weight:600;letter-spacing:-0.02em;margin-bottom:0.3rem;}
-h3{font-size:0.95rem;font-weight:600;margin-bottom:0.5rem;}
-.desc{font-size:0.86rem;color:var(--muted);max-width:42rem;margin-bottom:2rem;line-height:1.85;}
+h3{font-size:1.05rem;font-weight:600;margin-bottom:0.5rem;}
+.desc{font-size:0.92rem;color:var(--muted);max-width:42rem;margin-bottom:2rem;line-height:1.9;}
 
 /* ── CARD ── */
 .card{background:var(--card);border-radius:var(--radius);padding:1.4rem;margin-bottom:1.2rem;}
-.card p,.card li{font-size:0.84rem;color:var(--muted);line-height:1.85;}
+.card p,.card li{font-size:0.92rem;color:var(--muted);line-height:1.9;}
 .card-link{background:var(--card);border-radius:var(--radius);padding:1.4rem;cursor:pointer;transition:all 0.2s;border:1px solid transparent;position:relative;}
 .card-link:hover{background:var(--card-h);border-color:var(--border);transform:translateY(-2px);box-shadow:0 2px 8px rgba(26,23,20,0.06);}
 .card-link::after{content:'→';position:absolute;top:1.4rem;right:1.4rem;font-size:0.9rem;color:var(--muted);transition:transform 0.2s;}
 .card-link:hover::after{transform:translateX(3px);color:var(--fg);}
 .card-link h3{font-size:0.95rem;font-weight:600;margin-bottom:0.5rem;}
-.card-link p{font-size:0.84rem;color:var(--muted);line-height:1.85;padding-right:1.5rem;}
+.card-link p{font-size:0.9rem;color:var(--muted);line-height:1.85;padding-right:1.5rem;}
 
 /* ── MATH ── */
 .math{background:var(--fg);color:var(--bg);border-radius:var(--radius);padding:1.2rem 1.5rem;font-family:var(--mono);font-size:0.8rem;line-height:2;overflow-x:auto;margin:1.2rem 0;white-space:pre-line;}
@@ -63,7 +63,7 @@ h3{font-size:0.95rem;font-weight:600;margin-bottom:0.5rem;}
 .btn-row{display:flex;gap:0.4rem;flex-wrap:wrap;margin:0.8rem 0;}
 
 /* ── INFO ── */
-.info{background:var(--card);border-left:3px solid var(--accent);padding:0.9rem 1.1rem;border-radius:0 var(--radius) var(--radius) 0;margin:1.4rem 0;font-size:0.84rem;color:var(--muted);line-height:1.85;}
+.info{background:var(--card);border-left:3px solid var(--accent);padding:0.9rem 1.1rem;border-radius:0 var(--radius) var(--radius) 0;margin:1.4rem 0;font-size:0.9rem;color:var(--muted);line-height:1.9;}
 .info strong{color:var(--fg);}
 .status{font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin:0.6rem 0;min-height:1.3rem;}
 
@@ -161,10 +161,12 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
   <nav>
     <a href="#" class="logo" onclick="go('home');return false;">AI 수학</a>
     <button class="nav-btn active" data-v="home">홈</button>
+    <button class="nav-btn" data-v="mnist">숫자 인식</button>
     <button class="nav-btn" data-v="hamming">해밍 거리</button>
     <button class="nav-btn" data-v="conv">합성곱</button>
     <button class="nav-btn" data-v="filter">필터 실습</button>
     <button class="nav-btn" data-v="pool">풀링 · 정규화</button>
+    <button class="nav-btn" data-v="cnnpipe">CNN 체험</button>
     <button class="nav-btn" data-v="perceptron">퍼셉트론</button>
     <button class="nav-btn" data-v="text">텍스트 데이터</button>
     <button class="nav-btn" data-v="detect">객체 탐지</button>
@@ -184,6 +186,10 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
 
   <div style="margin-top:2.5rem;">
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:1rem;">
+      <div class="card-link" onclick="go('mnist')">
+        <h3>숫자 인식과 MNIST</h3>
+        <p>AI가 손글씨 숫자를 인식하는 과정을 이해하고, Quick, Draw! 게임으로 AI의 그림 인식 능력을 직접 체험합니다.</p>
+      </div>
       <div class="card-link" onclick="go('hamming')">
         <h3>해밍 거리</h3>
         <p>두 이진 데이터 사이의 차이를 XOR 연산으로 측정합니다. 이미지를 행렬로 변환한 뒤 유사도를 비교하는 기본적인 분류 방법입니다.</p>
@@ -200,6 +206,10 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
         <h3>풀링과 정규화</h3>
         <p>맥스 풀링으로 데이터를 압축하는 과정과, 학습 효율을 위한 데이터 정규화를 체험합니다.</p>
       </div>
+      <div class="card-link" onclick="go('cnnpipe')">
+        <h3>CNN 파이프라인 체험</h3>
+        <p>이미지를 업로드하면 CNN이 처리하는 전체 과정을 단계별로 시각화합니다. 합성곱 → 활성화 → 풀링 → 분류까지의 흐름을 확인합니다.</p>
+      </div>
       <div class="card-link" onclick="go('perceptron')">
         <h3>퍼셉트론</h3>
         <p>신경망의 기본 단위인 퍼셉트론의 작동 원리를 시각화합니다. 입력, 가중치, 활성화 함수의 관계를 직접 조작하며 확인합니다.</p>
@@ -213,6 +223,54 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
         <p>학습된 AI 모델이 이미지에서 물체를 인식하는 과정을 직접 체험합니다. 이미지를 업로드하면 실시간으로 객체를 탐지합니다.</p>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ═══════════ MNIST ═══════════ -->
+<div class="view" id="v-mnist">
+  <p class="mono" style="margin-bottom:0.4rem;">숫자 인식과 MNIST</p>
+  <h2>AI는 어떻게 손글씨를 읽을까?</h2>
+  <p class="desc">
+    손글씨 숫자 인식은 AI 역사에서 가장 중요한 벤치마크 문제 중 하나입니다.
+    MNIST 데이터셋과 함께 AI의 이미지 인식 원리를 알아봅니다.
+  </p>
+
+  <div class="card">
+    <h3>MNIST 데이터셋이란?</h3>
+    <p>MNIST(Modified National Institute of Standards and Technology)는 1998년 얀 르쿤(Yann LeCun)이 공개한 손글씨 숫자 이미지 데이터셋입니다.
+      0부터 9까지의 숫자를 28×28 픽셀 흑백 이미지로 표현하며, 학습용 60,000장과 테스트용 10,000장, 총 70,000장으로 구성됩니다.</p>
+    <p style="margin-top:0.5rem;">MNIST는 "AI의 Hello World"라 불릴 만큼, 거의 모든 머신러닝 입문 교재에서 가장 먼저 다루는 데이터셋입니다.
+      단순한 문제처럼 보이지만, 이 데이터셋을 통해 이미지를 행렬로 표현하는 방법, 합성곱의 작동 원리, 분류 알고리즘의 평가 등
+      핵심 개념을 자연스럽게 학습할 수 있습니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>이미지를 숫자로 바꾸기</h3>
+    <p>컴퓨터에게 이미지는 픽셀 값의 행렬입니다. MNIST의 28×28 이미지는 784개의 숫자(0~255)로 이루어진 행렬이 됩니다.
+      0은 완전한 검정, 255는 완전한 흰색을 의미합니다.
+      AI는 이 숫자들의 패턴을 분석하여 어떤 숫자인지를 판단합니다.</p>
+    <div class="math" style="text-align:center;font-size:0.75rem;">이미지 (28×28 픽셀)  →  행렬 (28×28 = 784개의 숫자)  →  AI 모델  →  "이것은 숫자 3이다"</div>
+    <p style="margin-top:0.5rem;">이 과정을 개선하기 위해 해밍 거리(단순 비교), 합성곱(특징 추출), 퍼셉트론(분류) 등의 기법이 사용되며,
+      이 웹사이트의 각 섹션에서 이 기법들을 하나씩 체험할 수 있습니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>숫자 인식의 어려움</h3>
+    <p>같은 "7"이라도 사람마다 쓰는 방식이 다릅니다. 가로획을 긋는 사람, 기울여 쓰는 사람, 크게 쓰는 사람 등
+      무한한 변형이 존재합니다. AI는 이 모든 변형을 "7"로 인식해야 합니다.
+      단순히 픽셀을 하나하나 비교하는 방법(해밍 거리)은 위치가 조금만 달라져도 실패하기 때문에,
+      이미지의 부분적 특징(선의 방향, 모서리, 곡선 등)을 찾아내는 CNN이 훨씬 효과적입니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>Quick, Draw! — AI의 그림 인식 체험</h3>
+    <p>Google의 Quick, Draw! 게임에서 AI가 실시간으로 그림을 인식하는 과정을 직접 체험해보세요.
+      20초 안에 주어진 주제를 그리면, AI가 무엇을 그리고 있는지 맞추려고 합니다.
+      이 AI도 CNN 기반의 신경망으로, MNIST와 동일한 원리로 작동합니다.</p>
+    <div style="margin-top:1rem;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);">
+      <iframe src="https://quickdraw.withgoogle.com/" style="width:100%;height:560px;border:none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+    <p style="margin-top:0.5rem;font-size:0.78rem;color:var(--muted);">Quick, Draw!가 표시되지 않으면 <a href="https://quickdraw.withgoogle.com/" target="_blank" style="color:var(--blue);text-decoration:underline;">여기</a>를 클릭하여 새 탭에서 열어주세요.</p>
   </div>
 </div>
 
@@ -515,6 +573,85 @@ K: 필터(커널)  X: 입력의 일부  Y: 출력값
       수치 오버플로우를 방지하며, 다양한 특성을 공평하게 반영할 수 있게 합니다.
       이미지 외에도 음성, 센서 데이터 등 거의 모든 AI 입력 데이터에 정규화가 적용됩니다.
     </div>
+  </div>
+</div>
+
+<!-- ═══════════ CNN PIPELINE ═══════════ -->
+<div class="view" id="v-cnnpipe">
+  <p class="mono" style="margin-bottom:0.4rem;">CNN 파이프라인</p>
+  <h2>이미지가 분류되기까지의 전 과정</h2>
+  <p class="desc">
+    이미지를 업로드하면 CNN이 처리하는 각 단계를 시각적으로 확인할 수 있습니다.
+    각 단계가 무엇을 하는지, 왜 필요한지를 함께 설명합니다.
+  </p>
+
+  <div class="card">
+    <h3>이미지 업로드</h3>
+    <p>분석할 이미지를 업로드하세요. MobileNet 모델이 1,000가지 클래스(동물, 사물, 음식 등)를 인식합니다.</p>
+    <div class="upz" id="cnn-upz" style="margin-top:0.8rem;">
+      <p style="font-weight:500;color:var(--fg);margin-bottom:0.2rem;">이미지를 드래그하거나 클릭하여 업로드하세요</p>
+      <p style="font-size:0.7rem;margin-top:0.15rem;">jpg, png 등 이미지 파일을 지원합니다</p>
+      <input type="file" id="cnn-fup" accept="image/*">
+    </div>
+    <div id="cnn-status" class="status"></div>
+  </div>
+
+  <div id="cnn-steps" style="display:none;">
+
+    <div class="card" id="cnn-step-input">
+      <h3>1단계: 입력 — 이미지를 숫자 행렬로 변환</h3>
+      <p>이미지를 224×224 크기로 조정하고, 각 픽셀의 RGB 값(0~255)을 -1.0~1.0 범위의 실수로 정규화합니다.
+        이 과정을 전처리(Preprocessing)라 하며, 모델이 학습한 데이터와 같은 형식으로 맞추는 작업입니다.</p>
+      <div style="text-align:center;margin:1rem 0;">
+        <canvas id="cnn-input-cv" width="224" height="224" style="border-radius:var(--radius);border:1px solid var(--border);max-width:224px;"></canvas>
+        <p style="font-size:0.75rem;color:var(--muted);margin-top:0.4rem;">224 × 224 × 3 (높이 × 너비 × RGB 채널)</p>
+      </div>
+    </div>
+
+    <div class="card" id="cnn-step-conv">
+      <h3>2단계: 합성곱 — 특징 추출</h3>
+      <p>수십 개의 필터(커널)가 이미지 위를 이동하며 특징을 추출합니다.
+        첫 번째 합성곱층은 단순한 가장자리와 색상 변화를 감지하고, 층이 깊어질수록
+        눈, 바퀴, 꽃잎 같은 복잡한 패턴을 인식하게 됩니다.</p>
+      <p style="margin-top:0.5rem;"><strong>아래는 첫 번째 합성곱층의 출력입니다.</strong> 각 작은 이미지는 하나의 필터가 감지한 특징을 나타냅니다.
+        밝은 부분이 해당 특징이 강하게 나타나는 영역입니다.</p>
+      <div id="cnn-conv-maps" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:1rem;justify-content:center;"></div>
+    </div>
+
+    <div class="card" id="cnn-step-relu">
+      <h3>3단계: 활성화 (ReLU) — 비선형성 부여</h3>
+      <p>합성곱 결과에 ReLU 함수를 적용합니다. 0보다 작은 값은 모두 0으로 바꾸고, 양수 값만 남깁니다.
+        이 단순한 연산이 신경망에 비선형성을 부여하여, 직선으로는 구분할 수 없는 복잡한 패턴을 학습할 수 있게 합니다.</p>
+      <div class="math" style="text-align:center;">ReLU(x) = max(0, x)</div>
+      <p>활성화 전에는 음수 값(어두운 영역)이 존재했지만, ReLU 적용 후에는 0 이상의 값만 남아
+        특징이 "있다/없다"의 형태로 단순화됩니다.</p>
+    </div>
+
+    <div class="card" id="cnn-step-pool">
+      <h3>4단계: 풀링 — 핵심 정보만 압축</h3>
+      <p>맥스 풀링을 통해 특징 맵의 크기를 절반으로 줄입니다.
+        2×2 영역에서 가장 큰 값만 선택하여, 물체의 정확한 위치보다는 "이 근처에 이런 특징이 있다"는 정보를 보존합니다.
+        이를 통해 연산량을 줄이고, 물체가 약간 이동하거나 변형되어도 동일하게 인식하는 이동 불변성을 확보합니다.</p>
+    </div>
+
+    <div class="card" id="cnn-step-deep">
+      <h3>5단계: 반복 — 더 깊은 특징 학습</h3>
+      <p>MobileNet은 합성곱 → 활성화 → 풀링의 과정을 수십 번 반복합니다.
+        초기 층은 가장자리, 질감 같은 저수준 특징을, 깊은 층은 눈, 바퀴, 얼굴 같은 고수준 특징을 학습합니다.
+        이것이 바로 "딥(Deep)" 러닝이라 불리는 이유입니다.</p>
+      <p style="margin-top:0.5rem;"><strong>아래는 중간 레이어의 특징 맵입니다.</strong> 초기 층과 비교하면 더 추상적이고 복잡한 패턴을 포착하고 있음을 확인할 수 있습니다.</p>
+      <div id="cnn-deep-maps" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:1rem;justify-content:center;"></div>
+    </div>
+
+    <div class="card" id="cnn-step-fc">
+      <h3>6단계: 완전연결층 + Softmax — 최종 분류</h3>
+      <p>추출된 모든 특징을 1차원 벡터로 펼친 뒤, 완전연결층(Fully Connected Layer)을 통과시킵니다.
+        마지막으로 Softmax 함수를 적용하여 각 클래스(레이블)에 대한 확률을 계산합니다.
+        모든 확률의 합은 정확히 1이 되며, 가장 높은 확률을 가진 클래스가 최종 예측 결과입니다.</p>
+      <div class="math" style="text-align:center;font-size:0.72rem;">Softmax(zᵢ) = exp(zᵢ) / Σ exp(zⱼ)    →    모든 출력의 합 = 1.0</div>
+      <div id="cnn-predictions" style="margin-top:1rem;"></div>
+    </div>
+
   </div>
 </div>
 
@@ -1643,6 +1780,185 @@ document.getElementById('nsl').addEventListener('input',function(){
   document.getElementById('nf').textContent=(v/255).toFixed(3);
   document.getElementById('nsw').style.background=`rgb(${v},${v},${v})`;
 });
+
+// ═══════════════════════════════════════════
+//  CNN PIPELINE (MobileNet via TF.js)
+// ═══════════════════════════════════════════
+let cnnModel=null,cnnLoading=false;
+
+async function loadCNNModel(){
+  if(cnnModel)return cnnModel;
+  if(cnnLoading)return null;
+  cnnLoading=true;
+  const st=document.getElementById('cnn-status');
+  st.textContent='TensorFlow.js 및 MobileNet 모델 로딩 중... (처음 실행 시 수 초 소요)';
+  try{
+    // Load TF.js if not loaded
+    if(!window.tf){
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdn.jsdelivr.net/npm/@tensorflow/tfjs';
+        s.onload=res;s.onerror=()=>rej(new Error('TensorFlow.js 로드 실패'));
+        document.head.appendChild(s);
+      });
+    }
+    // Load MobileNet
+    if(!window.mobilenet){
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet';
+        s.onload=res;s.onerror=()=>rej(new Error('MobileNet 로드 실패'));
+        document.head.appendChild(s);
+      });
+    }
+    cnnModel=await mobilenet.load({version:2,alpha:1.0});
+    st.textContent='모델 준비 완료. 이미지를 업로드하세요.';
+    cnnLoading=false;
+    return cnnModel;
+  }catch(err){
+    st.textContent='모델 로딩 실패: '+err.message;
+    cnnLoading=false;
+    return null;
+  }
+}
+
+function drawFeatureMaps(tensor,containerId,maxMaps){
+  const cont=document.getElementById(containerId);
+  cont.innerHTML='';
+  const [h,w,channels]=tensor.shape.slice(1);
+  const n=Math.min(channels,maxMaps||32);
+  const data=tensor.dataSync();
+  const hw=h*w;
+
+  for(let c=0;c<n;c++){
+    const cv=document.createElement('canvas');
+    const sz=Math.min(64,Math.max(28,Math.round(200/Math.sqrt(n))));
+    cv.width=w;cv.height=h;cv.style.width=sz+'px';cv.style.height=sz+'px';
+    cv.style.borderRadius='3px';cv.style.border='1px solid var(--border)';
+    cv.style.imageRendering='pixelated';
+    const ctx=cv.getContext('2d');
+    const imgData=ctx.createImageData(w,h);
+
+    // Find min/max for this channel
+    let min=Infinity,max=-Infinity;
+    for(let i=0;i<hw;i++){
+      const v=data[i*channels+c];
+      if(v<min)min=v;if(v>max)max=v;
+    }
+    const range=max-min||1;
+
+    for(let i=0;i<hw;i++){
+      const v=Math.round(((data[i*channels+c]-min)/range)*255);
+      imgData.data[i*4]=v;
+      imgData.data[i*4+1]=v;
+      imgData.data[i*4+2]=v;
+      imgData.data[i*4+3]=255;
+    }
+    ctx.putImageData(imgData,0,0);
+    cont.appendChild(cv);
+  }
+}
+
+async function cnnAnalyze(imgEl){
+  const model=await loadCNNModel();
+  if(!model)return;
+  const st=document.getElementById('cnn-status');
+  st.textContent='분석 중...';
+
+  // Step 1: Input
+  const inputCv=document.getElementById('cnn-input-cv');
+  const ictx=inputCv.getContext('2d');
+  ictx.drawImage(imgEl,0,0,224,224);
+
+  // Get underlying tf model
+  const tfModel=model.model;
+
+  // Prepare input tensor
+  const inputTensor=tf.browser.fromPixels(inputCv).toFloat().expandDims(0);
+  const normalized=inputTensor.div(127.5).sub(1);
+
+  // Extract intermediate layers
+  try{
+    // Early conv layer (first few layers)
+    const earlyLayerName=tfModel.layers[3]?tfModel.layers[3].name:tfModel.layers[2].name;
+    const earlyModel=tf.model({inputs:tfModel.input,outputs:tfModel.getLayer(earlyLayerName).output});
+    const earlyOut=earlyModel.predict(normalized);
+    drawFeatureMaps(earlyOut,'cnn-conv-maps',32);
+    earlyOut.dispose();
+
+    // Mid-level layer
+    const midIdx=Math.min(Math.floor(tfModel.layers.length*0.4),tfModel.layers.length-2);
+    let midLayer=null;
+    for(let i=midIdx;i>=3;i--){
+      if(tfModel.layers[i].output.shape.length===4){
+        midLayer=tfModel.layers[i];break;
+      }
+    }
+    if(midLayer){
+      const midModel=tf.model({inputs:tfModel.input,outputs:midLayer.output});
+      const midOut=midModel.predict(normalized);
+      drawFeatureMaps(midOut,'cnn-deep-maps',32);
+      midOut.dispose();
+    }
+
+    // Step 6: Classification
+    const predictions=await model.classify(inputCv,10);
+
+    const predBox=document.getElementById('cnn-predictions');
+    let html='<p style="margin-bottom:0.6rem;font-size:0.88rem;color:var(--muted);">상위 5개 예측 결과:</p>';
+    predictions.slice(0,5).forEach((p,i)=>{
+      const pct=(p.probability*100);
+      const barW=Math.max(2,pct);
+      const isTop=i===0;
+      html+=`<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;">`;
+      html+=`<span style="font-family:var(--mono);font-size:0.75rem;min-width:2.5rem;text-align:right;font-weight:${isTop?'700':'400'};color:${isTop?'var(--fg)':'var(--muted)'};">${pct.toFixed(1)}%</span>`;
+      html+=`<div style="flex:1;height:1.4rem;background:var(--bg);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);">`;
+      html+=`<div style="width:${barW}%;height:100%;background:${isTop?'var(--fg)':'var(--accent)'};border-radius:var(--radius);transition:width 0.5s;"></div>`;
+      html+=`</div>`;
+      html+=`<span style="font-size:0.82rem;min-width:8rem;${isTop?'font-weight:600;color:var(--fg);':'color:var(--muted);'}">${p.className.split(',')[0]}</span>`;
+      html+=`</div>`;
+    });
+    predBox.innerHTML=html;
+
+  }catch(err){
+    st.textContent='중간 레이어 추출 오류: '+err.message+' — 분류 결과만 표시합니다.';
+    // Fallback: just classify
+    const predictions=await model.classify(inputCv,5);
+    const predBox=document.getElementById('cnn-predictions');
+    let html='';
+    predictions.forEach((p,i)=>{
+      html+=`<p style="font-family:var(--mono);font-size:0.82rem;margin:0.3rem 0;"><strong>${(p.probability*100).toFixed(1)}%</strong> — ${p.className}</p>`;
+    });
+    predBox.innerHTML=html;
+  }
+
+  inputTensor.dispose();
+  normalized.dispose();
+  document.getElementById('cnn-steps').style.display='block';
+  st.textContent='분석 완료. 아래에서 각 단계를 확인하세요.';
+}
+
+// Upload handlers for CNN pipeline
+(()=>{
+  const uz=document.getElementById('cnn-upz');
+  const fi=document.getElementById('cnn-fup');
+  if(!uz||!fi)return;
+  uz.onclick=()=>fi.click();
+  fi.onchange=e=>{if(e.target.files[0])cnnLoadImg(e.target.files[0]);};
+  uz.ondragover=e=>{e.preventDefault();uz.classList.add('dg');};
+  uz.ondragleave=()=>uz.classList.remove('dg');
+  uz.ondrop=e=>{e.preventDefault();uz.classList.remove('dg');if(e.dataTransfer.files[0])cnnLoadImg(e.dataTransfer.files[0]);};
+})();
+
+function cnnLoadImg(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>cnnAnalyze(img);
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
 
 // ═══════════════════════════════════════════
 //  OBJECT DETECTION (COCO-SSD via TF.js)
