@@ -167,6 +167,7 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
     <button class="nav-btn" data-v="pool">풀링 · 정규화</button>
     <button class="nav-btn" data-v="perceptron">퍼셉트론</button>
     <button class="nav-btn" data-v="text">텍스트 데이터</button>
+    <button class="nav-btn" data-v="detect">객체 탐지</button>
   </nav>
 </header>
 
@@ -206,6 +207,10 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
       <div class="card-link" onclick="go('text')">
         <h3>텍스트 데이터</h3>
         <p>자연어를 수치 벡터로 변환하는 과정을 학습합니다. 원-핫 인코딩과 빈도수 벡터(BoW)를 직접 체험합니다.</p>
+      </div>
+      <div class="card-link" onclick="go('detect')">
+        <h3>객체 탐지</h3>
+        <p>학습된 AI 모델이 이미지에서 물체를 인식하는 과정을 직접 체험합니다. 이미지를 업로드하면 실시간으로 객체를 탐지합니다.</p>
       </div>
     </div>
   </div>
@@ -528,7 +533,7 @@ K: 필터(커널)  X: 입력의 일부  Y: 출력값
       <div class="card" style="height:100%;display:flex;flex-direction:column;">
         <h3>활성화 함수 그래프</h3>
         <p style="margin-bottom:0.5rem;">빨간 점은 현재 가중합 x와 출력 y의 위치입니다.</p>
-        <canvas id="pc-graph" width="480" height="360" style="width:100%;border-radius:var(--radius);border:1px solid var(--border);background:#fff;flex:1;"></canvas>
+        <canvas id="pc-graph" width="560" height="400" style="width:100%;aspect-ratio:560/400;border-radius:var(--radius);border:1px solid var(--border);background:#fff;"></canvas>
       </div>
     </div>
   </div>
@@ -589,6 +594,45 @@ K: 필터(커널)  X: 입력의 일부  Y: 출력값
     </div>
 
     <div id="bow-result"></div>
+  </div>
+</div>
+
+<!-- ═══════════ OBJECT DETECTION ═══════════ -->
+<div class="view" id="v-detect">
+  <p class="mono" style="margin-bottom:0.4rem;">객체 탐지</p>
+  <h2>AI가 이미지에서 물체를 찾는 과정</h2>
+  <p class="desc">
+    학습된 신경망 모델(COCO-SSD)이 이미지에서 사람, 자동차, 동물 등 80종의 객체를
+    인식하고 위치를 표시합니다. 이미지를 업로드하여 직접 체험해보세요.
+  </p>
+
+  <div class="card">
+    <h3>이미지 업로드</h3>
+    <div class="upz" id="det-upz">
+      <p style="font-weight:500;color:var(--fg);margin-bottom:0.2rem;">이미지를 드래그하거나 클릭하여 업로드하세요</p>
+      <p style="font-size:0.7rem;margin-top:0.15rem;">jpg, png 등 이미지 파일을 지원합니다</p>
+      <input type="file" id="det-fup" accept="image/*">
+    </div>
+    <div id="det-status" class="status"></div>
+  </div>
+
+  <div id="det-result" style="display:none;">
+    <div class="card" style="text-align:center;">
+      <div style="position:relative;display:inline-block;">
+        <canvas id="det-canvas" class="cv" style="max-width:100%;"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>탐지 결과</h3>
+      <div id="det-list"></div>
+    </div>
+  </div>
+
+  <div class="info">
+    <strong>COCO-SSD 모델:</strong> Microsoft COCO 데이터셋으로 학습된 경량 객체 탐지 모델입니다.
+    80개 클래스(사람, 자동차, 고양이, 의자 등)를 인식할 수 있습니다.
+    이 모델은 브라우저에서 TensorFlow.js로 직접 실행되며, 서버로 이미지가 전송되지 않습니다.
   </div>
 </div>
 
@@ -687,12 +731,40 @@ function rBmp(){
   g.style.gridTemplateColumns=`repeat(${bSz},1fr)`;g.innerHTML='';
   for(let i=0;i<bSz*bSz;i++){const c=document.createElement('div');c.className='bc'+(uBmp[i]?' on':'');c.style.width=cs;c.style.height=cs;
     c.dataset.idx=i;
-    c.addEventListener('mousedown',e=>{e.preventDefault();isDraw=true;dVal=uBmp[i]?0:1;uBmp[i]=dVal;rBmp();});
-    c.addEventListener('mouseenter',()=>{if(isDraw){uBmp[i]=dVal;rBmp();}});
+    c.addEventListener('mousedown',e=>{e.preventDefault();isDraw=true;dVal=uBmp[i]?0:1;uBmp[i]=dVal;rBmpVisual();});
+    c.addEventListener('mouseenter',()=>{if(isDraw){uBmp[i]=dVal;rBmpVisual();}});
     g.appendChild(c);}
-  // Touch handling on grid level
-  g.ontouchstart=e=>{e.preventDefault();const t=e.touches[0];const el=document.elementFromPoint(t.clientX,t.clientY);if(el&&el.dataset.idx!==undefined){const idx=parseInt(el.dataset.idx);isDraw=true;dVal=uBmp[idx]?0:1;uBmp[idx]=dVal;rBmp();}};
-  g.ontouchmove=e=>{e.preventDefault();if(!isDraw)return;const t=e.touches[0];const el=document.elementFromPoint(t.clientX,t.clientY);if(el&&el.dataset.idx!==undefined){const idx=parseInt(el.dataset.idx);if(uBmp[idx]!==dVal){uBmp[idx]=dVal;rBmp();}}};
+  bindTouch();
+}
+
+// Lightweight visual-only update (no DOM rebuild)
+function rBmpVisual(){
+  const cells=document.getElementById('ubmp').children;
+  for(let i=0;i<cells.length;i++){cells[i].className='bc'+(uBmp[i]?' on':'');}
+}
+
+// Bind touch handlers once on the grid — survives rBmpVisual calls
+function bindTouch(){
+  const g=document.getElementById('ubmp');
+  g.ontouchstart=e=>{
+    e.preventDefault();
+    const t=e.touches[0];
+    const el=document.elementFromPoint(t.clientX,t.clientY);
+    if(el&&el.dataset&&el.dataset.idx!==undefined){
+      const idx=parseInt(el.dataset.idx);
+      isDraw=true;dVal=uBmp[idx]?0:1;uBmp[idx]=dVal;rBmpVisual();
+    }
+  };
+  g.ontouchmove=e=>{
+    e.preventDefault();
+    if(!isDraw)return;
+    const t=e.touches[0];
+    const el=document.elementFromPoint(t.clientX,t.clientY);
+    if(el&&el.dataset&&el.dataset.idx!==undefined){
+      const idx=parseInt(el.dataset.idx);
+      if(uBmp[idx]!==dVal){uBmp[idx]=dVal;rBmpVisual();}
+    }
+  };
   g.ontouchend=()=>{isDraw=false;};
 }
 document.addEventListener('mouseup',()=>{isDraw=false;});
@@ -1485,6 +1557,125 @@ document.getElementById('nsl').addEventListener('input',function(){
   document.getElementById('nf').textContent=(v/255).toFixed(3);
   document.getElementById('nsw').style.background=`rgb(${v},${v},${v})`;
 });
+
+// ═══════════════════════════════════════════
+//  OBJECT DETECTION (COCO-SSD via TF.js)
+// ═══════════════════════════════════════════
+let detModel=null,detLoading=false;
+
+function loadDetScripts(){
+  return new Promise((resolve,reject)=>{
+    if(window.cocoSsd){resolve();return;}
+    const s1=document.createElement('script');
+    s1.src='https://cdnjs.cloudflare.com/ajax/libs/tensorflow/4.17.0/tf.min.js';
+    s1.onload=()=>{
+      const s2=document.createElement('script');
+      s2.src='https://cdnjs.cloudflare.com/ajax/libs/tensorflow-models-coco-ssd/2.2.3/coco-ssd.min.js';
+      s2.onload=()=>resolve();
+      s2.onerror=()=>reject(new Error('COCO-SSD 로드 실패'));
+      document.head.appendChild(s2);
+    };
+    s1.onerror=()=>reject(new Error('TensorFlow.js 로드 실패'));
+    document.head.appendChild(s1);
+  });
+}
+
+async function initDetModel(){
+  if(detModel)return detModel;
+  if(detLoading)return null;
+  detLoading=true;
+  const st=document.getElementById('det-status');
+  st.textContent='모델 로딩 중... (처음 실행 시 수 초 소요)';
+  try{
+    await loadDetScripts();
+    detModel=await cocoSsd.load();
+    st.textContent='모델 준비 완료.';
+    detLoading=false;
+    return detModel;
+  }catch(err){
+    st.textContent='모델 로딩 실패: '+err.message;
+    detLoading=false;
+    return null;
+  }
+}
+
+const COCO_KR={'person':'사람','bicycle':'자전거','car':'자동차','motorcycle':'오토바이','airplane':'비행기','bus':'버스','train':'기차','truck':'트럭','boat':'보트','traffic light':'신호등','fire hydrant':'소화전','stop sign':'정지 표지판','parking meter':'주차 미터기','bench':'벤치','bird':'새','cat':'고양이','dog':'개','horse':'말','sheep':'양','cow':'소','elephant':'코끼리','bear':'곰','zebra':'얼룩말','giraffe':'기린','backpack':'배낭','umbrella':'우산','handbag':'핸드백','tie':'넥타이','suitcase':'여행가방','frisbee':'프리스비','skis':'스키','snowboard':'스노보드','sports ball':'공','kite':'연','baseball bat':'야구 배트','baseball glove':'야구 글러브','skateboard':'스케이트보드','surfboard':'서프보드','tennis racket':'테니스 라켓','bottle':'병','wine glass':'와인잔','cup':'컵','fork':'포크','knife':'칼','spoon':'숟가락','bowl':'그릇','banana':'바나나','apple':'사과','sandwich':'샌드위치','orange':'오렌지','broccoli':'브로콜리','carrot':'당근','hot dog':'핫도그','pizza':'피자','donut':'도넛','cake':'케이크','chair':'의자','couch':'소파','potted plant':'화분','bed':'침대','dining table':'식탁','toilet':'변기','tv':'TV','laptop':'노트북','mouse':'마우스','remote':'리모컨','keyboard':'키보드','cell phone':'휴대폰','microwave':'전자레인지','oven':'오븐','toaster':'토스터','sink':'싱크대','refrigerator':'냉장고','book':'책','clock':'시계','vase':'꽃병','scissors':'가위','teddy bear':'곰 인형','hair drier':'드라이어','toothbrush':'칫솔'};
+
+async function detRun(imgEl){
+  const model=await initDetModel();
+  if(!model)return;
+  const st=document.getElementById('det-status');
+  st.textContent='탐지 중...';
+
+  const predictions=await model.detect(imgEl);
+
+  // Draw on canvas
+  const cv=document.getElementById('det-canvas');
+  const ctx=cv.getContext('2d');
+  cv.width=imgEl.naturalWidth||imgEl.width;
+  cv.height=imgEl.naturalHeight||imgEl.height;
+  ctx.drawImage(imgEl,0,0,cv.width,cv.height);
+
+  const colors=['#b44133','#4a6b8a','#5a7a5a','#8a6a4a','#6a4a8a','#4a8a7a','#8a4a6a','#7a8a4a'];
+
+  predictions.forEach((p,i)=>{
+    const [x,y,w,h]=p.bbox;
+    const c=colors[i%colors.length];
+    ctx.strokeStyle=c;
+    ctx.lineWidth=Math.max(2,Math.round(cv.width/200));
+    ctx.strokeRect(x,y,w,h);
+
+    const label=`${COCO_KR[p.class]||p.class} ${(p.score*100).toFixed(1)}%`;
+    ctx.font=`bold ${Math.max(12,Math.round(cv.width/40))}px "Noto Sans KR", sans-serif`;
+    const tm=ctx.measureText(label);
+    const lh=Math.max(16,Math.round(cv.width/30));
+    ctx.fillStyle=c;
+    ctx.fillRect(x,y-lh-4,tm.width+10,lh+4);
+    ctx.fillStyle='#fff';
+    ctx.fillText(label,x+5,y-6);
+  });
+
+  document.getElementById('det-result').style.display='block';
+
+  // List
+  const list=document.getElementById('det-list');
+  if(predictions.length===0){
+    list.innerHTML='<p style="font-size:0.84rem;color:var(--muted);">탐지된 객체가 없습니다.</p>';
+    st.textContent='탐지 완료 — 인식된 객체 없음';
+  }else{
+    let html='<div style="display:flex;flex-wrap:wrap;gap:0.4rem;">';
+    predictions.forEach((p,i)=>{
+      const c=colors[i%colors.length];
+      const kr=COCO_KR[p.class]||p.class;
+      html+=`<span style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.3rem 0.6rem;border-radius:9999px;background:${c}18;color:${c};font-family:var(--mono);font-size:0.75rem;font-weight:600;border:1px solid ${c}30;">${kr} <span style="font-weight:400;opacity:0.7;">${(p.score*100).toFixed(1)}%</span></span>`;
+    });
+    html+='</div>';
+    list.innerHTML=html;
+    st.textContent=`탐지 완료 — ${predictions.length}개 객체 인식`;
+  }
+}
+
+// Upload handlers
+(()=>{
+  const uz=document.getElementById('det-upz');
+  const fi=document.getElementById('det-fup');
+  if(!uz||!fi)return;
+  uz.onclick=()=>fi.click();
+  fi.onchange=e=>{if(e.target.files[0])detLoadImg(e.target.files[0]);};
+  uz.ondragover=e=>{e.preventDefault();uz.classList.add('dg');};
+  uz.ondragleave=()=>uz.classList.remove('dg');
+  uz.ondrop=e=>{e.preventDefault();uz.classList.remove('dg');if(e.dataTransfer.files[0])detLoadImg(e.dataTransfer.files[0]);};
+})();
+
+function detLoadImg(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>detRun(img);
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
 
 // Service Worker
 if('serviceWorker' in navigator)try{navigator.serviceWorker.register('sw.js');}catch(e){}
