@@ -383,29 +383,21 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
   <!-- ═══ Interactive Eye vs CNN comparison ═══ -->
   <div class="card">
     <h3>인간의 시각 vs CNN — 단계별 비교</h3>
-    <p>아래 버튼을 눌러 인간의 시각 처리 과정과 CNN의 각 단계가 어떻게 대응되는지 확인하세요.</p>
-    <div id="eyecnn-btns" style="display:flex;gap:4px;margin:1rem 0;flex-wrap:wrap;">
-      <button class="btn" onclick="eyeCnnStep(0)" style="flex:1;min-width:4rem;font-size:0.68rem;padding:0.4rem 0.3rem;" id="ec-b0">① 입력</button>
-      <button class="btn" onclick="eyeCnnStep(1)" style="flex:1;min-width:4rem;font-size:0.68rem;padding:0.4rem 0.3rem;" id="ec-b1">② 특징 추출</button>
-      <button class="btn" onclick="eyeCnnStep(2)" style="flex:1;min-width:4rem;font-size:0.68rem;padding:0.4rem 0.3rem;" id="ec-b2">③ 활성화</button>
-      <button class="btn" onclick="eyeCnnStep(3)" style="flex:1;min-width:4rem;font-size:0.68rem;padding:0.4rem 0.3rem;" id="ec-b3">④ 압축</button>
-      <button class="btn" onclick="eyeCnnStep(4)" style="flex:1;min-width:4rem;font-size:0.68rem;padding:0.4rem 0.3rem;" id="ec-b4">⑤ 인식</button>
+    <p>이전/다음 버튼을 눌러 인간의 시각 처리와 CNN의 각 단계가 어떻게 대응되는지 확인하세요. 단계가 진행될수록 이전 내용 위에 새 내용이 누적됩니다.</p>
+    <div style="display:flex;justify-content:center;gap:1rem;margin:1rem 0;">
+      <button class="btn" onclick="ecPrev()">← 이전 단계</button>
+      <span id="ec-label" style="font-family:var(--mono);font-size:0.82rem;font-weight:600;min-width:6rem;text-align:center;line-height:2.2;">0 / 5</span>
+      <button class="btn pri" onclick="ecNext()">다음 단계 →</button>
     </div>
     <div class="cmp">
       <div class="cmp-c">
         <h4>인간의 시각 시스템</h4>
-        <div style="position:relative;display:inline-block;">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Schematic_diagram_of_the_human_eye_en.svg/600px-Schematic_diagram_of_the_human_eye_en.svg.png" alt="눈 구조" style="width:100%;max-width:440px;border-radius:var(--radius);border:1px solid var(--border);" id="eye-img">
-          <div id="eye-highlight" style="position:absolute;border:3px solid #b44133;border-radius:8px;transition:all 0.4s;opacity:0;pointer-events:none;"></div>
-        </div>
+        <canvas id="eye-cv" width="480" height="320" style="width:100%;max-width:480px;border-radius:var(--radius);border:1px solid var(--border);"></canvas>
         <div id="eye-desc" style="margin-top:0.8rem;"></div>
       </div>
       <div class="cmp-c">
         <h4>CNN 인공신경망</h4>
-        <div style="position:relative;display:inline-block;">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Typical_cnn.png/600px-Typical_cnn.png" alt="CNN 구조" style="width:100%;max-width:440px;border-radius:var(--radius);border:1px solid var(--border);" id="cnn-img">
-          <div id="cnn-highlight" style="position:absolute;border:3px solid #4a6b8a;border-radius:8px;transition:all 0.4s;opacity:0;pointer-events:none;"></div>
-        </div>
+        <canvas id="cnn-cv" width="480" height="280" style="width:100%;max-width:480px;border-radius:var(--radius);border:1px solid var(--border);"></canvas>
         <div id="cnn-desc" style="margin-top:0.8rem;"></div>
       </div>
     </div>
@@ -1789,93 +1781,241 @@ document.getElementById('nsl').addEventListener('input',function(){
 });
 
 // ═══════════════════════════════════════════
-//  Eye vs CNN interactive comparison
+//  Eye vs CNN — Canvas cumulative diagram
 // ═══════════════════════════════════════════
-const EYE_CNN_STEPS=[
-  {
-    eye:{desc:'<strong>① 각막 · 수정체</strong> — 빛을 굴절시켜 망막에 상을 맺습니다. 카메라의 렌즈와 같은 역할을 합니다.',hl:{top:'30%',left:'50%',width:'30%',height:'40%'}},
-    cnn:{desc:'<strong>① 입력층(Input)</strong> — 이미지를 224×224 크기의 숫자 행렬로 변환합니다. 총 150,528개의 숫자가 입력됩니다.',hl:{top:'10%',left:'0%',width:'18%',height:'80%'}}
-  },
-  {
-    eye:{desc:'<strong>② 시각 피질 V1</strong> — 가로/세로/대각선 등 기본 패턴에 반응하는 뉴런이 있습니다. 1981년 노벨상을 수상한 휴벨·비셀의 발견이 CNN에 영감을 주었습니다.',hl:{top:'20%',left:'5%',width:'25%',height:'55%'}},
-    cnn:{desc:'<strong>② 합성곱층(Conv2D)</strong> — 3×3 필터가 이미지 위를 이동하며 가장자리, 질감 등 저수준 특징을 추출합니다.',hl:{top:'10%',left:'18%',width:'25%',height:'80%'}}
-  },
-  {
-    eye:{desc:'<strong>③ 뉴런 발화 임계값</strong> — 자극이 일정 수준 이상이어야 뉴런이 반응합니다. 약한 자극은 무시됩니다.',hl:{top:'15%',left:'0%',width:'35%',height:'65%'}},
-    cnn:{desc:'<strong>③ ReLU 활성화</strong> — 음수를 0으로 만들어 "특징 있음/없음"으로 단순화합니다. 뉴런 발화 임계값의 수학적 구현입니다.',hl:{top:'10%',left:'35%',width:'15%',height:'80%'}}
-  },
-  {
-    eye:{desc:'<strong>④ V2→V4 피질</strong> — 기초 특징을 조합하여 복잡한 형태(눈, 코, 바퀴 등)를 점진적으로 인식합니다.',hl:{top:'10%',left:'0%',width:'40%',height:'80%'}},
-    cnn:{desc:'<strong>④ 풀링(MaxPool)</strong> — 특징 맵을 축소하여 연산량을 줄이고 이동 불변성을 확보합니다.',hl:{top:'10%',left:'48%',width:'18%',height:'80%'}}
-  },
-  {
-    eye:{desc:'<strong>⑤ 측두엽(IT)</strong> — "이것은 고양이다"라는 최종 인식을 수행합니다.',hl:{top:'5%',left:'0%',width:'20%',height:'90%'}},
-    cnn:{desc:'<strong>⑤ 완전연결 + Softmax</strong> — 추출된 특징을 종합하여 "사과 89%, 오렌지 7%"처럼 확률을 출력합니다.',hl:{top:'10%',left:'72%',width:'28%',height:'80%'}}
+let ecCur=0;
+const EC_TOTAL=5;
+
+function ecDrawEye(upTo){
+  const cv=document.getElementById('eye-cv');if(!cv)return;
+  const c=cv.getContext('2d');
+  c.clearRect(0,0,480,320);
+  c.fillStyle='#f5f2eb';c.fillRect(0,0,480,320);
+  const AC='#b44133',PA='#78726a',DM='#a8a29a';
+
+  // Always draw eye outline
+  c.save();c.translate(210,155);
+  c.beginPath();c.ellipse(0,0,110,72,0,0,Math.PI*2);
+  c.fillStyle='#e8e2d8';c.fill();c.strokeStyle='#1a1714';c.lineWidth=2;c.stroke();
+  c.beginPath();c.arc(18,0,36,0,Math.PI*2);c.fillStyle='#4a6b8a';c.fill();c.stroke();
+  c.beginPath();c.arc(18,0,16,0,Math.PI*2);c.fillStyle='#1a1714';c.fill();
+  c.beginPath();c.arc(22,-5,4,0,Math.PI*2);c.fillStyle='rgba(255,255,255,0.4)';c.fill();
+  c.restore();
+
+  // Step 0: Light + Lens
+  if(upTo>=0){
+    const col=upTo===0?AC:PA;
+    c.save();c.strokeStyle=col;c.lineWidth=1.5;c.setLineDash([5,4]);
+    for(let a=-20;a<=20;a+=10){c.beginPath();c.moveTo(420,130+a);c.lineTo(270,150+a*0.3);c.stroke();}
+    c.setLineDash([]);
+    c.font='bold 11px sans-serif';c.fillStyle=col;c.textAlign='center';
+    c.fillText('수정체 (렌즈)',230,250);
+    c.font='9px sans-serif';c.fillStyle=DM;c.fillText('빛 → 초점 조절',230,264);
+    c.fillText('💡',430,155);c.restore();
   }
-];
-let ecStep=-1;
-function eyeCnnStep(n){
-  ecStep=n;
-  // Update buttons
-  for(let i=0;i<5;i++){
-    const b=document.getElementById('ec-b'+i);
-    if(i===n){b.classList.add('pri');}else{b.classList.remove('pri');}
+  // Step 1: Retina
+  if(upTo>=1){
+    const col=upTo===1?AC:PA;
+    c.save();c.strokeStyle=col;c.lineWidth=5;c.lineCap='round';
+    c.beginPath();c.arc(210,155,105,2.5,3.8);c.stroke();
+    c.font='bold 11px sans-serif';c.fillStyle=col;c.textAlign='left';
+    c.fillText('망막 (V1)',52,85);
+    c.font='9px sans-serif';c.fillStyle=DM;c.fillText('방향 감지 뉴런',52,99);c.restore();
   }
-  const s=EYE_CNN_STEPS[n];
-  document.getElementById('eye-desc').innerHTML='<div class="cr">'+s.eye.desc+'</div>';
-  document.getElementById('cnn-desc').innerHTML='<div class="cr">'+s.cnn.desc+'</div>';
-  // Highlight eye
-  const eh=document.getElementById('eye-highlight');
-  Object.assign(eh.style,s.eye.hl);eh.style.opacity='1';
-  // Highlight CNN
-  const ch=document.getElementById('cnn-highlight');
-  Object.assign(ch.style,s.cnn.hl);ch.style.opacity='1';
+  // Step 2: V1 neurons
+  if(upTo>=2){
+    const col=upTo===2?AC:PA;c.save();c.strokeStyle=col;c.lineWidth=2;
+    c.beginPath();c.moveTo(100,155);c.lineTo(40,155);c.stroke();
+    const nx=38,ny=115;
+    [[nx-8,ny,nx+8,ny],[nx,ny-8,nx,ny+8],[nx-6,ny-6,nx+6,ny+6]].forEach(([a,b,d,e])=>{c.beginPath();c.moveTo(a,b);c.lineTo(d,e);c.stroke();});
+    c.font='bold 10px sans-serif';c.fillStyle=col;c.fillText('발화 임계값',12,102);
+    c.font='9px sans-serif';c.fillStyle=DM;c.fillText('약한 자극 무시',12,78);c.restore();
+  }
+  // Step 3: V2→V4
+  if(upTo>=3){
+    const col=upTo===3?AC:PA;c.save();
+    c.strokeStyle=col;c.fillStyle=col;c.lineWidth=1.5;
+    c.beginPath();c.moveTo(38,165);c.lineTo(38,200);c.stroke();
+    c.beginPath();c.moveTo(33,195);c.lineTo(38,205);c.lineTo(43,195);c.fill();
+    c.font='bold 10px sans-serif';c.fillText('V2→V4',15,220);
+    c.font='9px sans-serif';c.fillStyle=DM;c.fillText('복잡한 형태 조합',15,234);c.restore();
+  }
+  // Step 4: IT cortex
+  if(upTo>=4){
+    const col=upTo===4?AC:PA;c.save();
+    c.strokeStyle=col;c.fillStyle=col;c.lineWidth=1.5;
+    c.beginPath();c.moveTo(38,240);c.lineTo(38,268);c.stroke();
+    c.beginPath();c.moveTo(33,263);c.lineTo(38,273);c.lineTo(43,263);c.fill();
+    c.font='bold 10px sans-serif';c.fillText('측두엽',15,290);
+    c.font='9px sans-serif';c.fillStyle=DM;c.fillText('"고양이!" 🐱',15,304);c.restore();
+  }
 }
 
+function ecDrawCNN(upTo){
+  const cv=document.getElementById('cnn-cv');if(!cv)return;
+  const c=cv.getContext('2d');
+  c.clearRect(0,0,480,280);
+  c.fillStyle='#f5f2eb';c.fillRect(0,0,480,280);
+  const AC='#4a6b8a',PA='#78726a',DM='#a8a29a';
+  let x=20;const y0=35,bh=130,gap=6;
+
+  function arr(x1,y1,x2,y2,col){
+    c.save();c.strokeStyle=col;c.fillStyle=col;c.lineWidth=1.5;
+    c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();
+    const a=Math.atan2(y2-y1,x2-x1);
+    c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-6*Math.cos(a-0.4),y2-6*Math.sin(a-0.4));c.lineTo(x2-6*Math.cos(a+0.4),y2-6*Math.sin(a+0.4));c.fill();c.restore();
+  }
+
+  if(upTo>=0){
+    const col=upTo===0?AC:PA;
+    c.fillStyle=col;c.globalAlpha=0.12;c.fillRect(x,y0,50,bh);c.globalAlpha=1;
+    c.strokeStyle=col;c.lineWidth=1.5;c.strokeRect(x,y0,50,bh);
+    c.globalAlpha=0.25;c.strokeStyle=col;c.lineWidth=0.5;
+    for(let i=1;i<5;i++){c.beginPath();c.moveTo(x,y0+i*bh/5);c.lineTo(x+50,y0+i*bh/5);c.stroke();}
+    for(let i=1;i<4;i++){c.beginPath();c.moveTo(x+i*50/4,y0);c.lineTo(x+i*50/4,y0+bh);c.stroke();}
+    c.globalAlpha=1;c.font='bold 10px sans-serif';c.fillStyle=col;c.textAlign='center';
+    c.fillText('입력',x+25,y0+bh+16);c.font='8px monospace';c.fillStyle=DM;c.fillText('224×224×3',x+25,y0+bh+28);
+    x+=50+gap;
+  }
+  if(upTo>=1){
+    const col=upTo===1?AC:PA;
+    arr(x,y0+bh/2,x+10,y0+bh/2,col);x+=14;
+    for(let i=0;i<4;i++){const w=10,h=bh-i*12;c.fillStyle=col;c.globalAlpha=0.18-i*0.03;c.fillRect(x+i*14,y0+(bh-h)/2,w,h);c.globalAlpha=1;c.strokeStyle=col;c.lineWidth=1;c.strokeRect(x+i*14,y0+(bh-h)/2,w,h);}
+    c.font='bold 10px sans-serif';c.fillStyle=col;c.textAlign='center';c.fillText('합성곱',x+28,y0+bh+16);c.font='8px monospace';c.fillStyle=DM;c.fillText('Conv2D',x+28,y0+bh+28);
+    x+=60+gap;
+  }
+  if(upTo>=2){
+    const col=upTo===2?'#5a8a5a':PA;
+    arr(x,y0+bh/2,x+10,y0+bh/2,col);x+=14;
+    c.save();c.translate(x+18,y0+bh/2);c.strokeStyle=col;c.lineWidth=2.5;
+    c.beginPath();c.moveTo(-14,10);c.lineTo(0,0);c.lineTo(14,-14);c.stroke();
+    c.strokeStyle=DM;c.lineWidth=0.5;c.setLineDash([3,3]);c.beginPath();c.moveTo(-16,0);c.lineTo(16,0);c.stroke();c.setLineDash([]);c.restore();
+    c.font='bold 10px sans-serif';c.fillStyle=col;c.textAlign='center';c.fillText('활성화',x+18,y0+bh+16);c.font='8px monospace';c.fillStyle=DM;c.fillText('ReLU',x+18,y0+bh+28);
+    x+=40+gap;
+  }
+  if(upTo>=3){
+    const col=upTo===3?'#8a6a4a':PA;
+    arr(x,y0+bh/2,x+10,y0+bh/2,col);x+=14;
+    for(let i=0;i<3;i++){const w=8,h=bh*0.55-i*10;c.fillStyle=col;c.globalAlpha=0.18-i*0.04;c.fillRect(x+i*12,y0+(bh-h)/2,w,h);c.globalAlpha=1;c.strokeStyle=col;c.lineWidth=1;c.strokeRect(x+i*12,y0+(bh-h)/2,w,h);}
+    c.font='bold 10px sans-serif';c.fillStyle=col;c.textAlign='center';c.fillText('풀링',x+16,y0+bh+16);c.font='8px monospace';c.fillStyle=DM;c.fillText('↓ 절반',x+16,y0+bh+28);
+    x+=42+gap;
+  }
+  if(upTo>=4){
+    const col=upTo===4?AC:PA;
+    arr(x,y0+bh/2,x+10,y0+bh/2,col);x+=16;
+    const ny=5;
+    for(let ix=0;ix<2;ix++)for(let iy=0;iy<ny;iy++){
+      const cx2=x+ix*26+8,cy2=y0+18+iy*24;
+      c.beginPath();c.arc(cx2,cy2,4.5,0,Math.PI*2);c.fillStyle=col;c.globalAlpha=0.25+iy*0.12;c.fill();c.globalAlpha=1;c.strokeStyle=col;c.lineWidth=0.7;c.stroke();
+      if(ix<1)for(let jy=0;jy<ny;jy++){c.strokeStyle=col;c.globalAlpha=0.12;c.lineWidth=0.4;c.beginPath();c.moveTo(cx2+4.5,cy2);c.lineTo(x+34+8,y0+18+jy*24);c.stroke();c.globalAlpha=1;}
+    }
+    arr(x+50,y0+bh/2,x+66,y0+bh/2,col);
+    c.font='16px sans-serif';c.globalAlpha=1;c.fillText('🐱',x+70,y0+bh/2+5);
+    c.font='bold 10px sans-serif';c.fillStyle=col;c.textAlign='center';c.fillText('분류',x+26,y0+bh+16);c.font='8px monospace';c.fillStyle=DM;c.fillText('Softmax',x+26,y0+bh+28);
+  }
+}
+
+const EC_DESCS=[
+  {eye:'<div class="cr"><strong>① 각막 · 수정체</strong> — 빛을 굴절시켜 망막에 상을 맺습니다. 카메라 렌즈와 같은 역할입니다.</div>',
+   cnn:'<div class="cr"><strong>① 입력층</strong> — 이미지를 224×224 크기의 숫자 행렬(RGB)로 변환합니다. 총 150,528개의 숫자가 됩니다.</div>'},
+  {eye:'<div class="cr"><strong>② 시각 피질 V1</strong> — 특정 방향의 선분에 반응하는 뉴런이 있습니다. 휴벨·비셀의 1981년 노벨상 수상 연구가 CNN의 영감이 되었습니다.</div>',
+   cnn:'<div class="cr"><strong>② 합성곱층</strong> — 3×3 필터가 이미지 위를 이동하며 가장자리, 질감 등 저수준 특징을 추출합니다.</div>'},
+  {eye:'<div class="cr"><strong>③ 뉴런 발화 임계값</strong> — 자극이 일정 수준 이상이어야 뉴런이 반응합니다. 약한 자극은 무시됩니다.</div>',
+   cnn:'<div class="cr"><strong>③ ReLU</strong> — 음수를 0으로 만들어 "특징 있음/없음"으로 단순화합니다. 뉴런 발화를 수학적으로 구현한 것입니다.</div>'},
+  {eye:'<div class="cr"><strong>④ V2→V4 피질</strong> — 기초 특징을 점점 조합하여 복잡한 형태(눈, 코, 바퀴)를 인식합니다.</div>',
+   cnn:'<div class="cr"><strong>④ 풀링</strong> — 특징 맵을 축소하여 연산량을 줄이고, 이동 불변성을 확보합니다.</div>'},
+  {eye:'<div class="cr"><strong>⑤ 측두엽 (IT)</strong> — "이것은 고양이다"라는 최종 인식을 수행합니다.</div>',
+   cnn:'<div class="cr"><strong>⑤ FC + Softmax</strong> — 특징을 종합하여 "고양이 89%, 개 7%"처럼 확률을 출력합니다.</div>'}
+];
+
+function ecRender(){
+  ecDrawEye(ecCur-1);ecDrawCNN(ecCur-1);
+  document.getElementById('ec-label').textContent=ecCur+' / '+EC_TOTAL;
+  const ed=document.getElementById('eye-desc'),cd=document.getElementById('cnn-desc');
+  if(ecCur===0){ed.innerHTML='<p style="color:var(--muted);">다음 버튼을 눌러 시작하세요.</p>';cd.innerHTML='';}
+  else{let eh='',ch='';for(let i=0;i<ecCur;i++){eh+=EC_DESCS[i].eye;ch+=EC_DESCS[i].cnn;}ed.innerHTML=eh;cd.innerHTML=ch;}
+}
+function ecNext(){ecCur=Math.min(EC_TOTAL,ecCur+1);ecRender();}
+function ecPrev(){ecCur=Math.max(0,ecCur-1);ecRender();}
+setTimeout(ecRender,100);
+
 // ═══════════════════════════════════════════
-//  CNN PIPELINE (Real MobileNet intermediate layers)
+//  CNN PIPELINE — MobileNet V2 (alpha 1.4) via GraphModel
 // ═══════════════════════════════════════════
-let cnnModel=null,cnnLoading=false,cnnStep=0;
+let cnnGraphModel=null,cnnLabels=null,cnnLoading=false,cnnStep=0;
 const CNN_TOTAL_STEPS=6;
+const MOBILENET_URL='https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json';
+const LABELS_URL='https://storage.googleapis.com/download.tensorflow.org/data/ImageNetLabels.txt';
 
 async function loadCNNModel(){
-  if(cnnModel)return cnnModel;
+  if(cnnGraphModel)return cnnGraphModel;
   if(cnnLoading)return null;
   cnnLoading=true;
   const st=document.getElementById('cnn-status');
   try{
     if(!window.tf){
       st.textContent='TensorFlow.js 로딩 중...';
-      await new Promise((res,rej)=>{
-        const s=document.createElement('script');
+      await new Promise((res,rej)=>{const s=document.createElement('script');
         s.src='https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js';
-        s.onload=res;s.onerror=()=>rej(new Error('TF.js CDN 실패'));
-        document.head.appendChild(s);
-      });
+        s.onload=res;s.onerror=()=>rej(new Error('TF.js CDN fail'));document.head.appendChild(s);});
     }
-    if(!window.mobilenet){
-      st.textContent='MobileNet 모듈 로딩 중...';
-      await new Promise((res,rej)=>{
-        const s=document.createElement('script');
-        s.src='https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js';
-        s.onload=res;s.onerror=()=>rej(new Error('MobileNet CDN 실패'));
-        document.head.appendChild(s);
-      });
-    }
-    st.textContent='MobileNet 모델 다운로드 중... (약 16MB)';
-    cnnModel=await mobilenet.load();
+    st.textContent='MobileNet V2 다운로드 중... (약 14MB)';
+    cnnGraphModel=await tf.loadGraphModel(MOBILENET_URL);
+    // Load labels
+    try{
+      const resp=await fetch(LABELS_URL);
+      const text=await resp.text();
+      cnnLabels=text.trim().split('\n').map(s=>s.trim());
+    }catch(e){console.warn('Labels load failed, using fallback');cnnLabels=null;}
     st.textContent='';
     cnnLoading=false;
-    return cnnModel;
+    return cnnGraphModel;
   }catch(err){
-    st.textContent='모델 로딩 실패: '+err.message;
-    console.error('CNN model load error:',err);
-    cnnLoading=false;return null;
+    // Fallback: try mobilenet package
+    try{
+      if(!window.mobilenet){
+        st.textContent='대체 모델 로딩 중...';
+        await new Promise((res,rej)=>{const s=document.createElement('script');
+          s.src='https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js';
+          s.onload=res;s.onerror=()=>rej(new Error('CDN fail'));document.head.appendChild(s);});
+      }
+      st.textContent='MobileNet 모델 다운로드 중...';
+      cnnGraphModel=await mobilenet.load();
+      cnnGraphModel._isMobilenetPkg=true;
+      st.textContent='';cnnLoading=false;return cnnGraphModel;
+    }catch(e2){
+      st.textContent='모델 로딩 실패: '+e2.message;
+      console.error(err,e2);cnnLoading=false;return null;
+    }
   }
 }
 
-// Fallback: JS conv for when model extraction fails
-const FALLBACK_KERNELS=[
+async function classifyWithModel(canvas){
+  const model=await loadCNNModel();
+  if(!model)return null;
+  if(model._isMobilenetPkg){return await model.classify(canvas,5);}
+  // GraphModel direct inference
+  const logits=tf.tidy(()=>{
+    let img=tf.browser.fromPixels(canvas).toFloat();
+    img=tf.image.resizeBilinear(img,[224,224]);
+    img=img.div(127.5).sub(1);
+    return model.predict(img.expandDims(0));
+  });
+  const probs=tf.softmax(logits);
+  const data=await probs.data();
+  logits.dispose();probs.dispose();
+  // Get top 5
+  const indexed=Array.from(data).map((p,i)=>({p,i}));
+  indexed.sort((a,b)=>b.p-a.p);
+  const top5=indexed.slice(0,5);
+  return top5.map(t=>({
+    className:cnnLabels&&cnnLabels[t.i]?cnnLabels[t.i]:('class_'+t.i),
+    probability:t.p
+  }));
+}
+
+// JS conv kernels for visualization
+const CNN_KERNELS=[
   {name:'세로 엣지',k:[[-1,0,1],[-2,0,2],[-1,0,1]]},
   {name:'가로 엣지',k:[[-1,-2,-1],[0,0,0],[1,2,1]]},
   {name:'대각선 ↘',k:[[0,1,2],[-1,0,1],[-2,-1,0]]},
@@ -1889,30 +2029,18 @@ const FALLBACK_KERNELS=[
   {name:'경계강조',k:[[-1,-1,-1],[-1,8,-1],[-1,-1,-1]]},
   {name:'블러',k:[[1,1,1],[1,1,1],[1,1,1]]},
 ];
-function jsConv(gray,w,h,kernel){
-  const o=new Float32Array(w*h);
-  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
-    let s=0;for(let ky=-1;ky<=1;ky++)for(let kx=-1;kx<=1;kx++) s+=gray[(y+ky)*w+(x+kx)]*kernel[ky+1][kx+1];
-    o[y*w+x]=s;
-  }
-  return o;
-}
+function jsConv(gray,w,h,kernel){const o=new Float32Array(w*h);for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){let s=0;for(let ky=-1;ky<=1;ky++)for(let kx=-1;kx<=1;kx++)s+=gray[(y+ky)*w+(x+kx)]*kernel[ky+1][kx+1];o[y*w+x]=s;}return o;}
 function jsReLU(d){const o=new Float32Array(d.length);for(let i=0;i<d.length;i++)o[i]=Math.max(0,d[i]);return o;}
-function jsPool(d,w,h){
-  const ow=w>>1,oh=h>>1,o=new Float32Array(ow*oh);
-  for(let y=0;y<oh;y++)for(let x=0;x<ow;x++) o[y*ow+x]=Math.max(d[(y*2)*w+x*2],d[(y*2)*w+x*2+1],d[(y*2+1)*w+x*2],d[(y*2+1)*w+x*2+1]);
-  return {data:o,w:ow,h:oh};
-}
+function jsPool(d,w,h){const ow=w>>1,oh=h>>1,o=new Float32Array(ow*oh);for(let y=0;y<oh;y++)for(let x=0;x<ow;x++)o[y*ow+x]=Math.max(d[(y*2)*w+x*2],d[(y*2)*w+x*2+1],d[(y*2+1)*w+x*2],d[(y*2+1)*w+x*2+1]);return{data:o,w:ow,h:oh};}
+
 function drawJsMaps(maps,names,contId,sz){
-  const cont=document.getElementById(contId);cont.innerHTML='';
+  const cont=document.getElementById(contId);if(!cont)return;cont.innerHTML='';
   maps.forEach((m,i)=>{
-    let min=Infinity,max=-Infinity;
-    for(let v of m.data){if(v<min)min=v;if(v>max)max=v;}
-    const rng=max-min||1;
-    const cv=document.createElement('canvas');cv.width=m.w;cv.height=m.h;
-    cv.style.cssText=`width:${sz}px;height:${sz}px;border-radius:4px;border:1px solid var(--border);image-rendering:pixelated;`;
+    let mn=Infinity,mx=-Infinity;for(let v of m.data){if(v<mn)mn=v;if(v>mx)mx=v;}
+    const rng=mx-mn||1;const cv=document.createElement('canvas');cv.width=m.w;cv.height=m.h;
+    cv.style.cssText='width:'+sz+'px;height:'+sz+'px;border-radius:4px;border:1px solid var(--border);image-rendering:pixelated;';
     const ctx=cv.getContext('2d'),img=ctx.createImageData(m.w,m.h);
-    for(let j=0;j<m.w*m.h;j++){const v=Math.round(((m.data[j]-min)/rng)*255);img.data[j*4]=v;img.data[j*4+1]=v;img.data[j*4+2]=v;img.data[j*4+3]=255;}
+    for(let j=0;j<m.w*m.h;j++){const v=Math.round(((m.data[j]-mn)/rng)*255);img.data[j*4]=v;img.data[j*4+1]=v;img.data[j*4+2]=v;img.data[j*4+3]=255;}
     ctx.putImageData(img,0,0);
     const wrap=document.createElement('div');wrap.style.cssText='text-align:center;display:inline-block;margin:3px;';
     wrap.appendChild(cv);
@@ -1920,103 +2048,76 @@ function drawJsMaps(maps,names,contId,sz){
     lbl.textContent=names[i];wrap.appendChild(lbl);cont.appendChild(wrap);
   });
   const info=document.getElementById(contId.replace('maps','info'));
-  if(info&&maps[0])info.textContent=`${maps.length}개 필터 · 특징 맵 크기: ${maps[0].w}×${maps[0].h}`;
+  if(info&&maps[0])info.textContent=maps.length+'개 필터 · 크기: '+maps[0].w+'×'+maps[0].h;
 }
 
 function cnnUpdateTimeline(step){
   document.querySelectorAll('.cnn-tl-btn').forEach(btn=>{
     const s=parseInt(btn.dataset.step);
-    if(s===step){
-      btn.style.background='var(--fg)';btn.style.color='var(--bg)';btn.style.borderColor='var(--fg)';btn.style.fontWeight='600';
-    }else if(s<step){
-      btn.style.background='var(--accent)';btn.style.color='var(--fg)';btn.style.borderColor='var(--accent)';btn.style.fontWeight='400';
-    }else{
-      btn.style.background='var(--card)';btn.style.color='var(--muted)';btn.style.borderColor='var(--border)';btn.style.fontWeight='400';
-    }
+    if(s===step){btn.style.background='var(--fg)';btn.style.color='var(--bg)';btn.style.borderColor='var(--fg)';btn.style.fontWeight='600';}
+    else if(s<step){btn.style.background='var(--accent)';btn.style.color='var(--fg)';btn.style.borderColor='var(--accent)';btn.style.fontWeight='400';}
+    else{btn.style.background='var(--card)';btn.style.color='var(--muted)';btn.style.borderColor='var(--border)';btn.style.fontWeight='400';}
   });
 }
-
-function cnnShowStep(n){
-  cnnStep=Math.max(0,Math.min(CNN_TOTAL_STEPS-1,n));
-  document.querySelectorAll('.cnn-step').forEach(el=>el.style.display='none');
-  document.getElementById('cnn-step-'+cnnStep).style.display='block';
-  cnnUpdateTimeline(cnnStep);
-}
+function cnnShowStep(n){cnnStep=Math.max(0,Math.min(CNN_TOTAL_STEPS-1,n));document.querySelectorAll('.cnn-step').forEach(el=>el.style.display='none');document.getElementById('cnn-step-'+cnnStep).style.display='block';cnnUpdateTimeline(cnnStep);}
 function cnnNextStep(){cnnShowStep(cnnStep+1);}
 function cnnPrevStep(){cnnShowStep(cnnStep-1);}
 
 async function cnnAnalyze(imgEl){
   const st=document.getElementById('cnn-status');
   st.textContent='이미지 분석 중...';
-
   const inputCv=document.getElementById('cnn-input-cv');
   const ictx=inputCv.getContext('2d');
   ictx.drawImage(imgEl,0,0,224,224);
 
-  // Always use JS simulation for feature maps (reliable, educational)
+  // JS feature map simulation (always reliable)
   const imgData=ictx.getImageData(0,0,224,224);
   const gray=new Float32Array(224*224);
-  for(let i=0;i<224*224;i++) gray[i]=imgData.data[i*4]*0.299+imgData.data[i*4+1]*0.587+imgData.data[i*4+2]*0.114;
-  
-  // 2단계: Conv
-  const convMaps=FALLBACK_KERNELS.map(k=>({data:jsConv(gray,224,224,k.k),w:224,h:224}));
-  drawJsMaps(convMaps,FALLBACK_KERNELS.map(k=>k.name),'cnn-conv1-maps',80);
-  
-  // 3단계: ReLU
-  const reluMaps=convMaps.map(m=>({data:jsReLU(m.data),w:m.w,h:m.h}));
-  drawJsMaps(reluMaps,FALLBACK_KERNELS.map(k=>k.name+' (ReLU)'),'cnn-relu-maps',80);
-  
-  // 4단계: Pool
-  const poolMaps=reluMaps.map(m=>jsPool(m.data,m.w,m.h));
-  drawJsMaps(poolMaps,FALLBACK_KERNELS.map(k=>k.name),'cnn-pool-maps',72);
-  
-  // 5단계: Deep
-  const deepMaps=[];const dN=[];
-  for(let i=0;i<poolMaps.length;i++){
-    const ki=(i+4)%FALLBACK_KERNELS.length;
-    const c2=jsConv(poolMaps[i].data,poolMaps[i].w,poolMaps[i].h,FALLBACK_KERNELS[ki].k);
-    const p2=jsPool(jsReLU(c2),poolMaps[i].w,poolMaps[i].h);
-    deepMaps.push(p2);dN.push('Deep '+(i+1));
-  }
-  drawJsMaps(deepMaps,dN,'cnn-deep-maps',64);
+  for(let i=0;i<224*224;i++)gray[i]=imgData.data[i*4]*0.299+imgData.data[i*4+1]*0.587+imgData.data[i*4+2]*0.114;
 
-  // 6단계: MobileNet classification (async, separate)
-  st.textContent='MobileNet 모델로 분류 중...';
+  const convMaps=CNN_KERNELS.map(k=>({data:jsConv(gray,224,224,k.k),w:224,h:224}));
+  drawJsMaps(convMaps,CNN_KERNELS.map(k=>k.name),'cnn-conv1-maps',90);
+
+  const reluMaps=convMaps.map(m=>({data:jsReLU(m.data),w:m.w,h:m.h}));
+  drawJsMaps(reluMaps,CNN_KERNELS.map(k=>k.name+' (ReLU)'),'cnn-relu-maps',90);
+
+  const poolMaps=reluMaps.map(m=>jsPool(m.data,m.w,m.h));
+  drawJsMaps(poolMaps,CNN_KERNELS.map(k=>k.name),'cnn-pool-maps',80);
+
+  const deepMaps=[],dN=[];
+  for(let i=0;i<poolMaps.length;i++){const ki=(i+4)%CNN_KERNELS.length;const c2=jsConv(poolMaps[i].data,poolMaps[i].w,poolMaps[i].h,CNN_KERNELS[ki].k);const p2=jsPool(jsReLU(c2),poolMaps[i].w,poolMaps[i].h);deepMaps.push(p2);dN.push('Deep '+(i+1));}
+  drawJsMaps(deepMaps,dN,'cnn-deep-maps',72);
+
+  // Classification with GraphModel
+  st.textContent='MobileNet V2로 분류 중...';
   try{
-    const model=await loadCNNModel();
-    if(model){
-      const predictions=await model.classify(inputCv,5);
-      const predBox=document.getElementById('cnn-predictions');
+    const preds=await classifyWithModel(inputCv);
+    const predBox=document.getElementById('cnn-predictions');
+    if(preds&&preds.length>0){
       let html='<p style="margin-bottom:0.8rem;"><strong>상위 5개 예측 결과</strong></p>';
-      predictions.forEach((p,i)=>{
-        const pct=p.probability*100;
-        const isTop=i===0;
-        const name=p.className.split(',')[0].trim();
-        html+=`<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.7rem;">`;
-        html+=`<span style="font-family:var(--mono);font-size:0.85rem;min-width:3.8rem;text-align:right;font-weight:${isTop?'700':'400'};color:${isTop?'var(--fg)':'var(--muted)'};">${pct.toFixed(1)}%</span>`;
-        html+=`<div style="flex:1;height:1.8rem;background:var(--bg);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);">`;
-        html+=`<div style="width:${Math.max(2,pct)}%;height:100%;background:${isTop?'var(--fg)':'var(--accent)'};border-radius:var(--radius);transition:width 0.6s;"></div>`;
-        html+=`</div>`;
-        html+=`<span style="font-size:0.92rem;min-width:10rem;${isTop?'font-weight:600;color:var(--fg);':'color:var(--muted);'}">${name}</span>`;
-        html+=`</div>`;
+      preds.forEach((p,i)=>{
+        const pct=p.probability*100;const isTop=i===0;const name=p.className.split(',')[0].trim();
+        html+='<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.7rem;">';
+        html+='<span style="font-family:var(--mono);font-size:0.85rem;min-width:3.8rem;text-align:right;font-weight:'+(isTop?'700':'400')+';color:'+(isTop?'var(--fg)':'var(--muted)')+';">'+pct.toFixed(1)+'%</span>';
+        html+='<div style="flex:1;height:1.8rem;background:var(--bg);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);">';
+        html+='<div style="width:'+Math.max(2,pct)+'%;height:100%;background:'+(isTop?'var(--fg)':'var(--accent)')+';border-radius:var(--radius);transition:width 0.6s;"></div></div>';
+        html+='<span style="font-size:0.92rem;min-width:10rem;'+(isTop?'font-weight:600;color:var(--fg);':'color:var(--muted);')+'">'+name+'</span></div>';
       });
       predBox.innerHTML=html;
     }else{
-      document.getElementById('cnn-predictions').innerHTML='<p style="color:var(--muted);">모델 로딩 실패. 네트워크를 확인해 주세요. 특징 맵(1~5단계)은 정상 표시됩니다.</p>';
+      predBox.innerHTML='<p style="color:var(--muted);">모델 로딩 실패. 특징 맵(1~5단계)은 정상 표시됩니다.</p>';
     }
   }catch(err){
-    console.error('Classify error:',err);
+    console.error('Classify:',err);
     document.getElementById('cnn-predictions').innerHTML='<p style="color:var(--muted);">분류 오류: '+err.message+'</p>';
   }
-
   document.getElementById('cnn-controls').style.display='block';
   cnnShowStep(0);
   st.textContent='분석 완료! 타임라인을 클릭하거나 버튼으로 단계를 진행하세요.';
 }
 
 (()=>{
-  const uz=document.getElementById('cnn-upz');
-  const fi=document.getElementById('cnn-fup');
+  const uz=document.getElementById('cnn-upz'),fi=document.getElementById('cnn-fup');
   if(!uz||!fi)return;
   uz.onclick=()=>fi.click();
   fi.onchange=e=>{if(e.target.files[0])cnnLoadImg(e.target.files[0]);};
@@ -2024,11 +2125,7 @@ async function cnnAnalyze(imgEl){
   uz.ondragleave=()=>uz.classList.remove('dg');
   uz.ondrop=e=>{e.preventDefault();uz.classList.remove('dg');if(e.dataTransfer.files[0])cnnLoadImg(e.dataTransfer.files[0]);};
 })();
-function cnnLoadImg(file){
-  const reader=new FileReader();
-  reader.onload=e=>{const img=new Image();img.onload=()=>cnnAnalyze(img);img.src=e.target.result;};
-  reader.readAsDataURL(file);
-}
+function cnnLoadImg(file){const reader=new FileReader();reader.onload=e=>{const img=new Image();img.onload=()=>cnnAnalyze(img);img.src=e.target.result;};reader.readAsDataURL(file);}
 
 // ═══════════════════════════════════════════
 //  OBJECT DETECTION (COCO-SSD via TF.js)
