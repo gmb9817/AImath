@@ -382,17 +382,84 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
   <div class="cmp" style="margin-bottom:2rem;">
     <div class="cmp-c">
       <h4>인간의 눈</h4>
-      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Schematic_diagram_of_the_human_eye_en.svg/400px-Schematic_diagram_of_the_human_eye_en.svg.png" alt="인간 눈의 구조" style="width:100%;max-width:220px;border-radius:var(--radius);margin:0.6rem 0;opacity:0.85;">
-      <div class="cr"><strong>망막</strong> — 빛을 전기 신호로 변환</div>
-      <div class="cr"><strong>시각 피질</strong> — 가로선, 세로선, 색상 등 기초 특징 감지</div>
-      <div class="cr"><strong>측두엽</strong> — 형태를 조합하여 사물 인식</div>
+      <svg viewBox="0 0 320 220" style="width:100%;max-width:320px;margin:0.6rem 0;" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#78726a"/></marker></defs>
+        <!-- Eye shape -->
+        <ellipse cx="130" cy="110" rx="100" ry="70" fill="#f0ece6" stroke="#1a1714" stroke-width="2"/>
+        <circle cx="150" cy="110" r="35" fill="#4a6b8a" stroke="#1a1714" stroke-width="1.5"/>
+        <circle cx="150" cy="110" r="16" fill="#1a1714"/>
+        <circle cx="155" cy="104" r="5" fill="#fff" opacity="0.6"/>
+        <!-- Retina -->
+        <path d="M 40 65 Q 30 110 40 155" fill="none" stroke="#b44133" stroke-width="4" stroke-linecap="round"/>
+        <!-- Optic nerve -->
+        <line x1="30" y1="110" x2="10" y2="110" stroke="#b44133" stroke-width="3"/>
+        <!-- Labels -->
+        <line x1="40" y1="60" x2="40" y2="35" stroke="#78726a" stroke-width="1" marker-end="url(#ah)"/>
+        <text x="44" y="30" font-size="11" fill="#1a1714" font-family="Noto Sans KR" font-weight="500">망막</text>
+        <text x="44" y="44" font-size="9" fill="#78726a" font-family="Noto Sans KR">빛 → 전기 신호</text>
+        <line x1="150" y1="150" x2="150" y2="180" stroke="#78726a" stroke-width="1"/>
+        <text x="115" y="195" font-size="11" fill="#1a1714" font-family="Noto Sans KR" font-weight="500">수정체 (렌즈)</text>
+        <text x="115" y="209" font-size="9" fill="#78726a" font-family="Noto Sans KR">초점 조절</text>
+        <!-- Light arrows -->
+        <line x1="270" y1="80" x2="195" y2="100" stroke="#8a6a4a" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#ah)"/>
+        <line x1="270" y1="110" x2="195" y2="110" stroke="#8a6a4a" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#ah)"/>
+        <line x1="270" y1="140" x2="195" y2="120" stroke="#8a6a4a" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#ah)"/>
+        <text x="275" y="114" font-size="10" fill="#8a6a4a" font-family="Noto Sans KR">빛</text>
+      </svg>
+      <div class="cr"><strong>① 망막</strong> — 빛을 전기 신호로 변환</div>
+      <div class="cr"><strong>② 시각 피질 (V1)</strong> — 가로선, 세로선, 색상 등 기초 특징 감지</div>
+      <div class="cr"><strong>③ 측두엽 (IT)</strong> — 형태를 조합하여 사물 인식</div>
     </div>
     <div class="cmp-c">
       <h4>CNN 인공신경망</h4>
-      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Typical_cnn.png/400px-Typical_cnn.png" alt="CNN 구조" style="width:100%;max-width:220px;border-radius:var(--radius);margin:0.6rem 0;opacity:0.85;">
-      <div class="cr"><strong>입력층</strong> — 이미지를 픽셀(숫자) 데이터로 변환</div>
-      <div class="cr"><strong>합성곱층</strong> — 필터로 외곽선, 질감 등 특징 추출</div>
-      <div class="cr"><strong>완전연결층</strong> — 추출된 특징을 종합하여 최종 분류</div>
+      <svg viewBox="0 0 320 220" style="width:100%;max-width:320px;margin:0.6rem 0;" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="ah2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#4a6b8a"/></marker></defs>
+        <!-- Input -->
+        <rect x="10" y="50" width="50" height="50" rx="4" fill="#e2dbd1" stroke="#1a1714" stroke-width="1.5"/>
+        <text x="18" y="70" font-size="7" fill="#78726a" font-family="JetBrains Mono">128 45</text>
+        <text x="18" y="82" font-size="7" fill="#78726a" font-family="JetBrains Mono">255 12</text>
+        <text x="15" y="118" font-size="10" fill="#1a1714" font-family="Noto Sans KR" font-weight="500">입력층</text>
+        <text x="10" y="132" font-size="8" fill="#78726a" font-family="Noto Sans KR">픽셀→숫자</text>
+        <!-- Arrow -->
+        <line x1="65" y1="75" x2="85" y2="75" stroke="#4a6b8a" stroke-width="1.5" marker-end="url(#ah2)"/>
+        <!-- Conv layers -->
+        <rect x="90" y="40" width="18" height="70" rx="3" fill="#4a6b8a" opacity="0.7"/>
+        <rect x="112" y="45" width="16" height="60" rx="3" fill="#4a6b8a" opacity="0.5"/>
+        <rect x="132" y="50" width="14" height="50" rx="3" fill="#4a6b8a" opacity="0.35"/>
+        <text x="85" y="130" font-size="10" fill="#1a1714" font-family="Noto Sans KR" font-weight="500">합성곱층</text>
+        <text x="85" y="144" font-size="8" fill="#78726a" font-family="Noto Sans KR">특징 추출</text>
+        <!-- Arrow -->
+        <line x1="150" y1="75" x2="170" y2="75" stroke="#4a6b8a" stroke-width="1.5" marker-end="url(#ah2)"/>
+        <!-- Pool -->
+        <rect x="175" y="50" width="12" height="50" rx="3" fill="#5a7a5a" opacity="0.6"/>
+        <rect x="190" y="55" width="10" height="40" rx="3" fill="#5a7a5a" opacity="0.4"/>
+        <text x="170" y="118" font-size="10" fill="#1a1714" font-family="Noto Sans KR" font-weight="500">풀링</text>
+        <text x="170" y="132" font-size="8" fill="#78726a" font-family="Noto Sans KR">압축</text>
+        <!-- Arrow -->
+        <line x1="205" y1="75" x2="225" y2="75" stroke="#4a6b8a" stroke-width="1.5" marker-end="url(#ah2)"/>
+        <!-- FC -->
+        <g transform="translate(230,50)">
+          <circle cx="10" cy="8" r="5" fill="#b44133" opacity="0.7"/><circle cx="10" cy="25" r="5" fill="#b44133" opacity="0.7"/>
+          <circle cx="10" cy="42" r="5" fill="#b44133" opacity="0.7"/>
+          <circle cx="35" cy="16" r="5" fill="#b44133" opacity="0.5"/><circle cx="35" cy="33" r="5" fill="#b44133" opacity="0.5"/>
+          <line x1="15" y1="8" x2="30" y2="16" stroke="#b44133" stroke-width="0.5" opacity="0.4"/>
+          <line x1="15" y1="8" x2="30" y2="33" stroke="#b44133" stroke-width="0.5" opacity="0.4"/>
+          <line x1="15" y1="25" x2="30" y2="16" stroke="#b44133" stroke-width="0.5" opacity="0.4"/>
+          <line x1="15" y1="25" x2="30" y2="33" stroke="#b44133" stroke-width="0.5" opacity="0.4"/>
+          <line x1="15" y1="42" x2="30" y2="16" stroke="#b44133" stroke-width="0.5" opacity="0.4"/>
+          <line x1="15" y1="42" x2="30" y2="33" stroke="#b44133" stroke-width="0.5" opacity="0.4"/>
+        </g>
+        <text x="225" y="118" font-size="10" fill="#1a1714" font-family="Noto Sans KR" font-weight="500">완전연결</text>
+        <text x="225" y="132" font-size="8" fill="#78726a" font-family="Noto Sans KR">분류</text>
+        <!-- Arrow -->
+        <line x1="275" y1="75" x2="295" y2="75" stroke="#4a6b8a" stroke-width="1.5" marker-end="url(#ah2)"/>
+        <!-- Output -->
+        <text x="298" y="72" font-size="11" fill="#1a1714" font-family="Noto Sans KR" font-weight="600">🍎</text>
+        <text x="296" y="88" font-size="8" fill="#78726a" font-family="Noto Sans KR">사과!</text>
+      </svg>
+      <div class="cr"><strong>① 입력층</strong> — 이미지를 픽셀(숫자) 데이터로 변환</div>
+      <div class="cr"><strong>② 합성곱층</strong> — 필터로 외곽선, 질감 등 특징 추출</div>
+      <div class="cr"><strong>③ 완전연결층</strong> — 추출된 특징을 종합하여 최종 분류</div>
     </div>
   </div>
 
@@ -1806,19 +1873,25 @@ document.getElementById('nsl').addEventListener('input',function(){
 });
 
 // ═══════════════════════════════════════════
-//  CNN PIPELINE (MobileNet via TF.js)
+//  CNN PIPELINE (Feature maps + MobileNet classify)
 // ═══════════════════════════════════════════
-let cnnModel=null,cnnLoading=false,cnnStep=0,cnnData={};
+let cnnModel=null,cnnLoading=false,cnnStep=0;
 const CNN_TOTAL_STEPS=6;
 
 function loadCNNScripts(){
   return new Promise((res,rej)=>{
     if(window.tf&&window.mobilenet){res();return;}
+    if(window.tf&&!window.mobilenet){
+      const s2=document.createElement('script');
+      s2.src='https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@1.0.0';
+      s2.onload=res;s2.onerror=()=>rej(new Error('MobileNet 로드 실패'));
+      document.head.appendChild(s2);return;
+    }
     const s1=document.createElement('script');
     s1.src='https://cdn.jsdelivr.net/npm/@tensorflow/tfjs';
     s1.onload=()=>{
       const s2=document.createElement('script');
-      s2.src='https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0';
+      s2.src='https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@1.0.0';
       s2.onload=res;s2.onerror=()=>rej(new Error('MobileNet 로드 실패'));
       document.head.appendChild(s2);
     };
@@ -1835,7 +1908,7 @@ async function loadCNNModel(){
   st.textContent='모델 로딩 중... (처음 실행 시 약 10초 소요)';
   try{
     await loadCNNScripts();
-    cnnModel=await mobilenet.load({version:2,alpha:1.0});
+    cnnModel=await mobilenet.load({version:1,alpha:1.0});
     st.textContent='모델 준비 완료!';
     cnnLoading=false;
     return cnnModel;
@@ -1845,48 +1918,87 @@ async function loadCNNModel(){
   }
 }
 
-function drawFeatureMaps(tensor,containerId,maxN){
-  const cont=document.getElementById(containerId);
-  cont.innerHTML='';
-  const shape=tensor.shape;
-  // shape: [1,H,W,C]
-  const h=shape[1],w=shape[2],ch=shape[3];
-  const n=Math.min(ch,maxN||32);
-  const data=tensor.dataSync();
-  const total=h*w*ch;
-  const infoEl=document.getElementById(containerId.replace('maps','info'));
-  if(infoEl)infoEl.textContent=`${ch}개 필터 중 ${n}개 표시 · 특징 맵 크기: ${h}×${w}`;
+// Real convolution kernels for educational visualization
+const CNN_KERNELS=[
+  {name:'세로 엣지',k:[[-1,0,1],[-2,0,2],[-1,0,1]]},
+  {name:'가로 엣지',k:[[-1,-2,-1],[0,0,0],[1,2,1]]},
+  {name:'대각선(↘)',k:[[0,1,2],[-1,0,1],[-2,-1,0]]},
+  {name:'대각선(↙)',k:[[2,1,0],[1,0,-1],[0,-1,-2]]},
+  {name:'선명화',k:[[0,-1,0],[-1,5,-1],[0,-1,0]]},
+  {name:'가우시안',k:[[1,2,1],[2,4,2],[1,2,1]]},
+  {name:'엠보스',k:[[-2,-1,0],[-1,1,1],[0,1,2]]},
+  {name:'라플라시안',k:[[0,1,0],[1,-4,1],[0,1,0]]},
+  {name:'세로선 강조',k:[[1,0,-1],[1,0,-1],[1,0,-1]]},
+  {name:'가로선 강조',k:[[1,1,1],[0,0,0],[-1,-1,-1]]},
+  {name:'좌상 엣지',k:[[1,0,0],[0,0,0],[0,0,-1]]},
+  {name:'우상 엣지',k:[[0,0,1],[0,0,0],[-1,0,0]]},
+  {name:'약한 블러',k:[[1,1,1],[1,1,1],[1,1,1]]},
+  {name:'경계 강조',k:[[-1,-1,-1],[-1,8,-1],[-1,-1,-1]]},
+  {name:'수직 프레윗',k:[[-1,0,1],[-1,0,1],[-1,0,1]]},
+  {name:'수평 프레윗',k:[[-1,-1,-1],[0,0,0],[1,1,1]]},
+];
 
-  for(let c=0;c<n;c++){
-    // Extract single channel
-    let min=Infinity,max=-Infinity;
-    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
-      const v=data[((y*w+x)*ch)+c];
-      if(v<min)min=v;if(v>max)max=v;
+// Simulate convolution on grayscale image data
+function applyKernel(gray,w,h,kernel){
+  const out=new Float32Array(w*h);
+  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
+    let sum=0;
+    for(let ky=-1;ky<=1;ky++)for(let kx=-1;kx<=1;kx++){
+      sum+=gray[(y+ky)*w+(x+kx)]*kernel[ky+1][kx+1];
     }
-    const range=max-min||1;
-    const cv=document.createElement('canvas');
-    cv.width=w;cv.height=h;
-    const sz=Math.max(48,Math.min(80,Math.round(600/Math.sqrt(n))));
-    cv.style.cssText=`width:${sz}px;height:${sz}px;border-radius:4px;border:1px solid var(--border);image-rendering:pixelated;`;
-    const ctx=cv.getContext('2d');
-    const img=ctx.createImageData(w,h);
-    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
-      const v=Math.round(((data[((y*w+x)*ch)+c]-min)/range)*255);
-      const idx=(y*w+x)*4;
-      img.data[idx]=v;img.data[idx+1]=v;img.data[idx+2]=v;img.data[idx+3]=255;
-    }
-    ctx.putImageData(img,0,0);
-
-    const wrap=document.createElement('div');
-    wrap.style.cssText='text-align:center;';
-    wrap.appendChild(cv);
-    const lbl=document.createElement('div');
-    lbl.style.cssText='font-family:var(--mono);font-size:0.55rem;color:var(--muted);margin-top:2px;';
-    lbl.textContent='Filter '+(c+1);
-    wrap.appendChild(lbl);
-    cont.appendChild(wrap);
+    out[y*w+x]=sum;
   }
+  return out;
+}
+
+// ReLU on float array
+function applyReLU(data){
+  const out=new Float32Array(data.length);
+  for(let i=0;i<data.length;i++)out[i]=Math.max(0,data[i]);
+  return out;
+}
+
+// Max pooling 2x2
+function applyMaxPool(data,w,h){
+  const ow=Math.floor(w/2),oh=Math.floor(h/2);
+  const out=new Float32Array(ow*oh);
+  for(let y=0;y<oh;y++)for(let x=0;x<ow;x++){
+    const a=data[(y*2)*w+(x*2)],b=data[(y*2)*w+(x*2+1)];
+    const c=data[(y*2+1)*w+(x*2)],d=data[(y*2+1)*w+(x*2+1)];
+    out[y*ow+x]=Math.max(a,b,c,d);
+  }
+  return {data:out,w:ow,h:oh};
+}
+
+function drawFloatMap(data,w,h,sz){
+  let min=Infinity,max=-Infinity;
+  for(let i=0;i<data.length;i++){if(data[i]<min)min=data[i];if(data[i]>max)max=data[i];}
+  const range=max-min||1;
+  const cv=document.createElement('canvas');
+  cv.width=w;cv.height=h;
+  cv.style.cssText=`width:${sz}px;height:${sz}px;border-radius:4px;border:1px solid var(--border);image-rendering:pixelated;`;
+  const ctx=cv.getContext('2d');
+  const img=ctx.createImageData(w,h);
+  for(let i=0;i<w*h;i++){
+    const v=Math.round(((data[i]-min)/range)*255);
+    img.data[i*4]=v;img.data[i*4+1]=v;img.data[i*4+2]=v;img.data[i*4+3]=255;
+  }
+  ctx.putImageData(img,0,0);
+  return cv;
+}
+
+function renderFeatureMaps(container,maps,names,sz){
+  container.innerHTML='';
+  maps.forEach((m,i)=>{
+    const wrap=document.createElement('div');
+    wrap.style.cssText='text-align:center;display:inline-block;margin:3px;';
+    wrap.appendChild(drawFloatMap(m.data,m.w,m.h,sz));
+    const lbl=document.createElement('div');
+    lbl.style.cssText='font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:2px;max-width:'+sz+'px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+    lbl.textContent=names[i]||('Filter '+(i+1));
+    wrap.appendChild(lbl);
+    container.appendChild(wrap);
+  });
 }
 
 function cnnShowStep(step){
@@ -1900,46 +2012,47 @@ function cnnNextStep(){cnnShowStep(cnnStep+1);}
 function cnnPrevStep(){cnnShowStep(cnnStep-1);}
 
 async function cnnAnalyze(imgEl){
-  const model=await loadCNNModel();
-  if(!model)return;
   const st=document.getElementById('cnn-status');
   st.textContent='분석 중...';
 
-  // Step 0: Draw input
+  // Step 0: Draw input at 224x224
   const inputCv=document.getElementById('cnn-input-cv');
   const ictx=inputCv.getContext('2d');
   ictx.drawImage(imgEl,0,0,224,224);
 
-  const tfModel=model.model;
+  // Extract grayscale from canvas
+  const imgData=ictx.getImageData(0,0,224,224);
+  const gray=new Float32Array(224*224);
+  for(let i=0;i<224*224;i++){
+    gray[i]=imgData.data[i*4]*0.299+imgData.data[i*4+1]*0.587+imgData.data[i*4+2]*0.114;
+  }
 
-  // Prepare input — MobileNet v2 expects [-1,1]
-  const inputTensor=tf.tidy(()=>{
-    return tf.browser.fromPixels(inputCv).toFloat().div(127.5).sub(1).expandDims(0);
-  });
+  // Step 1: Apply conv kernels (simulate first conv layer)
+  const convMaps=CNN_KERNELS.map(k=>({data:applyKernel(gray,224,224,k.k),w:224,h:224}));
+  renderFeatureMaps(document.getElementById('cnn-conv1-maps'),convMaps,CNN_KERNELS.map(k=>k.name),80);
+  document.getElementById('cnn-conv1-info').textContent=`${CNN_KERNELS.length}개 필터 적용 · 특징 맵 크기: 224×224`;
 
-  try{
-    // Find conv layers with 4D output
-    const convLayers=tfModel.layers.filter(l=>l.output.shape&&l.output.shape.length===4);
+  // Step 2: ReLU (handled by explanation only, but we'll compute for step 4 deep maps)
+  const reluMaps=convMaps.map(m=>({data:applyReLU(m.data),w:m.w,h:m.h}));
 
-    // Early conv (first few conv layers)
-    if(convLayers.length>=2){
-      const earlyLayer=convLayers[1]; // skip very first, take second for richer features
-      const earlyModel=tf.model({inputs:tfModel.input,outputs:earlyLayer.output});
-      const earlyOut=earlyModel.predict(inputTensor);
-      drawFeatureMaps(earlyOut,'cnn-conv1-maps',32);
-      earlyOut.dispose();
-    }
+  // Step 4: Pooling → ReLU → second conv → pool (simulate deeper layers)
+  const pool1=reluMaps.map(m=>applyMaxPool(m.data,m.w,m.h));
+  // Second round: apply cross-kernels on pooled maps for more abstract features
+  const deepMaps=[];const deepNames=[];
+  for(let i=0;i<Math.min(16,pool1.length);i++){
+    const ki=(i+4)%CNN_KERNELS.length;
+    const conv2=applyKernel(pool1[i].data,pool1[i].w,pool1[i].h,CNN_KERNELS[ki].k);
+    const relu2=applyReLU(conv2);
+    const pool2=applyMaxPool(relu2,pool1[i].w,pool1[i].h);
+    deepMaps.push(pool2);
+    deepNames.push('Deep '+(i+1));
+  }
+  renderFeatureMaps(document.getElementById('cnn-deep-maps'),deepMaps,deepNames,72);
+  document.getElementById('cnn-deep-info').textContent=`${deepMaps.length}개 필터 · 특징 맵 크기: ${deepMaps[0].w}×${deepMaps[0].h} (풀링 2회 적용)`;
 
-    // Mid-level layer (around 40% depth)
-    if(convLayers.length>=5){
-      const midLayer=convLayers[Math.floor(convLayers.length*0.4)];
-      const midModel=tf.model({inputs:tfModel.input,outputs:midLayer.output});
-      const midOut=midModel.predict(inputTensor);
-      drawFeatureMaps(midOut,'cnn-deep-maps',32);
-      midOut.dispose();
-    }
-
-    // Classification
+  // Step 5: Classification with MobileNet
+  const model=await loadCNNModel();
+  if(model){
     const predictions=await model.classify(inputCv,5);
     const predBox=document.getElementById('cnn-predictions');
     let html='<p style="margin-bottom:0.8rem;"><strong>상위 5개 예측 결과</strong></p>';
@@ -1948,7 +2061,7 @@ async function cnnAnalyze(imgEl){
       const isTop=i===0;
       const name=p.className.split(',')[0].trim();
       html+=`<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.6rem;">`;
-      html+=`<span style="font-family:var(--mono);font-size:0.8rem;min-width:3.5rem;text-align:right;font-weight:${isTop?'700':'400'};color:${isTop?'var(--fg)':'var(--muted)'};">${pct.toFixed(1)}%</span>`;
+      html+=`<span style="font-family:var(--mono);font-size:0.82rem;min-width:3.5rem;text-align:right;font-weight:${isTop?'700':'400'};color:${isTop?'var(--fg)':'var(--muted)'};">${pct.toFixed(1)}%</span>`;
       html+=`<div style="flex:1;height:1.6rem;background:var(--bg);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);">`;
       html+=`<div style="width:${Math.max(1,pct)}%;height:100%;background:${isTop?'var(--fg)':'var(--accent)'};border-radius:var(--radius);transition:width 0.6s;"></div>`;
       html+=`</div>`;
@@ -1956,21 +2069,10 @@ async function cnnAnalyze(imgEl){
       html+=`</div>`;
     });
     predBox.innerHTML=html;
-
-  }catch(err){
-    console.error('CNN pipeline error:',err);
-    // Fallback: just classify
-    const predictions=await model.classify(inputCv,5);
-    const predBox=document.getElementById('cnn-predictions');
-    let html='';
-    predictions.forEach(p=>{
-      html+=`<p style="font-family:var(--mono);font-size:0.85rem;margin:0.3rem 0;"><strong>${(p.probability*100).toFixed(1)}%</strong> — ${p.className.split(',')[0]}</p>`;
-    });
-    predBox.innerHTML=html;
-    document.getElementById('cnn-conv1-maps').innerHTML='<p style="color:var(--muted);font-size:0.82rem;">이 모델에서 중간 레이어를 추출할 수 없습니다.</p>';
+  }else{
+    document.getElementById('cnn-predictions').innerHTML='<p style="color:var(--muted);">모델 로딩에 실패하여 분류 결과를 표시할 수 없습니다.</p>';
   }
 
-  inputTensor.dispose();
   document.getElementById('cnn-controls').style.display='block';
   cnnShowStep(0);
   st.textContent='분석 완료! 버튼을 눌러 단계를 진행하세요.';
@@ -2006,15 +2108,17 @@ let detModel=null,detLoading=false;
 function loadDetScripts(){
   return new Promise((resolve,reject)=>{
     if(window.cocoSsd){resolve();return;}
-    const s1=document.createElement('script');
-    s1.src='https://cdn.jsdelivr.net/npm/@tensorflow/tfjs';
-    s1.onload=()=>{
+    const loadSsd=()=>{
       const s2=document.createElement('script');
       s2.src='https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd';
       s2.onload=()=>resolve();
       s2.onerror=()=>reject(new Error('COCO-SSD 로드 실패'));
       document.head.appendChild(s2);
     };
+    if(window.tf){loadSsd();return;}
+    const s1=document.createElement('script');
+    s1.src='https://cdn.jsdelivr.net/npm/@tensorflow/tfjs';
+    s1.onload=loadSsd;
     s1.onerror=()=>reject(new Error('TensorFlow.js 로드 실패'));
     document.head.appendChild(s1);
   });
