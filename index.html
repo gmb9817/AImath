@@ -392,12 +392,12 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
     <div class="cmp">
       <div class="cmp-c">
         <h4>인간의 시각 시스템</h4>
-        <canvas id="eye-cv" width="480" height="320" style="width:100%;max-width:480px;border-radius:var(--radius);border:1px solid var(--border);"></canvas>
+        <canvas id="eye-cv" width="700" height="460" style="width:100%;max-width:700px;border-radius:var(--radius);border:1px solid var(--border);"></canvas>
         <div id="eye-desc" style="margin-top:0.8rem;"></div>
       </div>
       <div class="cmp-c">
         <h4>CNN 인공신경망</h4>
-        <canvas id="cnn-cv" width="480" height="280" style="width:100%;max-width:480px;border-radius:var(--radius);border:1px solid var(--border);"></canvas>
+        <canvas id="cnn-cv" width="700" height="360" style="width:100%;max-width:700px;border-radius:var(--radius);border:1px solid var(--border);"></canvas>
         <div id="cnn-desc" style="margin-top:0.8rem;"></div>
       </div>
     </div>
@@ -1788,130 +1788,189 @@ const EC_TOTAL=5;
 
 function ecDrawEye(upTo){
   const cv=document.getElementById('eye-cv');if(!cv)return;
-  const c=cv.getContext('2d');
-  c.clearRect(0,0,480,320);
-  c.fillStyle='#f5f2eb';c.fillRect(0,0,480,320);
-  const AC='#b44133',PA='#78726a',DM='#a8a29a';
+  const W=700,H=460,c=cv.getContext('2d');
+  c.clearRect(0,0,W,H);c.fillStyle='#f5f2eb';c.fillRect(0,0,W,H);
+  const AC='#b44133',PA='#6b665e',DM='#a8a29a';
 
-  // Always draw eye outline
-  c.save();c.translate(210,155);
-  c.beginPath();c.ellipse(0,0,110,72,0,0,Math.PI*2);
-  c.fillStyle='#e8e2d8';c.fill();c.strokeStyle='#1a1714';c.lineWidth=2;c.stroke();
-  c.beginPath();c.arc(18,0,36,0,Math.PI*2);c.fillStyle='#4a6b8a';c.fill();c.stroke();
-  c.beginPath();c.arc(18,0,16,0,Math.PI*2);c.fillStyle='#1a1714';c.fill();
-  c.beginPath();c.arc(22,-5,4,0,Math.PI*2);c.fillStyle='rgba(255,255,255,0.4)';c.fill();
+  // Eye - centered at (350, 200)
+  const EX=350,EY=200;
+  c.save();c.translate(EX,EY);
+  c.beginPath();c.ellipse(0,0,155,100,0,0,Math.PI*2);
+  c.fillStyle='#eae5dc';c.fill();c.strokeStyle='#2a2520';c.lineWidth=2.5;c.stroke();
+  // Iris
+  c.beginPath();c.arc(22,0,52,0,Math.PI*2);c.fillStyle='#4a7a9a';c.fill();c.strokeStyle='#2a2520';c.lineWidth=1.5;c.stroke();
+  // Pupil
+  c.beginPath();c.arc(22,0,22,0,Math.PI*2);c.fillStyle='#1a1714';c.fill();
+  c.beginPath();c.arc(28,-7,6,0,Math.PI*2);c.fillStyle='rgba(255,255,255,0.35)';c.fill();
   c.restore();
 
-  // Step 0: Light + Lens
+  function label(x,y,title,sub,col,align){
+    c.save();c.textAlign=align||'left';
+    c.font='bold 14px sans-serif';c.fillStyle=col;c.fillText(title,x,y);
+    if(sub){c.font='12px sans-serif';c.fillStyle=DM;c.fillText(sub,x,y+18);}
+    c.restore();
+  }
+  function arrow(x1,y1,x2,y2,col){
+    c.save();c.strokeStyle=col;c.fillStyle=col;c.lineWidth=2;
+    c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();
+    const a=Math.atan2(y2-y1,x2-x1);
+    c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-8*Math.cos(a-0.35),y2-8*Math.sin(a-0.35));
+    c.lineTo(x2-8*Math.cos(a+0.35),y2-8*Math.sin(a+0.35));c.closePath();c.fill();c.restore();
+  }
+
+  // Step 0: Light rays + Lens
   if(upTo>=0){
     const col=upTo===0?AC:PA;
-    c.save();c.strokeStyle=col;c.lineWidth=1.5;c.setLineDash([5,4]);
-    for(let a=-20;a<=20;a+=10){c.beginPath();c.moveTo(420,130+a);c.lineTo(270,150+a*0.3);c.stroke();}
-    c.setLineDash([]);
-    c.font='bold 11px sans-serif';c.fillStyle=col;c.textAlign='center';
-    c.fillText('수정체 (렌즈)',230,250);
-    c.font='9px sans-serif';c.fillStyle=DM;c.fillText('빛 → 초점 조절',230,264);
-    c.fillText('💡',430,155);c.restore();
+    c.save();c.strokeStyle=col;c.lineWidth=1.8;c.setLineDash([6,5]);
+    for(let a=-30;a<=30;a+=15){c.beginPath();c.moveTo(620,170+a);c.lineTo(EX+100,EY+a*0.25);c.stroke();}
+    c.setLineDash([]);c.restore();
+    // Sun icon
+    c.save();c.font='28px sans-serif';c.textAlign='center';c.fillText('☀️',645,205);c.restore();
+    label(EX-30,EY+135,'① 수정체 (렌즈)','빛을 굴절 → 망막에 초점',col,'center');
   }
-  // Step 1: Retina
+
+  // Step 1: Retina (back of eye)
   if(upTo>=1){
     const col=upTo===1?AC:PA;
-    c.save();c.strokeStyle=col;c.lineWidth=5;c.lineCap='round';
-    c.beginPath();c.arc(210,155,105,2.5,3.8);c.stroke();
-    c.font='bold 11px sans-serif';c.fillStyle=col;c.textAlign='left';
-    c.fillText('망막 (V1)',52,85);
-    c.font='9px sans-serif';c.fillStyle=DM;c.fillText('방향 감지 뉴런',52,99);c.restore();
+    c.save();c.strokeStyle=col;c.lineWidth=6;c.lineCap='round';
+    c.beginPath();c.arc(EX,EY,148,2.4,3.9);c.stroke();c.restore();
+    label(EX-155,EY-130,'② 망막','1.3억 광수용체 → 전기 신호',col);
   }
-  // Step 2: V1 neurons
+
+  // Step 2: Optic nerve → V1 (orientation neurons)
   if(upTo>=2){
-    const col=upTo===2?AC:PA;c.save();c.strokeStyle=col;c.lineWidth=2;
-    c.beginPath();c.moveTo(100,155);c.lineTo(40,155);c.stroke();
-    const nx=38,ny=115;
-    [[nx-8,ny,nx+8,ny],[nx,ny-8,nx,ny+8],[nx-6,ny-6,nx+6,ny+6]].forEach(([a,b,d,e])=>{c.beginPath();c.moveTo(a,b);c.lineTo(d,e);c.stroke();});
-    c.font='bold 10px sans-serif';c.fillStyle=col;c.fillText('발화 임계값',12,102);
-    c.font='9px sans-serif';c.fillStyle=DM;c.fillText('약한 자극 무시',12,78);c.restore();
+    const col=upTo===2?AC:PA;
+    // Optic nerve line
+    arrow(EX-155,EY,100,EY,col);
+    // V1 orientation lines
+    c.save();c.strokeStyle=col;c.lineWidth=2.5;c.lineCap='round';
+    const vx=65,vy=EY-10;
+    [[-12,0,12,0],[0,-12,0,12],[-9,-9,9,9],[9,-9,-9,9]].forEach(([a,b,d,e])=>{
+      c.beginPath();c.moveTo(vx+a,vy+b);c.lineTo(vx+d,vy+e);c.stroke();
+    });
+    c.restore();
+    label(20,EY-55,'③ 시각 피질 V1','방향 선택 뉴런 (수직/수평/대각)',col);
   }
-  // Step 3: V2→V4
+
+  // Step 3: V2→V4 (complex feature assembly)
   if(upTo>=3){
-    const col=upTo===3?AC:PA;c.save();
-    c.strokeStyle=col;c.fillStyle=col;c.lineWidth=1.5;
-    c.beginPath();c.moveTo(38,165);c.lineTo(38,200);c.stroke();
-    c.beginPath();c.moveTo(33,195);c.lineTo(38,205);c.lineTo(43,195);c.fill();
-    c.font='bold 10px sans-serif';c.fillText('V2→V4',15,220);
-    c.font='9px sans-serif';c.fillStyle=DM;c.fillText('복잡한 형태 조합',15,234);c.restore();
+    const col=upTo===3?AC:PA;
+    arrow(65,EY+15,65,EY+75,col);
+    // Mini combined shapes
+    c.save();c.strokeStyle=col;c.lineWidth=1.5;
+    c.strokeRect(42,EY+85,18,14);c.beginPath();c.arc(78,EY+92,8,0,Math.PI*2);c.stroke();
+    c.beginPath();c.moveTo(98,EY+100);c.lineTo(108,EY+82);c.lineTo(118,EY+100);c.closePath();c.stroke();
+    c.restore();
+    label(20,EY+120,'④ V2 → V4 피질','기초 특징을 조합 → 복잡한 형태',col);
   }
-  // Step 4: IT cortex
+
+  // Step 4: IT cortex (final recognition)
   if(upTo>=4){
-    const col=upTo===4?AC:PA;c.save();
-    c.strokeStyle=col;c.fillStyle=col;c.lineWidth=1.5;
-    c.beginPath();c.moveTo(38,240);c.lineTo(38,268);c.stroke();
-    c.beginPath();c.moveTo(33,263);c.lineTo(38,273);c.lineTo(43,263);c.fill();
-    c.font='bold 10px sans-serif';c.fillText('측두엽',15,290);
-    c.font='9px sans-serif';c.fillStyle=DM;c.fillText('"고양이!" 🐱',15,304);c.restore();
+    const col=upTo===4?AC:PA;
+    arrow(65,EY+145,65,EY+195,col);
+    c.save();
+    c.font='32px sans-serif';c.textAlign='center';c.fillText('🐱',65,EY+230);
+    c.restore();
+    label(20,EY+250,'⑤ 측두엽 (IT)','"이것은 고양이다!"',col);
   }
 }
 
 function ecDrawCNN(upTo){
   const cv=document.getElementById('cnn-cv');if(!cv)return;
-  const c=cv.getContext('2d');
-  c.clearRect(0,0,480,280);
-  c.fillStyle='#f5f2eb';c.fillRect(0,0,480,280);
-  const AC='#4a6b8a',PA='#78726a',DM='#a8a29a';
-  let x=20;const y0=35,bh=130,gap=6;
+  const W=700,H=360,c=cv.getContext('2d');
+  c.clearRect(0,0,W,H);c.fillStyle='#f5f2eb';c.fillRect(0,0,W,H);
+  const AC='#4a6b8a',PA='#6b665e',DM='#a8a29a';
+  let x=30;const y0=50,bh=170,gap=10;
 
   function arr(x1,y1,x2,y2,col){
-    c.save();c.strokeStyle=col;c.fillStyle=col;c.lineWidth=1.5;
+    c.save();c.strokeStyle=col;c.fillStyle=col;c.lineWidth=2;
     c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();
     const a=Math.atan2(y2-y1,x2-x1);
-    c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-6*Math.cos(a-0.4),y2-6*Math.sin(a-0.4));c.lineTo(x2-6*Math.cos(a+0.4),y2-6*Math.sin(a+0.4));c.fill();c.restore();
+    c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-7*Math.cos(a-0.4),y2-7*Math.sin(a-0.4));
+    c.lineTo(x2-7*Math.cos(a+0.4),y2-7*Math.sin(a+0.4));c.closePath();c.fill();c.restore();
   }
 
+  // Step 0: Input block
   if(upTo>=0){
     const col=upTo===0?AC:PA;
-    c.fillStyle=col;c.globalAlpha=0.12;c.fillRect(x,y0,50,bh);c.globalAlpha=1;
-    c.strokeStyle=col;c.lineWidth=1.5;c.strokeRect(x,y0,50,bh);
-    c.globalAlpha=0.25;c.strokeStyle=col;c.lineWidth=0.5;
-    for(let i=1;i<5;i++){c.beginPath();c.moveTo(x,y0+i*bh/5);c.lineTo(x+50,y0+i*bh/5);c.stroke();}
-    for(let i=1;i<4;i++){c.beginPath();c.moveTo(x+i*50/4,y0);c.lineTo(x+i*50/4,y0+bh);c.stroke();}
-    c.globalAlpha=1;c.font='bold 10px sans-serif';c.fillStyle=col;c.textAlign='center';
-    c.fillText('입력',x+25,y0+bh+16);c.font='8px monospace';c.fillStyle=DM;c.fillText('224×224×3',x+25,y0+bh+28);
-    x+=50+gap;
+    c.fillStyle=col;c.globalAlpha=0.1;c.fillRect(x,y0,70,bh);c.globalAlpha=1;
+    c.strokeStyle=col;c.lineWidth=2;c.strokeRect(x,y0,70,bh);
+    c.globalAlpha=0.2;c.strokeStyle=col;c.lineWidth=0.5;
+    for(let i=1;i<6;i++){c.beginPath();c.moveTo(x,y0+i*bh/6);c.lineTo(x+70,y0+i*bh/6);c.stroke();}
+    for(let i=1;i<5;i++){c.beginPath();c.moveTo(x+i*70/5,y0);c.lineTo(x+i*70/5,y0+bh);c.stroke();}
+    c.globalAlpha=1;
+    c.font='bold 13px sans-serif';c.fillStyle=col;c.textAlign='center';
+    c.fillText('입력',x+35,y0+bh+22);
+    c.font='11px monospace';c.fillStyle=DM;c.fillText('224×224×3',x+35,y0+bh+38);
+    x+=70+gap;
   }
+
+  // Step 1: Conv blocks
   if(upTo>=1){
     const col=upTo===1?AC:PA;
-    arr(x,y0+bh/2,x+10,y0+bh/2,col);x+=14;
-    for(let i=0;i<4;i++){const w=10,h=bh-i*12;c.fillStyle=col;c.globalAlpha=0.18-i*0.03;c.fillRect(x+i*14,y0+(bh-h)/2,w,h);c.globalAlpha=1;c.strokeStyle=col;c.lineWidth=1;c.strokeRect(x+i*14,y0+(bh-h)/2,w,h);}
-    c.font='bold 10px sans-serif';c.fillStyle=col;c.textAlign='center';c.fillText('합성곱',x+28,y0+bh+16);c.font='8px monospace';c.fillStyle=DM;c.fillText('Conv2D',x+28,y0+bh+28);
-    x+=60+gap;
+    arr(x,y0+bh/2,x+16,y0+bh/2,col);x+=20;
+    for(let i=0;i<4;i++){
+      const w=14,h=bh-i*16;
+      c.fillStyle=col;c.globalAlpha=0.18-i*0.03;c.fillRect(x+i*20,y0+(bh-h)/2,w,h);c.globalAlpha=1;
+      c.strokeStyle=col;c.lineWidth=1.2;c.strokeRect(x+i*20,y0+(bh-h)/2,w,h);
+    }
+    c.font='bold 13px sans-serif';c.fillStyle=col;c.textAlign='center';
+    c.fillText('합성곱',x+38,y0+bh+22);
+    c.font='11px monospace';c.fillStyle=DM;c.fillText('Conv2D',x+38,y0+bh+38);
+    x+=84+gap;
   }
+
+  // Step 2: ReLU
   if(upTo>=2){
     const col=upTo===2?'#5a8a5a':PA;
-    arr(x,y0+bh/2,x+10,y0+bh/2,col);x+=14;
-    c.save();c.translate(x+18,y0+bh/2);c.strokeStyle=col;c.lineWidth=2.5;
-    c.beginPath();c.moveTo(-14,10);c.lineTo(0,0);c.lineTo(14,-14);c.stroke();
-    c.strokeStyle=DM;c.lineWidth=0.5;c.setLineDash([3,3]);c.beginPath();c.moveTo(-16,0);c.lineTo(16,0);c.stroke();c.setLineDash([]);c.restore();
-    c.font='bold 10px sans-serif';c.fillStyle=col;c.textAlign='center';c.fillText('활성화',x+18,y0+bh+16);c.font='8px monospace';c.fillStyle=DM;c.fillText('ReLU',x+18,y0+bh+28);
-    x+=40+gap;
+    arr(x,y0+bh/2,x+16,y0+bh/2,col);x+=22;
+    c.save();c.translate(x+22,y0+bh/2);
+    c.strokeStyle=col;c.lineWidth=3;
+    c.beginPath();c.moveTo(-18,14);c.lineTo(0,0);c.lineTo(18,-18);c.stroke();
+    c.strokeStyle=DM;c.lineWidth=0.6;c.setLineDash([4,3]);
+    c.beginPath();c.moveTo(-22,0);c.lineTo(22,0);c.stroke();c.setLineDash([]);
+    c.restore();
+    c.font='bold 13px sans-serif';c.fillStyle=col;c.textAlign='center';
+    c.fillText('활성화',x+22,y0+bh+22);
+    c.font='11px monospace';c.fillStyle=DM;c.fillText('ReLU',x+22,y0+bh+38);
+    x+=50+gap;
   }
+
+  // Step 3: Pooling blocks (smaller)
   if(upTo>=3){
     const col=upTo===3?'#8a6a4a':PA;
-    arr(x,y0+bh/2,x+10,y0+bh/2,col);x+=14;
-    for(let i=0;i<3;i++){const w=8,h=bh*0.55-i*10;c.fillStyle=col;c.globalAlpha=0.18-i*0.04;c.fillRect(x+i*12,y0+(bh-h)/2,w,h);c.globalAlpha=1;c.strokeStyle=col;c.lineWidth=1;c.strokeRect(x+i*12,y0+(bh-h)/2,w,h);}
-    c.font='bold 10px sans-serif';c.fillStyle=col;c.textAlign='center';c.fillText('풀링',x+16,y0+bh+16);c.font='8px monospace';c.fillStyle=DM;c.fillText('↓ 절반',x+16,y0+bh+28);
-    x+=42+gap;
+    arr(x,y0+bh/2,x+16,y0+bh/2,col);x+=20;
+    for(let i=0;i<3;i++){
+      const w=12,h=bh*0.55-i*12;
+      c.fillStyle=col;c.globalAlpha=0.16-i*0.03;c.fillRect(x+i*16,y0+(bh-h)/2,w,h);c.globalAlpha=1;
+      c.strokeStyle=col;c.lineWidth=1.2;c.strokeRect(x+i*16,y0+(bh-h)/2,w,h);
+    }
+    c.font='bold 13px sans-serif';c.fillStyle=col;c.textAlign='center';
+    c.fillText('풀링',x+22,y0+bh+22);
+    c.font='11px monospace';c.fillStyle=DM;c.fillText('↓ 절반',x+22,y0+bh+38);
+    x+=54+gap;
   }
+
+  // Step 4: FC + Softmax
   if(upTo>=4){
     const col=upTo===4?AC:PA;
-    arr(x,y0+bh/2,x+10,y0+bh/2,col);x+=16;
-    const ny=5;
+    arr(x,y0+bh/2,x+18,y0+bh/2,col);x+=24;
+    const ny=6;
     for(let ix=0;ix<2;ix++)for(let iy=0;iy<ny;iy++){
-      const cx2=x+ix*26+8,cy2=y0+18+iy*24;
-      c.beginPath();c.arc(cx2,cy2,4.5,0,Math.PI*2);c.fillStyle=col;c.globalAlpha=0.25+iy*0.12;c.fill();c.globalAlpha=1;c.strokeStyle=col;c.lineWidth=0.7;c.stroke();
-      if(ix<1)for(let jy=0;jy<ny;jy++){c.strokeStyle=col;c.globalAlpha=0.12;c.lineWidth=0.4;c.beginPath();c.moveTo(cx2+4.5,cy2);c.lineTo(x+34+8,y0+18+jy*24);c.stroke();c.globalAlpha=1;}
+      const cx2=x+ix*34+10,cy2=y0+20+iy*26;
+      c.beginPath();c.arc(cx2,cy2,6,0,Math.PI*2);
+      c.fillStyle=col;c.globalAlpha=0.2+iy*0.1;c.fill();c.globalAlpha=1;
+      c.strokeStyle=col;c.lineWidth=0.8;c.stroke();
+      if(ix<1)for(let jy=0;jy<ny;jy++){
+        c.strokeStyle=col;c.globalAlpha=0.1;c.lineWidth=0.4;
+        c.beginPath();c.moveTo(cx2+6,cy2);c.lineTo(x+44+10,y0+20+jy*26);c.stroke();c.globalAlpha=1;
+      }
     }
-    arr(x+50,y0+bh/2,x+66,y0+bh/2,col);
-    c.font='16px sans-serif';c.globalAlpha=1;c.fillText('🐱',x+70,y0+bh/2+5);
-    c.font='bold 10px sans-serif';c.fillStyle=col;c.textAlign='center';c.fillText('분류',x+26,y0+bh+16);c.font='8px monospace';c.fillStyle=DM;c.fillText('Softmax',x+26,y0+bh+28);
+    arr(x+62,y0+bh/2,x+82,y0+bh/2,col);
+    c.font='28px sans-serif';c.globalAlpha=1;c.textAlign='left';c.fillText('🐱',x+86,y0+bh/2+9);
+    c.font='bold 13px sans-serif';c.fillStyle=col;c.textAlign='center';
+    c.fillText('분류',x+34,y0+bh+22);
+    c.font='11px monospace';c.fillStyle=DM;c.fillText('Softmax',x+34,y0+bh+38);
   }
 }
 
