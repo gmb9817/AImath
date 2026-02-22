@@ -607,10 +607,18 @@ K: 필터(커널)  X: 입력의 일부  Y: 출력값
   </div>
 
   <div id="cnn-controls" style="display:none;">
-    <div style="display:flex;justify-content:center;align-items:center;gap:1rem;margin-bottom:1.5rem;padding:1rem;background:var(--card);border-radius:var(--radius);">
-      <button class="btn" onclick="cnnPrevStep()" style="padding:0.6rem 1.2rem;font-size:0.72rem;">← 이전 단계</button>
-      <span id="cnn-step-label" style="font-family:var(--mono);font-size:0.85rem;font-weight:600;color:var(--fg);min-width:6rem;text-align:center;">1 / 6</span>
-      <button class="btn pri" onclick="cnnNextStep()" style="padding:0.6rem 1.2rem;font-size:0.72rem;">다음 단계 →</button>
+    <!-- Timeline bar -->
+    <div id="cnn-timeline" style="display:flex;gap:2px;margin-bottom:1rem;overflow-x:auto;padding:0.5rem 0;">
+      <button class="cnn-tl-btn" onclick="cnnShowStep(0)" data-step="0" style="flex:1;min-width:0;padding:0.45rem 0.3rem;font-size:0.62rem;font-family:var(--mono);border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--muted);cursor:pointer;text-align:center;line-height:1.3;transition:all 0.2s;">입력<br>이미지</button>
+      <button class="cnn-tl-btn" onclick="cnnShowStep(1)" data-step="1" style="flex:1;min-width:0;padding:0.45rem 0.3rem;font-size:0.62rem;font-family:var(--mono);border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--muted);cursor:pointer;text-align:center;line-height:1.3;transition:all 0.2s;">Conv2D<br>(합성곱)</button>
+      <button class="cnn-tl-btn" onclick="cnnShowStep(2)" data-step="2" style="flex:1;min-width:0;padding:0.45rem 0.3rem;font-size:0.62rem;font-family:var(--mono);border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--muted);cursor:pointer;text-align:center;line-height:1.3;transition:all 0.2s;">ReLU<br>(활성화)</button>
+      <button class="cnn-tl-btn" onclick="cnnShowStep(3)" data-step="3" style="flex:1;min-width:0;padding:0.45rem 0.3rem;font-size:0.62rem;font-family:var(--mono);border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--muted);cursor:pointer;text-align:center;line-height:1.3;transition:all 0.2s;">MaxPool<br>(풀링)</button>
+      <button class="cnn-tl-btn" onclick="cnnShowStep(4)" data-step="4" style="flex:1;min-width:0;padding:0.45rem 0.3rem;font-size:0.62rem;font-family:var(--mono);border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--muted);cursor:pointer;text-align:center;line-height:1.3;transition:all 0.2s;">Deep<br>(깊은 층)</button>
+      <button class="cnn-tl-btn" onclick="cnnShowStep(5)" data-step="5" style="flex:1;min-width:0;padding:0.45rem 0.3rem;font-size:0.62rem;font-family:var(--mono);border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--muted);cursor:pointer;text-align:center;line-height:1.3;transition:all 0.2s;">Softmax<br>(분류)</button>
+    </div>
+    <div style="display:flex;justify-content:center;align-items:center;gap:1rem;margin-bottom:1.5rem;">
+      <button class="btn" onclick="cnnPrevStep()" style="padding:0.6rem 1.2rem;font-size:0.72rem;">← 이전</button>
+      <button class="btn pri" onclick="cnnNextStep()" style="padding:0.6rem 1.2rem;font-size:0.72rem;">다음 →</button>
     </div>
   </div>
 
@@ -1820,10 +1828,9 @@ document.getElementById('nsl').addEventListener('input',function(){
 });
 
 // ═══════════════════════════════════════════
-//  CNN PIPELINE (Feature maps + MobileNet classify)
+//  CNN PIPELINE (Real MobileNet intermediate layers)
 // ═══════════════════════════════════════════
 let cnnModel=null,cnnLoading=false,cnnStep=0;
-let cnnConvMaps=null,cnnReluMaps=null,cnnPoolMaps=null,cnnDeepMaps=null;
 const CNN_TOTAL_STEPS=6;
 
 async function loadCNNModel(){
@@ -1856,75 +1863,112 @@ async function loadCNNModel(){
     cnnLoading=false;
     return cnnModel;
   }catch(err){
-    st.textContent='모델 로딩 실패: '+err.message+' — 특징 맵 시각화는 정상 작동합니다.';
-    console.error('MobileNet load error:',err);
+    st.textContent='모델 로딩 실패: '+err.message;
+    console.error('CNN model load error:',err);
     cnnLoading=false;return null;
   }
 }
 
-const CNN_KERNELS=[
-  {name:'세로 엣지 (Sobel)',k:[[-1,0,1],[-2,0,2],[-1,0,1]]},
-  {name:'가로 엣지 (Sobel)',k:[[-1,-2,-1],[0,0,0],[1,2,1]]},
-  {name:'대각선 (↘)',k:[[0,1,2],[-1,0,1],[-2,-1,0]]},
-  {name:'대각선 (↙)',k:[[2,1,0],[1,0,-1],[0,-1,-2]]},
+// Draw feature maps from a 4D tensor [1,H,W,C]
+function drawTensorMaps(tensor,contId,maxN){
+  const cont=document.getElementById(contId);
+  cont.innerHTML='';
+  const shape=tensor.shape; // [1,H,W,C]
+  const h=shape[1],w=shape[2],ch=shape[3];
+  const n=Math.min(ch,maxN||32);
+  const data=tensor.dataSync();
+  const sz=Math.max(48,Math.min(80,Math.round(600/Math.sqrt(n))));
+  
+  for(let c=0;c<n;c++){
+    let min=Infinity,max=-Infinity;
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+      const v=data[((y*w+x)*ch)+c];
+      if(v<min)min=v;if(v>max)max=v;
+    }
+    const rng=max-min||1;
+    const cv=document.createElement('canvas');
+    cv.width=w;cv.height=h;
+    cv.style.cssText=`width:${sz}px;height:${sz}px;border-radius:4px;border:1px solid var(--border);image-rendering:pixelated;`;
+    const ctx=cv.getContext('2d');
+    const img=ctx.createImageData(w,h);
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+      const v=Math.round(((data[((y*w+x)*ch)+c]-min)/rng)*255);
+      const idx=(y*w+x)*4;
+      img.data[idx]=v;img.data[idx+1]=v;img.data[idx+2]=v;img.data[idx+3]=255;
+    }
+    ctx.putImageData(img,0,0);
+    const wrap=document.createElement('div');
+    wrap.style.cssText='text-align:center;display:inline-block;margin:3px;';
+    wrap.appendChild(cv);
+    const lbl=document.createElement('div');
+    lbl.style.cssText='font-family:var(--mono);font-size:0.55rem;color:var(--muted);margin-top:2px;';
+    lbl.textContent='Filter '+(c+1);
+    wrap.appendChild(lbl);
+    cont.appendChild(wrap);
+  }
+  const info=document.getElementById(contId.replace('maps','info'));
+  if(info)info.textContent=`${ch}개 필터 중 ${n}개 표시 · 특징 맵 크기: ${h}×${w}`;
+}
+
+// Fallback: JS conv for when model extraction fails
+const FALLBACK_KERNELS=[
+  {name:'세로 엣지',k:[[-1,0,1],[-2,0,2],[-1,0,1]]},
+  {name:'가로 엣지',k:[[-1,-2,-1],[0,0,0],[1,2,1]]},
+  {name:'대각선 ↘',k:[[0,1,2],[-1,0,1],[-2,-1,0]]},
+  {name:'대각선 ↙',k:[[2,1,0],[1,0,-1],[0,-1,-2]]},
   {name:'선명화',k:[[0,-1,0],[-1,5,-1],[0,-1,0]]},
-  {name:'가우시안 블러',k:[[1,2,1],[2,4,2],[1,2,1]]},
+  {name:'가우시안',k:[[1,2,1],[2,4,2],[1,2,1]]},
   {name:'엠보스',k:[[-2,-1,0],[-1,1,1],[0,1,2]]},
   {name:'라플라시안',k:[[0,1,0],[1,-4,1],[0,1,0]]},
   {name:'세로선',k:[[1,0,-1],[1,0,-1],[1,0,-1]]},
   {name:'가로선',k:[[1,1,1],[0,0,0],[-1,-1,-1]]},
-  {name:'경계 강조',k:[[-1,-1,-1],[-1,8,-1],[-1,-1,-1]]},
-  {name:'약한 블러',k:[[1,1,1],[1,1,1],[1,1,1]]},
+  {name:'경계강조',k:[[-1,-1,-1],[-1,8,-1],[-1,-1,-1]]},
+  {name:'블러',k:[[1,1,1],[1,1,1],[1,1,1]]},
 ];
-
-function applyKernel(gray,w,h,kernel){
-  const out=new Float32Array(w*h);
+function jsConv(gray,w,h,kernel){
+  const o=new Float32Array(w*h);
   for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
-    let s=0;
-    for(let ky=-1;ky<=1;ky++)for(let kx=-1;kx<=1;kx++){
-      s+=gray[(y+ky)*w+(x+kx)]*kernel[ky+1][kx+1];
-    }
-    out[y*w+x]=s;
+    let s=0;for(let ky=-1;ky<=1;ky++)for(let kx=-1;kx<=1;kx++) s+=gray[(y+ky)*w+(x+kx)]*kernel[ky+1][kx+1];
+    o[y*w+x]=s;
   }
-  return out;
+  return o;
 }
-function applyReLU(data){const o=new Float32Array(data.length);for(let i=0;i<data.length;i++)o[i]=Math.max(0,data[i]);return o;}
-function applyMaxPool(data,w,h){
+function jsReLU(d){const o=new Float32Array(d.length);for(let i=0;i<d.length;i++)o[i]=Math.max(0,d[i]);return o;}
+function jsPool(d,w,h){
   const ow=w>>1,oh=h>>1,o=new Float32Array(ow*oh);
-  for(let y=0;y<oh;y++)for(let x=0;x<ow;x++){
-    o[y*ow+x]=Math.max(data[(y*2)*w+x*2],data[(y*2)*w+x*2+1],data[(y*2+1)*w+x*2],data[(y*2+1)*w+x*2+1]);
-  }
+  for(let y=0;y<oh;y++)for(let x=0;x<ow;x++) o[y*ow+x]=Math.max(d[(y*2)*w+x*2],d[(y*2)*w+x*2+1],d[(y*2+1)*w+x*2],d[(y*2+1)*w+x*2+1]);
   return {data:o,w:ow,h:oh};
 }
-
-function drawFloatMap(data,w,h,sz){
-  let min=Infinity,max=-Infinity;
-  for(let i=0;i<data.length;i++){if(data[i]<min)min=data[i];if(data[i]>max)max=data[i];}
-  const rng=max-min||1;
-  const cv=document.createElement('canvas');
-  cv.width=w;cv.height=h;
-  cv.style.cssText=`width:${sz}px;height:${sz}px;border-radius:4px;border:1px solid var(--border);image-rendering:pixelated;`;
-  const ctx=cv.getContext('2d');
-  const img=ctx.createImageData(w,h);
-  for(let i=0;i<w*h;i++){
-    const v=Math.round(((data[i]-min)/rng)*255);
-    img.data[i*4]=v;img.data[i*4+1]=v;img.data[i*4+2]=v;img.data[i*4+3]=255;
-  }
-  ctx.putImageData(img,0,0);
-  return cv;
+function drawJsMaps(maps,names,contId,sz){
+  const cont=document.getElementById(contId);cont.innerHTML='';
+  maps.forEach((m,i)=>{
+    let min=Infinity,max=-Infinity;
+    for(let v of m.data){if(v<min)min=v;if(v>max)max=v;}
+    const rng=max-min||1;
+    const cv=document.createElement('canvas');cv.width=m.w;cv.height=m.h;
+    cv.style.cssText=`width:${sz}px;height:${sz}px;border-radius:4px;border:1px solid var(--border);image-rendering:pixelated;`;
+    const ctx=cv.getContext('2d'),img=ctx.createImageData(m.w,m.h);
+    for(let j=0;j<m.w*m.h;j++){const v=Math.round(((m.data[j]-min)/rng)*255);img.data[j*4]=v;img.data[j*4+1]=v;img.data[j*4+2]=v;img.data[j*4+3]=255;}
+    ctx.putImageData(img,0,0);
+    const wrap=document.createElement('div');wrap.style.cssText='text-align:center;display:inline-block;margin:3px;';
+    wrap.appendChild(cv);
+    const lbl=document.createElement('div');lbl.style.cssText='font-family:var(--mono);font-size:0.58rem;color:var(--muted);margin-top:2px;max-width:'+sz+'px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+    lbl.textContent=names[i];wrap.appendChild(lbl);cont.appendChild(wrap);
+  });
+  const info=document.getElementById(contId.replace('maps','info'));
+  if(info&&maps[0])info.textContent=`${maps.length}개 필터 · 특징 맵 크기: ${maps[0].w}×${maps[0].h}`;
 }
 
-function renderMaps(cont,maps,names,sz){
-  cont.innerHTML='';
-  maps.forEach((m,i)=>{
-    const wrap=document.createElement('div');
-    wrap.style.cssText='text-align:center;display:inline-block;margin:4px;';
-    wrap.appendChild(drawFloatMap(m.data,m.w,m.h,sz));
-    const lbl=document.createElement('div');
-    lbl.style.cssText='font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:2px;max-width:'+sz+'px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
-    lbl.textContent=names[i]||('F'+(i+1));
-    wrap.appendChild(lbl);
-    cont.appendChild(wrap);
+function cnnUpdateTimeline(step){
+  document.querySelectorAll('.cnn-tl-btn').forEach(btn=>{
+    const s=parseInt(btn.dataset.step);
+    if(s===step){
+      btn.style.background='var(--fg)';btn.style.color='var(--bg)';btn.style.borderColor='var(--fg)';btn.style.fontWeight='600';
+    }else if(s<step){
+      btn.style.background='var(--accent)';btn.style.color='var(--fg)';btn.style.borderColor='var(--accent)';btn.style.fontWeight='400';
+    }else{
+      btn.style.background='var(--card)';btn.style.color='var(--muted)';btn.style.borderColor='var(--border)';btn.style.fontWeight='400';
+    }
   });
 }
 
@@ -1932,57 +1976,87 @@ function cnnShowStep(n){
   cnnStep=Math.max(0,Math.min(CNN_TOTAL_STEPS-1,n));
   document.querySelectorAll('.cnn-step').forEach(el=>el.style.display='none');
   document.getElementById('cnn-step-'+cnnStep).style.display='block';
-  document.getElementById('cnn-step-label').textContent=`${cnnStep+1} / ${CNN_TOTAL_STEPS}`;
+  cnnUpdateTimeline(cnnStep);
 }
 function cnnNextStep(){cnnShowStep(cnnStep+1);}
 function cnnPrevStep(){cnnShowStep(cnnStep-1);}
 
 async function cnnAnalyze(imgEl){
   const st=document.getElementById('cnn-status');
-  st.textContent='이미지 분석 중...';
+  st.textContent='모델 로딩 및 분석 중...';
 
   const inputCv=document.getElementById('cnn-input-cv');
   const ictx=inputCv.getContext('2d');
   ictx.drawImage(imgEl,0,0,224,224);
 
-  const imgData=ictx.getImageData(0,0,224,224);
-  const gray=new Float32Array(224*224);
-  for(let i=0;i<224*224;i++) gray[i]=imgData.data[i*4]*0.299+imgData.data[i*4+1]*0.587+imgData.data[i*4+2]*0.114;
-
-  // 2단계: Conv
-  cnnConvMaps=CNN_KERNELS.map(k=>({data:applyKernel(gray,224,224,k.k),w:224,h:224}));
-  renderMaps(document.getElementById('cnn-conv1-maps'),cnnConvMaps,CNN_KERNELS.map(k=>k.name),80);
-  document.getElementById('cnn-conv1-info').textContent=`${CNN_KERNELS.length}개 필터 · 출력 크기: 224×224`;
-
-  // 3단계: ReLU
-  cnnReluMaps=cnnConvMaps.map(m=>({data:applyReLU(m.data),w:m.w,h:m.h}));
-  renderMaps(document.getElementById('cnn-relu-maps'),cnnReluMaps,CNN_KERNELS.map(k=>k.name+' (ReLU)'),80);
-
-  // 4단계: Pooling
-  cnnPoolMaps=cnnReluMaps.map(m=>applyMaxPool(m.data,m.w,m.h));
-  renderMaps(document.getElementById('cnn-pool-maps'),cnnPoolMaps,CNN_KERNELS.map(k=>k.name+' (Pooled)'),72);
-  document.getElementById('cnn-pool-info').textContent=`출력 크기: ${cnnPoolMaps[0].w}×${cnnPoolMaps[0].h} (절반으로 축소)`;
-
-  // 5단계: Deep — 2차 Conv→ReLU→Pool
-  cnnDeepMaps=[];const dNames=[];
-  for(let i=0;i<cnnPoolMaps.length;i++){
-    const ki=(i+4)%CNN_KERNELS.length;
-    const c2=applyKernel(cnnPoolMaps[i].data,cnnPoolMaps[i].w,cnnPoolMaps[i].h,CNN_KERNELS[ki].k);
-    const r2=applyReLU(c2);
-    const p2=applyMaxPool(r2,cnnPoolMaps[i].w,cnnPoolMaps[i].h);
-    cnnDeepMaps.push(p2);
-    dNames.push('Deep '+(i+1));
-  }
-  renderMaps(document.getElementById('cnn-deep-maps'),cnnDeepMaps,dNames,64);
-  document.getElementById('cnn-deep-info').textContent=`${cnnDeepMaps.length}개 필터 · 출력 크기: ${cnnDeepMaps[0].w}×${cnnDeepMaps[0].h}`;
-
-  // 6단계: MobileNet 분류 (비동기로 로드)
-  st.textContent='MobileNet 모델로 분류 중...';
+  // Load model first
   const model=await loadCNNModel();
-  const predBox=document.getElementById('cnn-predictions');
+  let usedRealModel=false;
+
   if(model){
     try{
+      const gm=model.model; // GraphModel
+      // Try to find 4D intermediate nodes
+      // MobileNet v2 node names contain 'expanded_conv', 'Conv', etc.
+      // We'll try to execute with specific known node patterns
+      const inputTensor=tf.tidy(()=>tf.browser.fromPixels(inputCv).toFloat().expandDims(0));
+      
+      // Discover 4D conv output nodes from the graph
+      let convNodes=[];
+      try{
+        // Get all node names that might be conv outputs  
+        const sig=gm.modelSignature;
+        // GraphModel has getNodeNameList or we can check executor
+        const allNodes=gm.executor?Object.keys(gm.executor.graph.nodes||{}):(gm.getNodeNameList?gm.getNodeNameList():[]);
+        // Filter for likely conv/activation outputs (4D tensors)
+        const candidates=allNodes.filter(n=>
+          (n.includes('Conv')&&n.includes('Relu'))||
+          (n.includes('conv')&&n.includes('relu'))||
+          n.includes('expanded_conv')||
+          n.includes('block_')
+        );
+        if(candidates.length>0)convNodes=candidates;
+      }catch(e){console.log('Node discovery failed:',e);}
+
+      // Try to extract early and mid layer
+      let earlyOut=null,midOut=null;
+      
+      if(convNodes.length>2){
+        // Sort by likely depth (early = shorter names or lower numbers)
+        const early=convNodes[0];
+        const mid=convNodes[Math.floor(convNodes.length*0.4)];
+        try{
+          earlyOut=gm.execute(inputTensor,early);
+          if(earlyOut.shape&&earlyOut.shape.length===4){
+            drawTensorMaps(earlyOut,'cnn-conv1-maps',32);
+            usedRealModel=true;
+          }
+        }catch(e){console.log('Early layer extraction failed:',e);}
+        try{
+          midOut=gm.execute(inputTensor,mid);
+          if(midOut&&midOut.shape&&midOut.shape.length===4){
+            drawTensorMaps(midOut,'cnn-deep-maps',32);
+          }
+        }catch(e){console.log('Mid layer extraction failed:',e);}
+      }
+
+      // If direct node extraction failed, try model.infer
+      if(!usedRealModel){
+        try{
+          // infer with embedding=false gives logits, embedding=true gives embedding
+          // But we want intermediate... try using the internal model directly
+          const embTensor=model.infer(inputCv,true); // 1280-dim embedding
+          // This won't give us 4D maps, but at least classification works
+        }catch(e){console.log('infer fallback:',e);}
+      }
+
+      if(earlyOut)earlyOut.dispose();
+      if(midOut)midOut.dispose();
+      inputTensor.dispose();
+      
+      // Classification always works via classify()
       const predictions=await model.classify(inputCv,5);
+      const predBox=document.getElementById('cnn-predictions');
       let html='<p style="margin-bottom:0.8rem;"><strong>상위 5개 예측 결과</strong></p>';
       predictions.forEach((p,i)=>{
         const pct=p.probability*100;
@@ -1998,15 +2072,44 @@ async function cnnAnalyze(imgEl){
       });
       predBox.innerHTML=html;
     }catch(err){
-      predBox.innerHTML=`<p style="color:var(--muted);">분류 중 오류 발생: ${err.message}</p>`;
+      console.error('Model pipeline error:',err);
     }
-  }else{
-    predBox.innerHTML='<p style="color:var(--muted);">모델 로딩 실패. 특징 맵 시각화는 정상적으로 표시됩니다.</p>';
+  }
+
+  // Fallback: JS simulation for feature maps if real extraction failed
+  if(!usedRealModel){
+    const imgData=ictx.getImageData(0,0,224,224);
+    const gray=new Float32Array(224*224);
+    for(let i=0;i<224*224;i++) gray[i]=imgData.data[i*4]*0.299+imgData.data[i*4+1]*0.587+imgData.data[i*4+2]*0.114;
+    
+    // Conv
+    const convMaps=FALLBACK_KERNELS.map(k=>({data:jsConv(gray,224,224,k.k),w:224,h:224}));
+    drawJsMaps(convMaps,FALLBACK_KERNELS.map(k=>k.name),'cnn-conv1-maps',80);
+    // ReLU
+    const reluMaps=convMaps.map(m=>({data:jsReLU(m.data),w:m.w,h:m.h}));
+    drawJsMaps(reluMaps,FALLBACK_KERNELS.map(k=>k.name+' (ReLU)'),'cnn-relu-maps',80);
+    // Pool
+    const poolMaps=reluMaps.map(m=>jsPool(m.data,m.w,m.h));
+    drawJsMaps(poolMaps,FALLBACK_KERNELS.map(k=>k.name),'cnn-pool-maps',72);
+    // Deep
+    const deepMaps=[];const dN=[];
+    for(let i=0;i<poolMaps.length;i++){
+      const ki=(i+4)%FALLBACK_KERNELS.length;
+      const c2=jsConv(poolMaps[i].data,poolMaps[i].w,poolMaps[i].h,FALLBACK_KERNELS[ki].k);
+      const p2=jsPool(jsReLU(c2),poolMaps[i].w,poolMaps[i].h);
+      deepMaps.push(p2);dN.push('Deep '+(i+1));
+    }
+    drawJsMaps(deepMaps,dN,'cnn-deep-maps',64);
+  }
+
+  // If model failed, show classification failure message
+  if(!model){
+    document.getElementById('cnn-predictions').innerHTML='<p style="color:var(--muted);">모델 로딩에 실패했습니다. 네트워크 연결을 확인하고 다시 시도해 주세요. 특징 맵 시각화(1~5단계)는 정상 작동합니다.</p>';
   }
 
   document.getElementById('cnn-controls').style.display='block';
   cnnShowStep(0);
-  st.textContent='분석 완료! 아래 버튼으로 단계를 진행하세요.';
+  st.textContent='분석 완료! 타임라인을 클릭하거나 버튼으로 단계를 진행하세요.';
 }
 
 (()=>{
