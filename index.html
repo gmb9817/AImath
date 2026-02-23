@@ -155,9 +155,6 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
   nav{gap:0.5rem;}
   #v-perceptron>div{grid-template-columns:1fr !important;}
 }
-
-  html.boot-loading body{ pointer-events:none; }
-  html.boot-loading .nav-btn, html.boot-loading .brand{ opacity:0.6; }
 </style>
 </head>
 <body>
@@ -178,47 +175,18 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
 </header>
 
 <main>
-  <!-- views are loaded from /views/*.html -->
+
+  <div id="views"></div>
+
 </main>
 
 <footer><div class="inner"><span>인공지능 수학 — 대전대신고등학교</span><span>2026</span></div></footer>
 
 <script>
-(() => {
-  const order = ["home","mnist","hamming","conv","filter","pool","perceptron","text","detect"];
-  const main = document.querySelector("main");
-  if (!main) return;
-
-  // Prevent interactions before app.js is ready
-  document.documentElement.classList.add("boot-loading");
-
-  const fetchView = (v) => fetch(`views/${v}.html`, { cache: "no-store" }).then(r => {
-    if (!r.ok) throw new Error(`Failed to load views/${v}.html (${r.status})`);
-    return r.text();
-  });
-
-  Promise.all(order.map(fetchView))
-    .then(htmls => {
-      main.innerHTML = htmls.join("
-
-");
-      const s = document.createElement("script");
-      s.src = "app.js";
-      s.defer = true;
-      s.onload = () => document.documentElement.classList.remove("boot-loading");
-      s.onerror = () => {
-        document.documentElement.classList.remove("boot-loading");
-        main.innerHTML = `<div class="card"><h3>스크립트 로딩 실패</h3><p class="mono">app.js 를 불러오지 못했습니다.</p></div>`;
-      };
-      document.body.appendChild(s);
-    })
-    .catch(err => {
-      document.documentElement.classList.remove("boot-loading");
-      main.innerHTML = `<div class="card"><h3>페이지 로딩 실패</h3><p class="mono">${String(err).replaceAll("<","&lt;").replaceAll(">","&gt;")}</p>
-      <p class="mono" style="opacity:.8;margin-top:.6rem;">로컬에서 file:// 로 열면 fetch가 막힐 수 있어요. 로컬 서버로 열어보세요.</p></div>`;
-      console.error(err);
-    });
-})();
+  // 임시 라우터(로딩 중 클릭 대응): core.js가 로드되면 원본 go()로 대체됩니다.
+  window.go = window.go || function(v){ try{ location.hash = '#'+v; }catch(e){} };
 </script>
+<script src="loader.js"></script>
+
 </body>
 </html>
