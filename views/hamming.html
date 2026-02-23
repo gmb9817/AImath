@@ -90,14 +90,9 @@
   </div>
 
   <div class="tpanel" id="ht2">
-    <div class="card" style="margin-bottom:1rem;">
-      <p class="mono" style="margin-bottom:0.25rem;">대전대신고 인공지능 수학</p>
-      <h3 style="margin:0.2rem 0 0.35rem 0;">AI는 다름을 어떻게 측정할까?</h3>
-      <p class="desc" style="margin:0.2rem 0 0.65rem 0;">III. 이미지 데이터 처리 - 해밍 거리 기초 탐구</p>
-      <div class="status" id="hdg-progBox" style="margin:0;">탐구 진행도: <span id="hdg-progTxt">1</span> / 10</div>
-    </div>
+    <div class="status" id="hdg-progBox" style="margin-bottom:1rem;">탐구 진행도: <span id="hdg-progTxt">1</span> / 10</div>
 
-    <style>
+<style>
       #v-hamming #ht2 .hdg-stage { display:none; overflow:hidden; border:1px solid var(--border); border-radius:var(--radius); background:var(--card); }
       #v-hamming #ht2 .hdg-stage.on { display:block; animation: hdgFade 0.25s ease; }
       #v-hamming #ht2 .hdg-res { display:none; }
@@ -217,6 +212,7 @@
             XOR 규칙을 집합에 적용합니다. 벤 다이어그램을 터치하여 <b>두 집합 A와 B가 서로 다른 값을 가질 때(한쪽에만 원소가 존재할 때)</b>의 영역을 색칠하세요.
           </div>
           <canvas id="hdg-vCanvas" width="350" height="200"></canvas>
+          <div class="btn-row" style="justify-content:center;margin-top:0.6rem;"><button class="btn pri" onclick="hdg_chk3()">정답 확인</button></div>
           <div id="hdg-fb3" class="hdg-fb"></div>
         </div>
       </div>
@@ -243,7 +239,7 @@
           <div class="hdg-vec">A = (1, 0, 1, 1, 0)<br>B = (1, 1, 0, 1, 0)</div>
           <div style="display:flex;gap:0.6rem;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:0.6rem;">
             <span style="font-family:var(--mono);font-weight:700;">A ⊕ B =</span>
-            <input type="text" id="hdg-i5" class="hdg-in" placeholder="01100" maxlength="20">
+            <input type="text" id="hdg-i5" class="hdg-in" placeholder="예: 01010" maxlength="20">
             <button class="btn pri" onclick="hdg_chk5()">결과 확인</button>
           </div>
           <div id="hdg-fb5" class="hdg-fb"></div>
@@ -357,9 +353,9 @@
         <div class="hdg-shead" style="background:rgba(200,185,166,0.35);">최종 진단 결과 리포트</div>
         <div class="hdg-sbody">
           <div class="hdg-score">
-            <div style="font-weight:700;">나의 1차 시도 정답률</div>
+            <div style="font-weight:700;">나의 최종 정답률</div>
             <div class="big"><span id="hdg-finScore">0</span> / 10</div>
-            <div style="font-size:0.72rem;color:var(--muted);margin-top:0.35rem;">* 각 탐구의 첫 번째 제출 결과를 바탕으로 산출되었습니다.</div>
+            <div style="font-size:0.72rem;color:var(--muted);margin-top:0.35rem;">* 각 탐구를 최종적으로 정답 처리한 결과를 바탕으로 산출되었습니다.</div>
           </div>
 
           <h4 style="margin:1rem 0 0.4rem 0;">오답 노트 및 핵심 풀이</h4>

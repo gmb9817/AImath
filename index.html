@@ -155,6 +155,19 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
   nav{gap:0.5rem;}
   #v-perceptron>div{grid-template-columns:1fr !important;}
 }
+
+.tgl-head{cursor:pointer;user-select:none;position:relative;padding-right:1.4rem;}
+.tgl-head::after{content:'▸';position:absolute;right:0;top:0;color:var(--muted);font-weight:700;}
+.tgl-head.open::after{content:'▾';}
+.tgl-body{display:none;margin-top:0.55rem;}
+.tgl-body.open{display:block;}
+
+.ec-dual{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;}
+.ec-title{font-weight:800;margin-bottom:0.35rem;}
+@media (max-width: 860px){
+  .ec-dual{grid-template-columns:1fr;}
+}
+
 </style>
 </head>
 <body>

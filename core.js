@@ -9,6 +9,7 @@ function go(v,pushState=true){
   document.querySelector(`.nav-btn[data-v="${v}"]`).classList.add('active');
   window.scrollTo(0,0);
   currentView=v;
+  initToggles(document.getElementById('v-'+v));
   if(pushState)try{history.pushState({view:v},'','#'+v);}catch(e){}
   // lazy init
   if(v==='filter'&&!srcImg){createDefImg();applyF();document.getElementById('up-status').textContent='기본 도형 이미지가 적용되었습니다. 직접 업로드하여 변경할 수 있습니다.';}
@@ -29,6 +30,33 @@ window.addEventListener('beforeunload',e=>{if(currentView!=='home'){e.preventDef
 function htab(n,el){document.querySelectorAll('#v-hamming .tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.querySelectorAll('#v-hamming .tpanel').forEach(p=>p.classList.remove('on'));document.getElementById('ht'+n).classList.add('on');}
 function ctab(n,el){document.querySelectorAll('#v-conv .tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.querySelectorAll('#v-conv .tpanel').forEach(p=>p.classList.remove('on'));document.getElementById('ct'+n).classList.add('on');}
 function ptab(n,el){document.querySelectorAll('#v-pool .tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.querySelectorAll('#v-pool .tpanel').forEach(p=>p.classList.remove('on'));document.getElementById('pt'+n).classList.add('on');}
+
+
+function initToggles(root){
+  const scope=root||document;
+  scope.querySelectorAll('.card,.info').forEach(el=>{
+    if(el.dataset.tglDone==='1')return;
+    const isCard=el.classList.contains('card');
+    const head=isCard?el.querySelector(':scope>h3,:scope>h4'):el.querySelector(':scope>strong');
+    if(!head)return;
+    if(el.querySelector('button,input,select,textarea,canvas,video,audio,.tabs,.btn-row,.upz'))return;
+    const body=document.createElement('div');
+    body.className='tgl-body';
+    let node=head.nextSibling;
+    while(node){
+      const next=node.nextSibling;
+      body.appendChild(node);
+      node=next;
+    }
+    el.appendChild(body);
+    head.classList.add('tgl-head');
+    head.addEventListener('click',()=>{
+      head.classList.toggle('open');
+      body.classList.toggle('open');
+    });
+    el.dataset.tglDone='1';
+  });
+}
 
 // ═══════════════════════════════════════════
 //  HAMMING XOR DEMO
@@ -81,7 +109,7 @@ REFS[8]=[
 ];
 REFS[12]=(()=>{const r=[];for(let d=0;d<10;d++){const s=REFS[6][d],o=[];for(let y=0;y<6;y++){const r1=[],r2=[];for(let x=0;x<6;x++){const v=s[y*6+x];r1.push(v,v);r2.push(v,v);}o.push(...r1,...r2);}r.push(o);}return r;})();
 
-function setSz(n,el){bSz=n;uBmp=Array(n*n).fill(0);isDraw=false;document.querySelectorAll('.bsz').forEach(b=>b.classList.remove('active'));el.classList.add('active');rBmp();document.getElementById('hbars').innerHTML='<p style="font-size:0.8rem;color:var(--muted);">숫자를 그린 후 계산 버튼을 누르세요.</p>';document.getElementById('hbest').textContent='';document.getElementById('hoverlap').innerHTML='';document.getElementById('refpreview').innerHTML='';rRef();}
+function setSz(n,el){bSz=n;uBmp=Array(n*n).fill(0);isDraw=false;dVal=1;document.querySelectorAll('.bsz').forEach(b=>b.classList.remove('active'));el.classList.add('active');rBmp();document.getElementById('hbars').innerHTML='<p style="font-size:0.8rem;color:var(--muted);">숫자를 그린 후 계산 버튼을 누르세요.</p>';document.getElementById('hbest').textContent='';document.getElementById('hoverlap').innerHTML='';document.getElementById('refpreview').innerHTML='';rRef();}
 
 function rBmp(){
   const g=document.getElementById('ubmp');const cs=bSz<=6?'2rem':bSz<=8?'1.6rem':'1.2rem';
@@ -918,7 +946,7 @@ document.getElementById('nsl').addEventListener('input',function(){
 // ═══════════════════════════════════════════
 //  Eye vs CNN — Canvas cumulative diagram
 // ═══════════════════════════════════════════
-let ecCur=0;
+let ecCur=1;
 const EC_TOTAL=5;
 
 function ecDrawEye(upTo){
@@ -1102,14 +1130,27 @@ function ecPrev(){ecCur=Math.max(0,ecCur-1);ecRender();}
 let ecActiveTab='eye';
 function ecSwitchTab(tab){
   ecActiveTab=tab;
-  document.getElementById('ec-panel-eye').style.display=tab==='eye'?'block':'none';
-  document.getElementById('ec-panel-cnn').style.display=tab==='cnn'?'block':'none';
-  document.getElementById('ec-tab-eye').style.fontWeight=tab==='eye'?'600':'400';
-  document.getElementById('ec-tab-cnn').style.fontWeight=tab==='cnn'?'600':'400';
-  if(tab==='eye')document.getElementById('ec-tab-eye').classList.add('pri');
-  else document.getElementById('ec-tab-eye').classList.remove('pri');
-  if(tab==='cnn')document.getElementById('ec-tab-cnn').classList.add('pri');
-  else document.getElementById('ec-tab-cnn').classList.remove('pri');
+  const dual=document.getElementById('ec-dual');
+  const pe=document.getElementById('ec-panel-eye');
+  const pc=document.getElementById('ec-panel-cnn');
+  if(dual){
+    if(pe)pe.style.display='block';
+    if(pc)pc.style.display='block';
+    return;
+  }
+  if(!pe||!pc)return;
+  pe.style.display=tab==='eye'?'block':'none';
+  pc.style.display=tab==='cnn'?'block':'none';
+  const b1=document.getElementById('ec-tab-eye');
+  const b2=document.getElementById('ec-tab-cnn');
+  if(b1){
+    b1.style.fontWeight=tab==='eye'?'600':'400';
+    b1.classList.toggle('pri', tab==='eye');
+  }
+  if(b2){
+    b2.style.fontWeight=tab==='cnn'?'600':'400';
+    b2.classList.toggle('pri', tab==='cnn');
+  }
 }
 
 // Zoom/Pan for canvases
@@ -1169,6 +1210,7 @@ function ecZoom(id,dir){
 });
 
 setTimeout(()=>{ecRender();ecFitCanvas('eye');ecFitCanvas('cnn');ecSwitchTab('eye');},150);
+window.addEventListener('resize',()=>{ecFitCanvas('eye');ecFitCanvas('cnn');});
 
 // ═══════════════════════════════════════════
 //  CNN PIPELINE — MobileNet V2 (alpha 1.4) via GraphModel
@@ -1299,7 +1341,16 @@ async function cnnAnalyze(imgEl){
   st.textContent='이미지 분석 중...';
   const inputCv=document.getElementById('cnn-input-cv');
   const ictx=inputCv.getContext('2d');
-  ictx.drawImage(imgEl,0,0,224,224);
+  ictx.imageSmoothingEnabled=true;
+  try{ictx.imageSmoothingQuality='high';}catch(e){}
+  ictx.clearRect(0,0,224,224);
+  const bg=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()||'#ffffff';
+  ictx.fillStyle=bg;
+  ictx.fillRect(0,0,224,224);
+  const s=Math.min(224/imgEl.width,224/imgEl.height);
+  const w=imgEl.width*s, h=imgEl.height*s;
+  const dx=(224-w)/2, dy=(224-h)/2;
+  ictx.drawImage(imgEl,dx,dy,w,h);
 
   // JS feature map simulation (always reliable)
   const imgData=ictx.getImageData(0,0,224,224);
@@ -1509,7 +1560,7 @@ const hdg_exp={
 
 function hdg_el(id){return document.getElementById(id);}
 function hdg_hasRoot(){return !!hdg_el('hdg-root');}
-function hdg_recAns(s,isC){if(hdg_rec[s]===null)hdg_rec[s]=isC;}
+function hdg_recAns(s,isC){if(isC){hdg_rec[s]=true;}else{if(hdg_rec[s]!==true)hdg_rec[s]=false;}}
 
 function hdg_setFb(s,isC,msg){
   const fb=hdg_el('hdg-fb'+s);
@@ -1522,7 +1573,7 @@ function hdg_setFb(s,isC,msg){
     fb.innerHTML=`<b>❌ 오답!</b><br>${msg}<br><br><span style="font-size:0.9em;color:var(--muted);">[힌트를 확인하고 다시 수정해 보세요]</span>`;
   }
   const nBtn=hdg_el('hdg-nBtn');
-  if(nBtn)nBtn.style.display=(isC||hdg_rec[s]===true)?'block':'none';
+  if(nBtn)nBtn.style.display=(hdg_rec[s]===true)?'block':'none';
 }
 
 function hdg_showStage(n){
@@ -1664,6 +1715,7 @@ function hdg_drawVenn(){
 function hdg_initStage3(){
   const cv=hdg_el('hdg-vCanvas');
   if(!cv)return;
+  hdg_states={a:false,b:false,i:false};
   hdg_drawVenn();
   cv.onclick=(e)=>{
     const r=cv.getBoundingClientRect();
@@ -1677,16 +1729,20 @@ function hdg_initStage3(){
     else if(dA&&dB) hdg_states.i=!hdg_states.i;
 
     hdg_drawVenn();
-    const isC=(hdg_states.a && hdg_states.b && !hdg_states.i);
-    if(isC){
-      hdg_recAns(3,true);
-      hdg_setFb(3,true,'대칭차집합 영역을 완벽히 색칠했습니다.');
-    }else{
-      if(hdg_rec[3]===null && hdg_states.i) hdg_recAns(3,false);
-      hdg_setFb(3,false,'가운데 교집합은 서로 같으므로 비워야 합니다.');
-    }
   };
 }
+
+function hdg_chk3(){
+  const isC=(hdg_states.a && hdg_states.b && !hdg_states.i);
+  hdg_recAns(3,isC);
+  if(isC) hdg_setFb(3,true,'대칭차집합 영역을 완벽히 색칠했습니다.');
+  else{
+    let msg='양쪽 날개 영역을 모두 색칠하세요.';
+    if(hdg_states.i) msg='가운데 교집합은 서로 같으므로 비워야 합니다.';
+    hdg_setFb(3,false,msg);
+  }
+}
+
 function hdg_chk4(idx,isC,btn){
   const st=hdg_el('hdg-st4');
   st?.querySelectorAll('.hdg-opt').forEach(b=>b.style.borderColor='var(--border)');

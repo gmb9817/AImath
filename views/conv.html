@@ -16,40 +16,42 @@
   <!-- ═══ Interactive Eye vs CNN comparison ═══ -->
   <div class="card">
     <h3>인간의 시각 vs CNN — 단계별 비교</h3>
-    <p>이전/다음 버튼을 눌러 각 단계가 누적됩니다. 캔버스를 드래그하여 이동하고, 스크롤(또는 핀치)으로 확대/축소할 수 있습니다.</p>
-    <div style="display:flex;justify-content:center;gap:0.5rem;margin:0.8rem 0;">
-      <button class="btn" id="ec-tab-eye" onclick="ecSwitchTab('eye')" style="font-weight:600;">인간의 시각</button>
-      <button class="btn" id="ec-tab-cnn" onclick="ecSwitchTab('cnn')">CNN 인공신경망</button>
-      <span style="width:1px;background:var(--border);margin:0 0.3rem;"></span>
+    <p>이전/다음 버튼을 눌러 각 단계가 누적됩니다. 두 화면이 같은 단계로 함께 진행되며, 각 캔버스는 드래그로 이동하고 스크롤(또는 핀치)로 확대/축소할 수 있습니다.</p>
+    <div style="display:flex;justify-content:center;gap:0.5rem;margin:0.8rem 0;flex-wrap:wrap;">
       <button class="btn" onclick="ecPrev()">← 이전</button>
       <span id="ec-label" style="font-family:var(--mono);font-size:0.82rem;font-weight:600;min-width:4rem;text-align:center;line-height:2.2;">0 / 5</span>
       <button class="btn pri" onclick="ecNext()">다음 →</button>
     </div>
-    <div id="ec-panel-eye">
-      <div class="ec-canvas-wrap" id="ec-wrap-eye" style="position:relative;overflow:hidden;border-radius:var(--radius);border:1px solid var(--border);cursor:grab;touch-action:none;height:420px;">
-        <canvas id="eye-cv" width="800" height="520" style="position:absolute;top:0;left:0;transform-origin:0 0;"></canvas>
+
+    <div id="ec-dual" class="ec-dual">
+      <div class="ec-col">
+        <div class="ec-title">인간의 시각</div>
+        <div class="ec-canvas-wrap" id="ec-wrap-eye" style="position:relative;overflow:hidden;border-radius:var(--radius);border:1px solid var(--border);cursor:grab;touch-action:none;height:420px;">
+          <canvas id="eye-cv" width="800" height="520" style="position:absolute;top:0;left:0;transform-origin:0 0;"></canvas>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:0.4rem;margin-top:0.3rem;">
+          <button class="btn" onclick="ecZoom('eye',-1)" style="padding:0.2rem 0.6rem;font-size:0.75rem;">−</button>
+          <button class="btn" onclick="ecZoom('eye',0)" style="padding:0.2rem 0.6rem;font-size:0.75rem;">맞춤</button>
+          <button class="btn" onclick="ecZoom('eye',1)" style="padding:0.2rem 0.6rem;font-size:0.75rem;">+</button>
+        </div>
+        <div id="eye-desc" style="margin-top:0.5rem;"></div>
       </div>
-      <div style="display:flex;justify-content:flex-end;gap:0.4rem;margin-top:0.3rem;">
-        <button class="btn" onclick="ecZoom('eye',-1)" style="padding:0.2rem 0.6rem;font-size:0.75rem;">−</button>
-        <button class="btn" onclick="ecZoom('eye',0)" style="padding:0.2rem 0.6rem;font-size:0.75rem;">맞춤</button>
-        <button class="btn" onclick="ecZoom('eye',1)" style="padding:0.2rem 0.6rem;font-size:0.75rem;">+</button>
+
+      <div class="ec-col">
+        <div class="ec-title">CNN 인공신경망</div>
+        <div class="ec-canvas-wrap" id="ec-wrap-cnn" style="position:relative;overflow:hidden;border-radius:var(--radius);border:1px solid var(--border);cursor:grab;touch-action:none;height:420px;">
+          <canvas id="cnn-cv" width="800" height="400" style="position:absolute;top:0;left:0;transform-origin:0 0;"></canvas>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:0.4rem;margin-top:0.3rem;">
+          <button class="btn" onclick="ecZoom('cnn',-1)" style="padding:0.2rem 0.6rem;font-size:0.75rem;">−</button>
+          <button class="btn" onclick="ecZoom('cnn',0)" style="padding:0.2rem 0.6rem;font-size:0.75rem;">맞춤</button>
+          <button class="btn" onclick="ecZoom('cnn',1)" style="padding:0.2rem 0.6rem;font-size:0.75rem;">+</button>
+        </div>
+        <div id="cnn-desc" style="margin-top:0.5rem;"></div>
       </div>
-      <div id="eye-desc" style="margin-top:0.5rem;"></div>
-    </div>
-    <div id="ec-panel-cnn" style="display:none;">
-      <div class="ec-canvas-wrap" id="ec-wrap-cnn" style="position:relative;overflow:hidden;border-radius:var(--radius);border:1px solid var(--border);cursor:grab;touch-action:none;height:340px;">
-        <canvas id="cnn-cv" width="800" height="400" style="position:absolute;top:0;left:0;transform-origin:0 0;"></canvas>
-      </div>
-      <div style="display:flex;justify-content:flex-end;gap:0.4rem;margin-top:0.3rem;">
-        <button class="btn" onclick="ecZoom('cnn',-1)" style="padding:0.2rem 0.6rem;font-size:0.75rem;">−</button>
-        <button class="btn" onclick="ecZoom('cnn',0)" style="padding:0.2rem 0.6rem;font-size:0.75rem;">맞춤</button>
-        <button class="btn" onclick="ecZoom('cnn',1)" style="padding:0.2rem 0.6rem;font-size:0.75rem;">+</button>
-      </div>
-      <div id="cnn-desc" style="margin-top:0.5rem;"></div>
     </div>
   </div>
-
-  <div class="tabs">
+<div class="tabs">
     <button class="tab on" onclick="ctab(0,this)">직접 계산</button>
     <button class="tab" onclick="ctab(1,this)">단계별 시각화</button>
     <button class="tab" onclick="ctab(2,this)">CNN 체험</button>
