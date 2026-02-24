@@ -333,36 +333,50 @@
   </div>
 
   <!-- TAB 2: BITMAP -->
-  
-  <!-- TAB 2: BITMAP -->
 <div class="tpanel" id="ht2">
-    <p class="desc" style="margin-bottom:1rem;">
-      격자에 숫자를 직접 그려보세요. 클릭/드래그로 흑백을 토글합니다.
-      참조 데이터(0~9)와의 해밍 거리를 계산하여 가장 유사한 숫자를 자동 분류합니다.
-    </p>
+  <p class="desc" style="margin-bottom:1rem;">
+    격자에 숫자를 직접 그려보세요. 클릭/드래그로 흑백을 토글합니다.
+    참조 데이터(0~9)와의 해밍 거리를 계산하여 가장 유사한 숫자를 자동 분류합니다.
+  </p>
 
-    <div style="display:flex;gap:0.3rem;margin-bottom:1rem;">
-      <button class="btn bsz active" onclick="setSz(6,this)">6×6</button>
-      <button class="btn bsz" onclick="setSz(8,this)">8×8</button>
-      <button class="btn bsz" onclick="setSz(12,this)">12×12</button>
-    </div>
+  <div style="display:flex;gap:0.3rem;margin-bottom:1rem;flex-wrap:wrap;">
+    <button class="btn bsz active" onclick="setSz(6,this)">6×6</button>
+    <button class="btn bsz" onclick="setSz(8,this)">8×8</button>
+    <button class="btn bsz" onclick="setSz(12,this)">12×12</button>
+  </div>
 
-      <div style="flex:1;min-width:14rem;">
-        <p class="mat-label">분류 결과</p>
-        <div id="hbars"><p style="font-size:0.8rem;color:var(--muted);">숫자를 그린 후 계산 버튼을 누르세요.</p></div>
-        <div id="hbest" class="status" style="font-weight:600;"></div>
-        <div id="hoverlap" style="margin-top:1rem;"></div>
+  <div style="display:flex;gap:1.2rem;align-items:flex-start;flex-wrap:wrap;">
+    <div style="flex:1;min-width:14rem;">
+      <p class="mat-label">내가 그리기</p>
+      <div id="ubmp" class="bmp" style="grid-template-columns:repeat(6,1fr);"></div>
+
+      <div class="btn-row" style="justify-content:center;margin-top:0.8rem;">
+        <button class="btn pri" onclick="calcH()">해밍 거리 계산</button>
+        <button class="btn" onclick="clrBmp()">지우기</button>
+      </div>
+
+      <div style="margin-top:1.1rem;">
+        <p class="mat-label">참조 숫자 보기</p>
+        <div id="rbtn" class="btn-row" style="justify-content:center;"></div>
+        <div id="refpreview" style="margin-top:0.7rem;text-align:center;"></div>
       </div>
     </div>
 
-    <div class="info" style="margin-top:1.5rem;">
-      <strong>한계점:</strong> 해밍 거리는 위치 이동, 크기 변화, 획의 굵기 차이에 취약합니다.
-      이를 개선하기 위해 전처리, 데이터 증강, 그리고 CNN 같은 딥러닝이 사용됩니다.
+    <div style="flex:1;min-width:14rem;">
+      <p class="mat-label">분류 결과</p>
+      <div id="hbars"><p style="font-size:0.8rem;color:var(--muted);">숫자를 그린 후 계산 버튼을 누르세요.</p></div>
+      <div id="hbest" class="status" style="font-weight:600;"></div>
+      <div id="hoverlap" style="margin-top:1rem;"></div>
     </div>
   </div>
 
+  <div class="info" style="margin-top:1.5rem;">
+    <strong>한계점:</strong> 해밍 거리는 위치 이동, 크기 변화, 획의 굵기 차이에 취약합니다.
+    이를 개선하기 위해 전처리, 데이터 증강, 그리고 CNN 같은 딥러닝이 사용됩니다.
+  </div>
+</div>
 
-  <div style="height:1px;background:var(--border);margin:1.6rem 0;"></div>
+<div style="height:1px;background:var(--border);margin:1.6rem 0;"></div>
 
   <div class="card">
     <h3>해밍 거리로 이미지를 학습할 때 어떠한 문제점이 있을까요?</h3>

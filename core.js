@@ -60,6 +60,13 @@ window.addEventListener('popstate',e=>{
 
 window.addEventListener('beforeunload',e=>{if(currentView!=='home'){e.preventDefault();}});
 
+(function(){
+  const hash=(location.hash||'').replace('#','');
+  const v=(hash && document.getElementById('v-'+hash)) ? hash : 'home';
+  go(v,false);
+})();
+
+
 function htab(n,el){document.querySelectorAll('#v-hamming .tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.querySelectorAll('#v-hamming .tpanel').forEach(p=>p.classList.remove('on'));document.getElementById('ht'+n).classList.add('on');}
 function ctab(n,el){document.querySelectorAll('#v-conv .tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.querySelectorAll('#v-conv .tpanel').forEach(p=>p.classList.remove('on'));document.getElementById('ct'+n).classList.add('on');}
 function ptab(n,el){document.querySelectorAll('#v-pool .tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.querySelectorAll('#v-pool .tpanel').forEach(p=>p.classList.remove('on'));document.getElementById('pt'+n).classList.add('on');}
@@ -68,13 +75,21 @@ function ptab(n,el){document.querySelectorAll('#v-pool .tab').forEach(t=>t.class
 function initToggles(root){
   const scope=root||document;
   scope.querySelectorAll('.card,.info').forEach(el=>{
-    if(el.dataset.tglDone==='1')return;
+    if(el.dataset.tglDone==='1') return;
+
     const isCard=el.classList.contains('card');
-    const head=isCard?el.querySelector(':scope>h3,:scope>h4'):el.querySelector(':scope>strong');
-    if(!head)return;
-    if(el.querySelector('button,input,select,textarea,canvas,video,audio,.tabs,.btn-row,.upz'))return;
+    const head=[...el.children].find(ch=>{
+      if(isCard) return ch.tagName==='H3' || ch.tagName==='H4';
+      return ch.tagName==='STRONG';
+    });
+    if(!head) return;
+
+    // 인터랙티브 요소가 있으면 자동 토글로 감싸지 않습니다.
+    if(el.querySelector('button,input,select,textarea,canvas,video,audio,.tabs,.btn-row,.upz')) return;
+
     const body=document.createElement('div');
     body.className='tgl-body';
+
     let node=head.nextSibling;
     while(node){
       const next=node.nextSibling;
@@ -82,11 +97,13 @@ function initToggles(root){
       node=next;
     }
     el.appendChild(body);
+
     head.classList.add('tgl-head');
     head.addEventListener('click',()=>{
       head.classList.toggle('open');
       body.classList.toggle('open');
     });
+
     el.dataset.tglDone='1';
   });
 }
