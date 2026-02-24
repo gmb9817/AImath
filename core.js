@@ -1,36 +1,60 @@
-// ═══════════════════════════════════════════
-//  NAVIGATION (SPA-style)
-// ═══════════════════════════════════════════
 let currentView='home';
-// init flags (must be defined before first go() call; supports direct hash navigation)
-// filter image buffer (avoid TDZ when opening #filter directly)
-let srcImg=null;
+let mnInited=false;
+let hbInited=false;
+
 function go(v,pushState=true){
-  // view element guard (prevents crash if a view file is missing)
-  let viewEl=document.getElementById('v-'+v);
-  if(!viewEl){v='home';viewEl=document.getElementById('v-home');}
+  const viewEl=document.getElementById('v-'+v);
+  if(!viewEl) return;
+
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   viewEl.classList.add('active');
+
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  const navBtn=document.querySelector(`.nav-btn[data-v="${v}"]`);
-  if(navBtn)navBtn.classList.add('active');
+  const nb=document.querySelector(`.nav-btn[data-v="${v}"]`);
+  if(nb) nb.classList.add('active');
+
   window.scrollTo(0,0);
   currentView=v;
-  initToggles(document.getElementById('v-'+v));
-  if(pushState)try{history.pushState({view:v},'','#'+v);}catch(e){}
-  // lazy init
-  if(v==='filter'&&!srcImg){createDefImg();applyF();document.getElementById('up-status').textContent='기본 도형 이미지가 적용되었습니다. 직접 업로드하여 변경할 수 있습니다.';}
-  if(v==='pool'){pRst();}
-  if(v==='perceptron'&&!pcInited){pcInited=true;pcInit();}
+  initToggles(viewEl);
+
+  if(pushState){
+    try{history.pushState({view:v},'', '#'+v);}catch(e){}
+  }
+
+  if(v==='filter'){
+    if(!srcImg){createDefImg();applyF();}
+    const st=document.getElementById('up-status');
+    if(st && st.textContent.trim()==='') st.textContent='기본 도형 이미지가 적용되었습니다. 직접 업로드하여 변경할 수 있습니다.';
+  }
+  if(v==='pool'){try{pRst();}catch(e){}}
+  if(v==='perceptron'){
+    if(!pcInited){pcInited=true;pcInit();}
+    else{try{pcUpdate();}catch(e){}}
+  }
+  if(v==='mnist'){
+    if(!mnInited){mnInited=true;mnInit();}
+    else{mnRefresh();}
+    initToggles(viewEl);
+  }
+  if(v==='hamming'){
+    if(!hbInited){hbInited=true;hbInit();}
+    else{hbRefresh();}
+    initToggles(viewEl);
+  }
+  if(v==='conv'){
+      requestAnimationFrame(()=>{
+      try{ecRender();ecFitCanvas('eye');ecFitCanvas('cnn');}catch(e){}
+    });
+  }
 }
 document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>go(b.dataset.v)));
 
 window.addEventListener('popstate',e=>{
-  if(e.state&&e.state.view){go(e.state.view,false);}
-  else{go('home',false);}
+  const v=(e.state&&e.state.view)?e.state.view:'home';
+  if(document.getElementById('v-'+v)) go(v,false);
+  else if(document.getElementById('v-home')) go('home',false);
 });
 
-(()=>{try{const h=location.hash.replace('#','');if(h&&document.getElementById('v-'+h)){go(h);}else{history.replaceState({view:'home'},'','#home');}}catch(e){}})();
 
 window.addEventListener('beforeunload',e=>{if(currentView!=='home'){e.preventDefault();}});
 
@@ -65,9 +89,223 @@ function initToggles(root){
   });
 }
 
-// ═══════════════════════════════════════════
-//  HAMMING XOR DEMO
-// ═══════════════════════════════════════════
+let mnDS=null;
+let mnLabel=0;
+let mnDraw=false;
+let mnLast=null;
+
+function mnLoad(){
+  try{
+    const raw=localStorage.getItem('aimath_mnist_dataset_v1');
+    if(raw) mnDS=JSON.parse(raw);
+  }catch(e){}
+  if(!mnDS || !Array.isArray(mnDS.samples)) mnDS={meta:{ver:1,size:28,createdAt:new Date().toISOString()},samples:[]};
+}
+function mnSave(){
+  try{localStorage.setItem('aimath_mnist_dataset_v1', JSON.stringify(mnDS));}catch(e){}
+}
+function mnInit(){
+  mnLoad();
+
+  const labs=document.getElementById('mn-labs');
+  if(labs){
+    labs.innerHTML='';
+    for(let d=0; d<=9; d++){
+      const b=document.createElement('button');
+      b.type='button';
+      b.textContent=String(d);
+      b.className=(d===mnLabel)?'on':'';
+      b.onclick=()=>{
+        mnLabel=d;
+        labs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+        b.classList.add('on');
+      };
+      labs.appendChild(b);
+    }
+  }
+
+  const cv=document.getElementById('mn-cv');
+  if(cv){
+    const ctx=cv.getContext('2d');
+    ctx.fillStyle='#fff';
+    ctx.fillRect(0,0,cv.width,cv.height);
+
+    const getPos=(e)=>{
+      const r=cv.getBoundingClientRect();
+      const x=(e.clientX - r.left) * (cv.width / r.width);
+      const y=(e.clientY - r.top) * (cv.height / r.height);
+      return {x,y};
+    };
+
+    const down=(e)=>{
+      mnDraw=true;
+      cv.setPointerCapture?.(e.pointerId);
+      mnLast=getPos(e);
+    };
+    const move=(e)=>{
+      if(!mnDraw) return;
+      const p=getPos(e);
+      ctx.strokeStyle='#000';
+      ctx.lineWidth=18;
+      ctx.lineCap='round';
+      ctx.lineJoin='round';
+      ctx.beginPath();
+      ctx.moveTo(mnLast.x,mnLast.y);
+      ctx.lineTo(p.x,p.y);
+      ctx.stroke();
+      mnLast=p;
+      mnUpdatePreview();
+    };
+    const up=()=>{
+      mnDraw=false; mnLast=null;
+      mnUpdatePreview();
+    };
+
+    cv.addEventListener('pointerdown', down);
+    cv.addEventListener('pointermove', move);
+    cv.addEventListener('pointerup', up);
+    cv.addEventListener('pointercancel', up);
+    cv.addEventListener('pointerleave', up);
+  }
+
+  mnRefresh();
+  mnUpdatePreview();
+}
+
+function mnClear(){
+  const cv=document.getElementById('mn-cv'); if(!cv) return;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,cv.width,cv.height);
+  mnUpdatePreview();
+}
+function mnReset(){
+  mnDS={meta:{ver:1,size:28,createdAt:new Date().toISOString()},samples:[]};
+  mnSave();
+  mnRefresh();
+  mnClear();
+  const st=document.getElementById('mn-stat'); if(st) st.textContent='샘플 0개';
+}
+function mnRaster28(){
+  const cv=document.getElementById('mn-cv'); if(!cv) return null;
+  const off=document.createElement('canvas');
+  off.width=28; off.height=28;
+  const octx=off.getContext('2d');
+  octx.fillStyle='#fff';
+  octx.fillRect(0,0,28,28);
+  octx.drawImage(cv,0,0,28,28);
+  const img=octx.getImageData(0,0,28,28).data;
+  const px=new Array(28*28);
+  let ink=0;
+  for(let i=0;i<28*28;i++){
+    const r=img[i*4], g=img[i*4+1], b=img[i*4+2];
+    const gray=Math.round((r+g+b)/3);
+      const v=255-gray;
+    px[i]=v;
+    if(v>10) ink++;
+  }
+  if(ink<8) return null; // too empty
+  return {label:mnLabel,pixels:px};
+}
+function mnUpdatePreview(){
+  const samp=mnRaster28();
+  const pv=document.getElementById('mn-prev');
+  if(!pv) return;
+  const ctx=pv.getContext('2d');
+  const W=pv.width,H=pv.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+
+  if(!samp){
+    ctx.fillStyle='rgba(0,0,0,0.35)';
+    ctx.font='700 14px Pretendard';
+    ctx.fillText('그려보세요', 16, 28);
+    return;
+  }
+  const img=ctx.createImageData(28,28);
+  for(let i=0;i<28*28;i++){
+    const v=samp.pixels[i]; // 0..255
+    img.data[i*4]=v;
+    img.data[i*4+1]=v;
+    img.data[i*4+2]=v;
+    img.data[i*4+3]=255;
+  }
+  const off=document.createElement('canvas');
+  off.width=28; off.height=28;
+  off.getContext('2d').putImageData(img,0,0);
+  ctx.imageSmoothingEnabled=false;
+  ctx.drawImage(off,0,0,W,H);
+}
+
+function mnAdd(){
+  mnLoad();
+  const samp=mnRaster28();
+  const st=document.getElementById('mn-stat');
+  if(!samp){
+    const msg=document.getElementById('mn-stat');
+    if(msg) msg.textContent='샘플 추가 실패 (너무 비어있음)';
+    return;
+  }
+  mnDS.samples.push({label:samp.label,pixels:samp.pixels});
+  mnSave();
+  mnRefresh();
+  mnClear();
+  if(st) st.textContent=`샘플 ${mnDS.samples.length}개`;
+}
+function mnRemove(i){
+  mnLoad();
+  if(i<0||i>=mnDS.samples.length) return;
+  mnDS.samples.splice(i,1);
+  mnSave();
+  mnRefresh();
+}
+function mnRefresh(){
+  mnLoad();
+  const list=document.getElementById('mn-list');
+  const st=document.getElementById('mn-stat');
+  if(st) st.textContent=`샘플 ${mnDS.samples.length}개`;
+
+  if(!list) return;
+  list.innerHTML='';
+  mnDS.samples.slice().reverse().forEach((s,revIdx)=>{
+    const idx = mnDS.samples.length-1-revIdx;
+    const box=document.createElement('div');
+    box.className='mn-smp';
+    box.innerHTML=`<canvas width="56" height="56"></canvas>
+      <div class="row"><span class="tag">y=${s.label}</span>
+      <button class="rm" title="삭제" onclick="mnRemove(${idx})">✕</button></div>`;
+    const cv=box.querySelector('canvas');
+    const ctx=cv.getContext('2d');
+    const img=ctx.createImageData(28,28);
+    for(let i=0;i<28*28;i++){
+      const v=s.pixels[i];
+      img.data[i*4]=v; img.data[i*4+1]=v; img.data[i*4+2]=v; img.data[i*4+3]=255;
+    }
+    const off=document.createElement('canvas');
+    off.width=28; off.height=28;
+    off.getContext('2d').putImageData(img,0,0);
+    ctx.imageSmoothingEnabled=false;
+    ctx.drawImage(off,0,0,56,56);
+    list.appendChild(box);
+  });
+}
+
+function mnExport(){
+  mnLoad();
+  const out={
+    meta:{...mnDS.meta, exportedAt:new Date().toISOString()},
+    samples: mnDS.samples
+  };
+  const blob=new Blob([JSON.stringify(out)],{type:'application/json'});
+  const a=document.createElement('a');
+  const ts=new Date().toISOString().replace(/[:.]/g,'-');
+  a.download=`mn_dataset_${ts}.json`;
+  a.href=URL.createObjectURL(blob);
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},0);
+}
+
+
 let hA=[1,0,1,1,0,0,1,0,1,0],hB=[1,1,0,1,0,1,1,0,0,1];
 function rHD(){
   const box=document.getElementById('hd-box');box.innerHTML='';
@@ -85,9 +323,6 @@ function rHD(){
 }
 rHD();
 
-// ═══════════════════════════════════════════
-//  BITMAP
-// ═══════════════════════════════════════════
 let bSz=6,uBmp=[],isDraw=false,dVal=1;
 let hGuess=new Array(10).fill('');
 const REFS={};
@@ -144,13 +379,11 @@ function rBmp(){
   bindTouch();
 }
 
-// Lightweight visual-only update (no DOM rebuild)
 function rBmpVisual(){
   const cells=document.getElementById('ubmp').children;
   for(let i=0;i<cells.length;i++){cells[i].className='bc'+(uBmp[i]?' on':'');}
 }
 
-// Bind touch handlers once on the grid — survives rBmpVisual calls
 function bindTouch(){
   const g=document.getElementById('ubmp');
   g.ontouchstart=e=>{
@@ -191,6 +424,17 @@ function showRefPreview(digit){
   box.innerHTML=html;
 }
 
+function hbInit(){
+  if(!uBmp || !uBmp.length) uBmp = Array(bSz*bSz).fill(0);
+  try{rBmp();rRef();}catch(e){}
+  try{initHGuessUI();}catch(e){}
+}
+function hbRefresh(){
+  try{rBmp();rRef();}catch(e){}
+  try{initHGuessUI();}catch(e){}
+}
+
+
 
 function initHGuessUI(){
   const box=document.getElementById('hbars');
@@ -215,7 +459,6 @@ function initHGuessUI(){
   hint.textContent='각 숫자(0~9)와의 해밍 거리를 직접 계산해 입력한 뒤, “해밍 거리 계산”을 눌러 채점해보세요.';
   box.appendChild(hint);
 
-  // restore guesses
   box.querySelectorAll('input.hguess').forEach(inp=>{
     const d=parseInt(inp.parentElement.dataset.digit);
     inp.value = (hGuess[d] ?? '');
@@ -244,7 +487,6 @@ function calcH(){
   const box=document.getElementById('hbars');
   if(!box) return;
 
-  // read guesses first
   const guessMap={};
   box.querySelectorAll('.hb').forEach(row=>{
     const digit=parseInt(row.dataset.digit);
@@ -272,7 +514,6 @@ function calcH(){
     box.appendChild(e);
   });
 
-  // re-bind inputs to keep guesses editable
   box.querySelectorAll('input.hguess').forEach(inp=>{
     const d=parseInt(inp.parentElement.dataset.digit);
     inp.addEventListener('input', ()=>{
@@ -285,7 +526,6 @@ function calcH(){
   const best=ds.reduce((a,b)=>a.dist<b.dist?a:b);
   document.getElementById('hbest').textContent=`가장 유사: ${best.digit} (거리 ${best.dist}, 유사도 ${best.sim}%)`;
 
-  // Overlap comparison grid
   const ovBox=document.getElementById('hoverlap');
   const bestRef=refs[best.digit];
   const cs=bSz<=6?'1.4rem':bSz<=8?'1.1rem':'0.8rem';
@@ -308,14 +548,6 @@ function calcH(){
   ovHtml+=`</div>`;
   ovBox.innerHTML=ovHtml;
 }
-
-uBmp=Array(bSz*bSz).fill(0);
-rBmp();
-rRef();
-initHGuessUI();
-// ═══════════════════════════════════════════
-//  EDIT GRID HELPER
-// ═══════════════════════════════════════════
 function mkEG(id,data,rows,cols,onCh){
   const g=document.getElementById(id);g.innerHTML='';g.style.gridTemplateColumns=`repeat(${cols},1fr)`;
   for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
@@ -327,9 +559,6 @@ function mkEG(id,data,rows,cols,onCh){
   }
 }
 
-// ═══════════════════════════════════════════
-//  MANUAL CONV
-// ═══════════════════════════════════════════
 let mI=[[1,2,0,1],[0,1,3,2],[1,0,2,1],[2,1,0,3]],mK=[[1,0,-1],[0,1,0],[-1,0,1]],mO=[[0,0],[0,0]];
 
 function newMan(){
@@ -357,9 +586,6 @@ function chkMan(){
 }
 newMan();
 
-// ═══════════════════════════════════════════
-//  AUTO CONV VIZ
-// ═══════════════════════════════════════════
 const AI=[[0,0,0,0,0],[0,1,1,1,0],[0,1,0,1,0],[0,1,1,1,0],[0,0,0,0,0]];
 const AK=[[1,0,1],[0,1,0],[1,0,1]];
 let ap=-1,ar=Array(9).fill('?');
@@ -379,12 +605,10 @@ function aStep(){
   const row=Math.floor(ap/3),col=ap%3;
   for(let r=0;r<5;r++)for(let c=0;c<5;c++)document.getElementById(`ai${r}${c}`).className='mc';
   let sum=0,terms=[];
-  // First pass: highlight entire window
   for(let kr=0;kr<3;kr++)for(let kc=0;kc<3;kc++){
     const ir=row+kr,ic=col+kc;
     document.getElementById(`ai${ir}${ic}`).className='mc win';
   }
-  // Second pass: emphasize cells where kernel is nonzero (active multipliers)
   for(let kr=0;kr<3;kr++)for(let kc=0;kc<3;kc++){
     const ir=row+kr,ic=col+kc;
     const kv=AK[kr][kc];
@@ -401,9 +625,6 @@ let aIv=null;
 function aAuto(){if(aIv){clearInterval(aIv);aIv=null;}aReset();let s=0;aIv=setInterval(()=>{aStep();s++;if(s>=9){clearInterval(aIv);aIv=null;}},800);}
 function aReset(){if(aIv){clearInterval(aIv);aIv=null;}ap=-1;ar=Array(9).fill('?');bldA();document.getElementById('ast').textContent='';document.getElementById('acalc').innerHTML='시작 버튼을 눌러 연산 과정을 확인하세요.';}
 
-// ═══════════════════════════════════════════
-//  FILTER PLAYGROUND
-// ═══════════════════════════════════════════
 const FL={
   'Identity':{k:[[0,0,0],[0,1,0],[0,0,0]],d:'원본 그대로 출력합니다.'},
   'Box Blur':{k:[[1,1,1],[1,1,1],[1,1,1]],d:'주변 9픽셀 평균으로 흐리게 합니다.',n:9},
@@ -412,7 +633,7 @@ const FL={
   'Sharpen':{k:[[0,-1,0],[-1,5,-1],[0,-1,0]],d:'경계를 또렷하게 선명화합니다.'},
   'Edge':{k:[[-1,-1,-1],[-1,8,-1],[-1,-1,-1]],d:'윤곽선만 추출합니다.'},
 };
-let aF='Identity',cK=[[0,0,0],[0,1,0],[0,0,0]];
+let aF='Identity',srcImg=null,cK=[[0,0,0],[0,1,0],[0,0,0]];
 'Identity',srcImg=null,cK=[[0,0,0],[0,1,0],[0,0,0]];
 
 function bldFC(){
@@ -472,9 +693,6 @@ function applyF(){
 
 bldFC();rFK();
 
-// ═══════════════════════════════════════════
-//  POOLING
-// ═══════════════════════════════════════════
 let pI=[[9,8,4,8],[7,9,4,8],[2,8,9,7],[6,5,9,5]],pP=-1,pR=['?','?','?','?'],pIv=null;
 
 function bldP(){
@@ -488,12 +706,9 @@ function pRst(){if(pIv){clearInterval(pIv);pIv=null;}pP=-1;pR=['?','?','?','?'];
 function pStp(){
   pP++;if(pP>=4){pP=3;return;}
   const sr=pP<2?0:2,sc=pP%2===0?0:2;
-  // Clear all highlights
   document.querySelectorAll('#pi .ec').forEach(c=>{c.style.background='';c.style.outline='';const inp=c.querySelector('input');if(inp)inp.style.color='';});
-  // Find max
   let mx=-Infinity;
   for(let r=sr;r<sr+2;r++)for(let c=sc;c<sc+2;c++){if(pI[r][c]>mx)mx=pI[r][c];}
-  // Highlight: window cells get accent, max cell gets green
   for(let r=sr;r<sr+2;r++)for(let c=sc;c<sc+2;c++){
     const idx=r*4+c,cells=document.getElementById('pi').children;
     const isMax=pI[r][c]===mx;
@@ -510,9 +725,6 @@ function pAut(){if(pIv){clearInterval(pIv);pIv=null;}pRst();let s=0;pIv=setInter
 
 pRst();
 
-// ═══════════════════════════════════════════
-//  PERCEPTRON
-// ═══════════════════════════════════════════
 const PC_N=3;
 let pcInputs=[1,0.5,-0.3];
 let pcWeights=[0.8,-0.5,0.6];
@@ -527,7 +739,6 @@ const PC_ACTS={
 };
 
 function pcInit(){
-  // Build input controls
   const box=document.getElementById('pc-inputs');
   box.innerHTML='';
   for(let i=0;i<PC_N;i++){
@@ -541,26 +752,25 @@ function pcInit(){
       <input type="number" id="pc-w${i}" value="${pcWeights[i]}" step="0.1" style="width:4rem;font-family:var(--mono);font-size:0.78rem;padding:0.3rem 0.4rem;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);color:var(--fg);text-align:center;">
     `;
     box.appendChild(row);
-    // Events
     document.getElementById(`pc-x${i}`).addEventListener('input',function(){
       pcInputs[i]=parseFloat(this.value);
       document.getElementById(`pc-xv${i}`).textContent=pcInputs[i].toFixed(2);
       pcUpdate();
     });
-    document.getElementById(`pc-w${i}`).addEventListener('input',function(){
+    const __wEl=document.getElementById(`pc-w${i}`);
+    if(__wEl) __wEl.addEventListener('input',function(){
       pcWeights[i]=parseFloat(this.value)||0;
       pcUpdate();
     });
   }
 
-  // Bias slider
-  document.getElementById('pc-bias').addEventListener('input',function(){
+  const __pcBias=document.getElementById('pc-bias');
+  if(__pcBias) __pcBias.addEventListener('input',function(){
     pcBias=parseFloat(this.value);
     document.getElementById('pc-bias-val').textContent=pcBias.toFixed(1);
     pcUpdate();
   });
 
-  // Activation chips
   const actBox=document.getElementById('pc-act-chips');
   actBox.innerHTML='';
   Object.keys(PC_ACTS).forEach(key=>{
@@ -577,8 +787,8 @@ function pcInit(){
     actBox.appendChild(ch);
   });
 
-  // Theta slider
-  document.getElementById('pc-theta').addEventListener('input',function(){
+  const __pcTheta=document.getElementById('pc-theta');
+  if(__pcTheta) __pcTheta.addEventListener('input',function(){
     pcTheta=parseFloat(this.value);
     document.getElementById('pc-theta-val').textContent=pcTheta.toFixed(1);
     pcUpdate();
@@ -596,7 +806,6 @@ function pcActivate(x){
 }
 
 function pcUpdate(){
-  // Weighted sum
   let wsum=pcBias;
   const terms=[];
   for(let i=0;i<PC_N;i++){
@@ -605,7 +814,6 @@ function pcUpdate(){
   }
   const y=pcActivate(wsum);
 
-  // Show calc
   const calcEl=document.getElementById('pc-calc');
   calcEl.innerHTML=
     `가중합: ${terms.join(' + ')} + ${pcBias.toFixed(1)}<br>`+
@@ -625,13 +833,11 @@ function pcDrawGraph(curX,curY){
 
   ctx.clearRect(0,0,W,H);
 
-  // Graph range
   const xMin=-6,xMax=6,yMin=-0.5,yMax=pcAct==='relu'?4:1.5;
 
   const toSX=x=>pad+(x-xMin)/(xMax-xMin)*(W-2*pad);
   const toSY=y=>H-pad-(y-yMin)/(yMax-yMin)*(H-2*pad);
 
-  // Grid
   ctx.strokeStyle='#e8e0d6';
   ctx.lineWidth=1;
   for(let gx=Math.ceil(xMin);gx<=Math.floor(xMax);gx++){
@@ -643,17 +849,13 @@ function pcDrawGraph(curX,curY){
     ctx.beginPath();ctx.moveTo(pad,sy);ctx.lineTo(W-pad,sy);ctx.stroke();
   }
 
-  // Axes
   ctx.strokeStyle='#c8b9a6';
   ctx.lineWidth=1.5;
-  // X axis
   const ax0=toSY(0);
   ctx.beginPath();ctx.moveTo(pad,ax0);ctx.lineTo(W-pad,ax0);ctx.stroke();
-  // Y axis
   const ay0=toSX(0);
   ctx.beginPath();ctx.moveTo(ay0,pad);ctx.lineTo(ay0,H-pad);ctx.stroke();
 
-  // Axis labels
   ctx.fillStyle='#78726a';
   ctx.font='11px "JetBrains Mono"';
   ctx.textAlign='center';
@@ -668,7 +870,6 @@ function pcDrawGraph(curX,curY){
     if(sy>pad&&sy<H-pad) ctx.fillText(gy.toFixed(1),ay0-6,sy+4);
   }
 
-  // Threshold line (for step and relu)
   if(pcAct!=='sigmoid'){
     const tx=toSX(pcTheta);
     ctx.strokeStyle='#4a6b8a';
@@ -681,7 +882,6 @@ function pcDrawGraph(curX,curY){
     ctx.fillText('θ='+pcTheta.toFixed(1),tx,pad-6);
   }
 
-  // Function curve
   ctx.strokeStyle='#1a1714';
   ctx.lineWidth=2.5;
   ctx.beginPath();
@@ -696,9 +896,7 @@ function pcDrawGraph(curX,curY){
   }
   ctx.stroke();
 
-  // Current point
   const px=toSX(curX),py=toSY(curY);
-  // Dashed lines to point
   ctx.strokeStyle='#b44133';
   ctx.lineWidth=1;
   ctx.setLineDash([3,3]);
@@ -706,19 +904,16 @@ function pcDrawGraph(curX,curY){
   ctx.beginPath();ctx.moveTo(ay0,py);ctx.lineTo(px,py);ctx.stroke();
   ctx.setLineDash([]);
 
-  // Point
   ctx.fillStyle='#b44133';
   ctx.beginPath();ctx.arc(px,py,6,0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#fff';
   ctx.beginPath();ctx.arc(px,py,2.5,0,Math.PI*2);ctx.fill();
 
-  // Label
   ctx.fillStyle='#b44133';
   ctx.font='bold 11px "JetBrains Mono"';
   ctx.textAlign='left';
   ctx.fillText(`(${curX.toFixed(2)}, ${curY.toFixed(4)})`,px+10,py-8);
 
-  // Function name
   ctx.fillStyle='#1a1714';
   ctx.font='bold 12px "Noto Sans KR"';
   ctx.textAlign='left';
@@ -726,18 +921,15 @@ function pcDrawGraph(curX,curY){
   ctx.fillText('f(x) = '+fname,pad+4,pad-8);
 }
 
-// Lazy init on first visit
+let pcInited=false;
+
 function ttab(n,el){document.querySelectorAll('#v-text .tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.querySelectorAll('#v-text .tpanel').forEach(p=>p.classList.remove('on'));document.getElementById('tt'+n).classList.add('on');}
 
-// ═══════════════════════════════════════════
-//  ONE-HOT ENCODING
-// ═══════════════════════════════════════════
 function ohEncode(){
   const text=document.getElementById('oh-input').value;
   const words=text.trim().replace(/[.,!?;:'"()]/g,'').split(/\s+/).filter(w=>w.length>0);
   if(words.length===0)return;
 
-  // Build default vocabulary (unique words in order of appearance)
   const defaultVocab=[];
   words.forEach(w=>{if(!defaultVocab.includes(w))defaultVocab.push(w);});
 
@@ -747,7 +939,6 @@ function ohEncode(){
   const colors=['#b44133','#4a6b8a','#5a7a5a','#8a6a4a','#6a4a8a','#4a8a7a','#8a4a6a','#7a8a4a','#4a5a8a','#8a7a4a'];
   let html='';
 
-  // Editable vocabulary
   html+=`<div class="card"><h3>단어 집합 (편집 가능)</h3>`;
   html+=`<p style="margin-bottom:0.5rem;">총 ${vocab.length}개 — 단어를 추가/삭제하여 직접 수정할 수 있습니다.</p>`;
   html+=`<div style="display:flex;flex-wrap:wrap;gap:0.3rem;margin-bottom:0.6rem;">`;
@@ -762,7 +953,6 @@ function ohEncode(){
   html+=`<button class="btn" onclick="ohResetVocab()">기본값 복원</button>`;
   html+=`</div></div>`;
 
-  // Highlighted sentence
   html+=`<div class="card"><h3>단어 집합 매칭</h3><p style="margin-bottom:0.5rem;">집합에 포함된 단어만 색상으로 표시됩니다.</p>`;
   html+=`<div style="display:flex;flex-wrap:wrap;gap:0.3rem;">`;
   words.forEach(w=>{
@@ -776,7 +966,6 @@ function ohEncode(){
   });
   html+=`</div></div>`;
 
-  // One-hot vectors table
   html+=`<div class="card"><h3>원-핫 벡터</h3>`;
   html+=`<div style="overflow-x:auto;"><table style="border-collapse:collapse;margin-top:0.5rem;width:100%;">`;
   html+=`<tr><td style="padding:0.4rem 0.6rem;font-family:var(--mono);font-size:0.62rem;color:var(--muted);border-bottom:1px solid var(--border);">단어</td>`;
@@ -823,12 +1012,6 @@ function ohAddVocab(){
 
 function ohResetVocab(){ohVocabUser=null;ohEncode();}
 
-// ═══════════════════════════════════════════
-//  BAG OF WORDS
-// ═══════════════════════════════════════════
-// ═══════════════════════════════════════════
-//  ONE-HOT ENCODING
-// ═══════════════════════════════════════════
 let ohVocabUser=null;
 
 function bowProcess(sentences){
@@ -837,12 +1020,10 @@ function bowProcess(sentences){
     return {original:s, words};
   });
 
-  // Build vocabulary from all words
   const vocab=[];
   results.forEach(r=>r.words.forEach(w=>{if(!vocab.includes(w))vocab.push(w);}));
   vocab.sort();
 
-  // Count frequencies
   results.forEach(r=>{
     r.freq={};
     vocab.forEach(w=>{r.freq[w]=0;});
@@ -858,7 +1039,6 @@ function bowRenderResult(data){
   const colors=['#b44133','#4a6b8a','#5a7a5a','#8a6a4a','#6a4a8a','#4a8a7a','#8a4a6a','#7a8a4a'];
   let html='';
 
-  // Step 1: Show word splitting per sentence
   results.forEach((r,si)=>{
     html+=`<div class="card"><h3>문장 ${si+1}: ${r.original}</h3>`;
     html+=`<p class="mono" style="margin-bottom:0.4rem;">띄어쓰기 기준 분리</p>`;
@@ -869,7 +1049,6 @@ function bowRenderResult(data){
     html+=`</div></div>`;
   });
 
-  // Step 2: Vocabulary
   html+=`<div class="card"><h3>단어 집합</h3>`;
   html+=`<div style="display:flex;flex-wrap:wrap;gap:0.3rem;">`;
   vocab.forEach((w,i)=>{
@@ -878,17 +1057,14 @@ function bowRenderResult(data){
   });
   html+=`</div></div>`;
 
-  // Step 3: Frequency table with bars
   html+=`<div class="card"><h3>빈도수 벡터</h3>`;
   html+=`<div style="overflow-x:auto;"><table style="border-collapse:collapse;width:100%;margin-top:0.5rem;">`;
-  // Header
   html+=`<tr><td style="padding:0.4rem 0.6rem;font-family:var(--mono);font-size:0.62rem;color:var(--muted);border-bottom:2px solid var(--border);"></td>`;
   vocab.forEach((w,i)=>{
     const c=colors[i%colors.length];
     html+=`<td style="padding:0.4rem 0.3rem;text-align:center;font-family:var(--mono);font-size:0.6rem;color:${c};border-bottom:2px solid var(--border);min-width:2.5rem;">${w}</td>`;
   });
   html+=`</tr>`;
-  // Rows
   results.forEach((r,si)=>{
     html+=`<tr>`;
     html+=`<td style="padding:0.5rem 0.6rem;font-size:0.78rem;border-bottom:1px solid var(--border);white-space:nowrap;">문장 ${si+1}</td>`;
@@ -907,7 +1083,6 @@ function bowRenderResult(data){
   });
   html+=`</table></div></div>`;
 
-  // Vector representation
   html+=`<div class="card"><h3>벡터 표현</h3>`;
   results.forEach((r,si)=>{
     const vec=vocab.map(w=>r.freq[w]);
@@ -926,7 +1101,6 @@ function bowAnalyze(){
   bowRenderResult(data);
 }
 
-// Animated version
 let bowAnimIv=null;
 function bowAnimate(){
   if(bowAnimIv){clearInterval(bowAnimIv);bowAnimIv=null;}
@@ -938,11 +1112,6 @@ function bowAnimate(){
   const box=document.getElementById('bow-result');
   const colors=['#b44133','#4a6b8a','#5a7a5a','#8a6a4a','#6a4a8a','#4a8a7a','#8a4a6a','#7a8a4a'];
 
-  // Animation steps:
-  // 0: show original sentences
-  // 1..N: show stopword removal per sentence
-  // N+1: show vocabulary
-  // N+2: show frequency counting animated
   const steps=[];
   steps.push('sentences');
   results.forEach((_,i)=>steps.push('stop_'+i));
@@ -954,15 +1123,12 @@ function bowAnimate(){
     const step=steps[si];
     let html='';
 
-    // Always show completed previous steps
     if(si>=1){
-      // Show sentences header
       html+=`<div class="card"><h3>입력 문장</h3>`;
       results.forEach((r,i)=>{html+=`<p style="font-size:0.84rem;margin:0.2rem 0;">${r.original}</p>`;});
       html+=`</div>`;
     }
 
-    // Stopword removal steps
     for(let i=0;i<results.length;i++){
       const stepKey='stop_'+i;
       const idx=steps.indexOf(stepKey);
@@ -978,7 +1144,6 @@ function bowAnimate(){
       }
     }
 
-    // Vocabulary
     if(si>=steps.indexOf('vocab')){
       html+=`<div class="card" style="${step==='vocab'?'outline:2px solid var(--fg);outline-offset:-2px;':''}"><h3>단어 집합</h3>`;
       html+=`<div style="display:flex;flex-wrap:wrap;gap:0.3rem;">`;
@@ -989,7 +1154,6 @@ function bowAnimate(){
       html+=`</div></div>`;
     }
 
-    // Frequency
     if(si>=steps.indexOf('freq')){
       bowRenderFreqTable(html,results,vocab,colors,box);
       return;
@@ -1045,19 +1209,14 @@ function bowRenderFreqTable(prefix,results,vocab,colors,box){
   box.innerHTML=html;
 }
 
-// ═══════════════════════════════════════════
-//  NORMALIZATION
-// ═══════════════════════════════════════════
-document.getElementById('nsl').addEventListener('input',function(){
+const __nsl=document.getElementById('nsl');
+if(__nsl) __nsl.addEventListener('input',function(){
   const v=parseInt(this.value);
   document.getElementById('ni').textContent=v;
   document.getElementById('nf').textContent=(v/255).toFixed(3);
   document.getElementById('nsw').style.background=`rgb(${v},${v},${v})`;
 });
 
-// ═══════════════════════════════════════════
-//  Eye vs CNN — Canvas cumulative diagram
-// ═══════════════════════════════════════════
 let ecCur=1;
 const EC_TOTAL=5;
 
@@ -1238,7 +1397,6 @@ function ecRender(){
 function ecNext(){ecCur=Math.min(EC_TOTAL,ecCur+1);ecRender();}
 function ecPrev(){ecCur=Math.max(0,ecCur-1);ecRender();}
 
-// Tab switching
 let ecActiveTab='eye';
 function ecSwitchTab(tab){
   ecActiveTab=tab;
@@ -1265,7 +1423,6 @@ function ecSwitchTab(tab){
   }
 }
 
-// Zoom/Pan for canvases
 const ecPanState={eye:{scale:1,ox:0,oy:0,drag:false,lx:0,ly:0},cnn:{scale:1,ox:0,oy:0,drag:false,lx:0,ly:0}};
 function ecApplyTransform(id){
   const s=ecPanState[id],cv=document.getElementById(id==='eye'?'eye-cv':'cnn-cv');
@@ -1274,7 +1431,9 @@ function ecApplyTransform(id){
 function ecFitCanvas(id){
   const wrap=document.getElementById('ec-wrap-'+id);
   const cv=document.getElementById(id==='eye'?'eye-cv':'cnn-cv');
+  if(!wrap||!cv) return;
   const ww=wrap.clientWidth,cw=cv.width;
+  if(!ww||ww<=0||!cw) return;
   const s=ecPanState[id];
   s.scale=Math.min(1,ww/cw);s.ox=0;s.oy=0;
   ecApplyTransform(id);
@@ -1288,7 +1447,6 @@ function ecZoom(id,dir){
 ['eye','cnn'].forEach(id=>{
   const wrap=document.getElementById('ec-wrap-'+id);
   if(!wrap)return;
-  // Mouse wheel zoom
   wrap.addEventListener('wheel',e=>{
     e.preventDefault();
     const s=ecPanState[id];
@@ -1296,11 +1454,9 @@ function ecZoom(id,dir){
     s.scale=Math.max(0.3,Math.min(3,s.scale+delta));
     ecApplyTransform(id);
   },{passive:false});
-  // Mouse drag pan
   wrap.addEventListener('mousedown',e=>{const s=ecPanState[id];s.drag=true;s.lx=e.clientX;s.ly=e.clientY;wrap.style.cursor='grabbing';});
   window.addEventListener('mousemove',e=>{const s=ecPanState[id];if(!s.drag)return;s.ox+=e.clientX-s.lx;s.oy+=e.clientY-s.ly;s.lx=e.clientX;s.ly=e.clientY;ecApplyTransform(id);});
   window.addEventListener('mouseup',()=>{ecPanState[id].drag=false;wrap.style.cursor='grab';});
-  // Touch pan
   let lastTouch=null,lastDist=null;
   wrap.addEventListener('touchstart',e=>{
     if(e.touches.length===1){const s=ecPanState[id];s.drag=true;lastTouch={x:e.touches[0].clientX,y:e.touches[0].clientY};}
@@ -1324,9 +1480,6 @@ function ecZoom(id,dir){
 setTimeout(()=>{ecRender();ecFitCanvas('eye');ecFitCanvas('cnn');ecSwitchTab('eye');},150);
 window.addEventListener('resize',()=>{ecFitCanvas('eye');ecFitCanvas('cnn');});
 
-// ═══════════════════════════════════════════
-//  CNN PIPELINE — MobileNet V2 (alpha 1.4) via GraphModel
-// ═══════════════════════════════════════════
 let cnnGraphModel=null,cnnLabels=null,cnnLoading=false,cnnStep=0;
 const CNN_TOTAL_STEPS=6;
 const MOBILENET_URL='https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json';
@@ -1346,7 +1499,6 @@ async function loadCNNModel(){
     }
     st.textContent='MobileNet V2 다운로드 중... (약 14MB)';
     cnnGraphModel=await tf.loadGraphModel(MOBILENET_URL);
-    // Load labels
     try{
       const resp=await fetch(LABELS_URL);
       const text=await resp.text();
@@ -1356,7 +1508,6 @@ async function loadCNNModel(){
     cnnLoading=false;
     return cnnGraphModel;
   }catch(err){
-    // Fallback: try mobilenet package
     try{
       if(!window.mobilenet){
         st.textContent='대체 모델 로딩 중...';
@@ -1379,7 +1530,6 @@ async function classifyWithModel(canvas){
   const model=await loadCNNModel();
   if(!model)return null;
   if(model._isMobilenetPkg){return await model.classify(canvas,5);}
-  // GraphModel direct inference
   const logits=tf.tidy(()=>{
     let img=tf.browser.fromPixels(canvas).toFloat();
     img=tf.image.resizeBilinear(img,[224,224]);
@@ -1389,7 +1539,6 @@ async function classifyWithModel(canvas){
   const probs=tf.softmax(logits);
   const data=await probs.data();
   logits.dispose();probs.dispose();
-  // Get top 5
   const indexed=Array.from(data).map((p,i)=>({p,i}));
   indexed.sort((a,b)=>b.p-a.p);
   const top5=indexed.slice(0,5);
@@ -1399,7 +1548,6 @@ async function classifyWithModel(canvas){
   }));
 }
 
-// JS conv kernels for visualization
 const CNN_KERNELS=[
   {name:'세로 엣지',k:[[-1,0,1],[-2,0,2],[-1,0,1]]},
   {name:'가로 엣지',k:[[-1,-2,-1],[0,0,0],[1,2,1]]},
@@ -1464,7 +1612,6 @@ async function cnnAnalyze(imgEl){
   const dx=(224-w)/2, dy=(224-h)/2;
   ictx.drawImage(imgEl,dx,dy,w,h);
 
-  // JS feature map simulation (always reliable)
   const imgData=ictx.getImageData(0,0,224,224);
   const gray=new Float32Array(224*224);
   for(let i=0;i<224*224;i++)gray[i]=imgData.data[i*4]*0.299+imgData.data[i*4+1]*0.587+imgData.data[i*4+2]*0.114;
@@ -1482,7 +1629,6 @@ async function cnnAnalyze(imgEl){
   for(let i=0;i<poolMaps.length;i++){const ki=(i+4)%CNN_KERNELS.length;const c2=jsConv(poolMaps[i].data,poolMaps[i].w,poolMaps[i].h,CNN_KERNELS[ki].k);const p2=jsPool(jsReLU(c2),poolMaps[i].w,poolMaps[i].h);deepMaps.push(p2);dN.push('Deep '+(i+1));}
   drawJsMaps(deepMaps,dN,'cnn-deep-maps',72);
 
-  // Classification with GraphModel
   st.textContent='MobileNet V2로 분류 중...';
   try{
     const preds=await classifyWithModel(inputCv);
@@ -1521,9 +1667,6 @@ async function cnnAnalyze(imgEl){
 })();
 function cnnLoadImg(file){const reader=new FileReader();reader.onload=e=>{const img=new Image();img.onload=()=>cnnAnalyze(img);img.src=e.target.result;};reader.readAsDataURL(file);}
 
-// ═══════════════════════════════════════════
-//  OBJECT DETECTION (COCO-SSD via TF.js)
-// ═══════════════════════════════════════════
 let detModel=null,detLoading=false;
 
 function loadDetScripts(){
@@ -1574,7 +1717,6 @@ async function detRun(imgEl){
 
   const predictions=await model.detect(imgEl);
 
-  // Draw on canvas
   const cv=document.getElementById('det-canvas');
   const ctx=cv.getContext('2d');
   cv.width=imgEl.naturalWidth||imgEl.width;
@@ -1602,7 +1744,6 @@ async function detRun(imgEl){
 
   document.getElementById('det-result').style.display='block';
 
-  // List
   const list=document.getElementById('det-list');
   if(predictions.length===0){
     list.innerHTML='<p style="font-size:0.84rem;color:var(--muted);">탐지된 객체가 없습니다.</p>';
@@ -1620,7 +1761,6 @@ async function detRun(imgEl){
   }
 }
 
-// Upload handlers
 (()=>{
   const uz=document.getElementById('det-upz');
   const fi=document.getElementById('det-fup');
@@ -1642,21 +1782,17 @@ function detLoadImg(file){
   reader.readAsDataURL(file);
 }
 
-// Service Worker
 if('serviceWorker' in navigator)try{navigator.serviceWorker.register('sw.js');}catch(e){}
 
-// Credits
 console.log('%c AI 수학 ','background:#1a1714;color:#f5f0ea;font-size:14px;font-weight:bold;padding:4px 8px;border-radius:4px;');
 console.log('%c제작: gmb9817','font-size:12px;color:#1a1714;');
 console.log('%c도움을 준 사람들: nflight11, frozenca, wizardrabbit, cubic','font-size:11px;color:#78726a;');
 
 
-// ═══════════════════════════════════════════
-//  HAMMING QUEST GAME (TAB 2)
-// ═══════════════════════════════════════════
 let hdg_cur=1;
 const hdg_tot=10;
-let hdg_rec=new Array(hdg_tot+1).fill(null);
+let hdg_first=new Array(hdg_tot+1).fill(null);
+let hdg_solved=new Array(hdg_tot+1).fill(false);
 const hdg_exp={
   1:"행렬 A와 B의 같은 위치 숫자가 서로 다른 곳은 1행 2열과 3행 2열(총 2곳)입니다. 이렇게 다른 부분을 1로 추출하는 것이 XOR 연산의 기초입니다.",
   2:"배타적 논리합(XOR)은 입력된 두 값이 '서로 다를 때만' 1을 반환합니다. 같을 때는 0을 반환하여 공통 데이터를 지웁니다.",
@@ -1672,7 +1808,7 @@ const hdg_exp={
 
 function hdg_el(id){return document.getElementById(id);}
 function hdg_hasRoot(){return !!hdg_el('hdg-root');}
-function hdg_recAns(s,isC){if(isC){hdg_rec[s]=true;}else{if(hdg_rec[s]!==true)hdg_rec[s]=false;}}
+function hdg_mark(s,isC){if(isC){hdg_first[s]=true;}else{if(hdg_first[s]!==true)hdg_first[s]=false;}}
 
 function hdg_setFb(s,isC,msg){
   const fb=hdg_el('hdg-fb'+s);
@@ -1685,7 +1821,7 @@ function hdg_setFb(s,isC,msg){
     fb.innerHTML=`<b>❌ 오답!</b><br>${msg}<br><br><span style="font-size:0.9em;color:var(--muted);">[힌트를 확인하고 다시 수정해 보세요]</span>`;
   }
   const nBtn=hdg_el('hdg-nBtn');
-  if(nBtn)nBtn.style.display=(hdg_rec[s]===true)?'block':'none';
+  if(nBtn)nBtn.style.display=(hdg_solved[s]===true)?'block':'none';
 }
 
 function hdg_showStage(n){
@@ -1698,7 +1834,7 @@ function hdg_showStage(n){
   const pBtn=hdg_el('hdg-pBtn');
   const nBtn=hdg_el('hdg-nBtn');
   if(pBtn)pBtn.style.display=(n>1)?'block':'none';
-  if(nBtn)nBtn.style.display=(hdg_rec[n]===true)?'block':'none';
+  if(nBtn)nBtn.style.display=(hdg_solved[n]===true)?'block':'none';
   const res=hdg_el('hdg-stRes');
   if(res)res.classList.remove('on');
 }
@@ -1720,7 +1856,7 @@ function hdg_showRes(){
 
   let score=0;let wHtml='';
   for(let i=1;i<=hdg_tot;i++){
-    if(hdg_rec[i]===true) score++;
+    if(hdg_first[i]===true) score++;
     else wHtml+=`<div class="hdg-wrong"><div style="font-weight:800;color:var(--red);margin-bottom:0.25rem;">탐구 ${i}번 오답 해설</div><div>${hdg_exp[i]}</div></div>`;
   }
   const fin=hdg_el('hdg-finScore');
@@ -1777,7 +1913,7 @@ function hdg_initStage1(){
 function hdg_chk1(){
   let isC=true;
   for(let i=0;i<9;i++){ if(hdg_s1_a[i] !== (hdg_s1_o[i]^hdg_s1_c[i])){isC=false;break;} }
-  hdg_recAns(1,isC);
+  hdg_mark(1,isC);
   if(isC) hdg_setFb(1,true,'두 행렬에서 차이가 발생하는 위치를 정확히 도출했습니다.');
   else hdg_setFb(1,false,'숫자가 다른 2곳의 위치를 클릭하여 1로 만드세요.');
 }
@@ -1785,7 +1921,7 @@ function hdg_chk2(idx,isC,btn){
   const st=hdg_el('hdg-st2');
   st?.querySelectorAll('.hdg-opt').forEach(b=>b.style.borderColor='var(--border)');
   if(btn) btn.style.borderColor='var(--accent)';
-  hdg_recAns(2,isC);
+  hdg_mark(2,isC);
   if(isC) hdg_setFb(2,true,'XOR의 정의를 정확히 이해했습니다.');
   else hdg_setFb(2,false,'같을 때는 0이 되어야 합니다.');
 }
@@ -1846,7 +1982,7 @@ function hdg_initStage3(){
 
 function hdg_chk3(){
   const isC=(hdg_states.a && hdg_states.b && !hdg_states.i);
-  hdg_recAns(3,isC);
+  hdg_mark(3,isC);
   if(isC) hdg_setFb(3,true,'대칭차집합 영역을 완벽히 색칠했습니다.');
   else{
     let msg='양쪽 날개 영역을 모두 색칠하세요.';
@@ -1859,21 +1995,21 @@ function hdg_chk4(idx,isC,btn){
   const st=hdg_el('hdg-st4');
   st?.querySelectorAll('.hdg-opt').forEach(b=>b.style.borderColor='var(--border)');
   if(btn) btn.style.borderColor='var(--accent)';
-  hdg_recAns(4,isC);
+  hdg_mark(4,isC);
   if(isC) hdg_setFb(4,true,'올바르지 않은 식을 잘 찾았습니다.');
   else hdg_setFb(4,false,'고르신 식은 대칭차집합의 올바른 수식입니다.');
 }
 function hdg_chk5(){
   const v=hdg_el('hdg-i5')?.value?.trim()||'';
   const isC=(v==='01100');
-  hdg_recAns(5,isC);
+  hdg_mark(5,isC);
   if(isC) hdg_setFb(5,true,'정확한 벡터 연산입니다.');
   else hdg_setFb(5,false,'각 자리별로 (1⊕1=0, 0⊕1=1) 계산해 보세요.');
 }
 function hdg_chk6(){
   const v=hdg_el('hdg-i6')?.value;
   const isC=(String(v)==='2');
-  hdg_recAns(6,isC);
+  hdg_mark(6,isC);
   if(isC) hdg_setFb(6,true,'해밍 거리를 바르게 구했습니다.');
   else hdg_setFb(6,false,'결과값 01100에 포함된 1의 개수를 세어보세요.');
 }
@@ -1889,7 +2025,7 @@ function hdg_initStage7(){
 function hdg_chk7(){
   let isC=true;
   for(let i=0;i<9;i++){ if(hdg_s7_a[i] !== (hdg_s7_o[i]^hdg_s7_c[i])){isC=false;break;} }
-  hdg_recAns(7,isC);
+  hdg_mark(7,isC);
   if(isC) hdg_setFb(7,true,'마스크 행렬 복원에 성공했습니다!');
   else hdg_setFb(7,false,'행렬 P와 Q의 숫자가 변한 곳을 클릭하세요.');
 }
@@ -1906,7 +2042,7 @@ function hdg_chk8(idx,isC,btn){
   const st=hdg_el('hdg-st8');
   st?.querySelectorAll('.hdg-opt').forEach(b=>b.style.borderColor='var(--border)');
   if(btn) btn.style.borderColor='var(--accent)';
-  hdg_recAns(8,isC);
+  hdg_mark(8,isC);
   if(isC) hdg_setFb(8,true,'가장 해밍 거리가 짧은 표본을 찾았습니다.');
   else hdg_setFb(8,false,'T와 다른 픽셀이 가장 적은 것을 고르세요.');
 }
@@ -1914,7 +2050,7 @@ function hdg_chk9(idx,isC,btn){
   const st=hdg_el('hdg-st9');
   st?.querySelectorAll('.hdg-opt').forEach(b=>b.style.borderColor='var(--border)');
   if(btn) btn.style.borderColor='var(--accent)';
-  hdg_recAns(9,isC);
+  hdg_mark(9,isC);
   if(isC) hdg_setFb(9,true,'해밍 거리의 치명적 한계점을 잘 이해했습니다.');
   else hdg_setFb(9,false,'사물이 이동하면 픽셀 위치가 어긋나 매우 다르게 측정됩니다.');
 }
@@ -1943,7 +2079,7 @@ function hdg_chk10(){
     const target=hdg_s10_o[i]>=128?1:0;
     if(hdg_s10_a[i]!==target){isC=false;break;}
   }
-  hdg_recAns(10,isC);
+  hdg_mark(10,isC);
   if(isC) hdg_setFb(10,true,'임계값(128)을 기준으로 완벽하게 이진화했습니다.');
   else hdg_setFb(10,false,'128 이상인 숫자만 클릭하여 1로 만들어야 합니다.');
 }
@@ -1955,4 +2091,16 @@ function hdg_chk10(){
   hdg_initStage8();
   hdg_initStage10();
   hdg_showStage(hdg_cur);
+})();
+
+
+(function startRouter(){
+  const start=()=>{
+    const raw=(location.hash||'#home').replace('#','');
+    const v=(raw && document.getElementById('v-'+raw))?raw:'home';
+    go(v,false);
+    try{history.replaceState({view:v},'', '#'+v);}catch(e){}
+  };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', start);
+  else setTimeout(start,0);
 })();
