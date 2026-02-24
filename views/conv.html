@@ -1,16 +1,95 @@
-<!-- ═══════════ CONV ═══════════ -->
-<div class="view" id="v-conv">
-  <p class="mono" style="margin-bottom:0.4rem;">합성곱 연산</p>
-  <h2>CNN의 핵심 — 아다마르 곱</h2>
-  <p class="desc">
-    같은 크기의 두 행렬에서 동일 위치의 성분끼리 곱한 후 모두 더하는 연산입니다.
-    필터가 이미지 위를 한 칸씩 이동하며 이 연산을 반복하여 특징 맵을 생성합니다.
-  </p>
-
-  <div class="card">
-    <h3>합성곱이 왜 중요한가?</h3>
-    <p>기존 방식(해밍 거리)은 픽셀 위치를 하나하나 비교하기 때문에, 같은 숫자라도 위치가 조금만 달라지면 전혀 다른 것으로 판단합니다. 합성곱은 이미지의 부분적 패턴(가로선, 세로선, 모서리 등)을 찾아내기 때문에 위치 변화에 강하고, 이것이 CNN이 이미지 인식에 뛰어난 핵심 이유입니다.</p>
-    <p style="margin-top:0.5rem;">합성곱 신경망(CNN)은 1989년 얀 르쿤(Yann LeCun)이 손글씨 숫자 인식을 위해 제안한 이래, 의료 영상 진단, 자율주행 차량의 물체 인식, 얼굴 인식, 위성 사진 분석 등 시각 정보를 다루는 거의 모든 AI 분야에서 사용됩니다.</p>
+<!-- ══════════════════════════════════════════════
+       NEW BLOCK: 아다마르 곱 vs 행렬의 곱
+  ══════════════════════════════════════════════ -->
+  <div class="card" style="border-left:4px solid var(--blue);">
+    <h3>📐 아다마르 곱 vs 행렬의 곱 — 어떻게 다를까?</h3>
+    <p style="margin-bottom:1.2rem;">행렬을 다루는 곱셈에는 두 가지가 있습니다.
+       생긴 건 비슷해 보여도 계산 방법과 의미가 완전히 다릅니다.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.4rem;">
+      <!-- 아다마르 곱 -->
+      <div style="background:var(--bg);border-radius:var(--radius);padding:1.1rem;
+                  border:1.5px solid var(--blue);">
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--blue);
+                    letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.5rem;">
+          아다마르 곱 (Hadamard Product)
+        </div>
+        <div style="font-size:0.95rem;font-weight:700;margin-bottom:0.6rem;">
+          같은 위치끼리 곱하기 ⊙
+        </div>
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.8rem;">
+          두 행렬의 <strong>크기가 반드시 같아야</strong> 하며,
+          대응하는 위치의 성분끼리만 곱합니다. 결과 크기는 입력과 동일합니다.
+        </p>
+        <!-- 수식 블록 -->
+        <div class="math" style="font-size:0.75rem;line-height:2;">
+(A ⊙ B)ᵢⱼ  =  Aᵢⱼ × Bᵢⱼ
+예)  A = [a  b]    B = [e  f]
+         [c  d]        [g  h]
+A ⊙ B = [a×e   b×f]
+        [c×g   d×h]
+        </div>
+        <!-- 숫자 예시 (1×5=5, 2×6=12, ...) -->
+        <!-- CNN에서의 역할 설명 박스 -->
+      </div>
+      <!-- 행렬의 곱 -->
+      <div style="background:var(--bg);border-radius:var(--radius);padding:1.1rem;
+                  border:1.5px solid var(--red);">
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--red);
+                    letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.5rem;">
+          행렬의 곱 (Matrix Multiplication)
+        </div>
+        <div style="font-size:0.95rem;font-weight:700;margin-bottom:0.6rem;">
+          행 × 열 내적 ×
+        </div>
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.8rem;">
+          앞 행렬의 <strong>열 수 = 뒤 행렬의 행 수</strong>이어야 하며,
+          행과 열의 내적으로 계산합니다. 결과 크기가 달라집니다.
+        </p>
+        <!-- 수식 블록 -->
+        <div class="math" style="font-size:0.75rem;line-height:2;">
+(AB)ᵢⱼ  =  Σₖ Aᵢₖ × Bₖⱼ
+예)  A = [a  b]    B = [e  f]
+         [c  d]        [g  h]
+AB = [a×e+b×g   a×f+b×h]
+     [c×e+d×g   c×f+d×h]
+        </div>
+        <!-- 숫자 예시 (1×5+2×7=19, ...) -->
+        <!-- 완전연결층 설명 박스 -->
+      </div>
+    </div> <!-- /grid -->
+    <!-- 핵심 차이 요약 표 -->
+    <table style="border-collapse:collapse;width:100%;font-size:0.82rem;">
+      <thead>
+        <tr style="background:var(--fg);color:var(--bg);">
+          <th>구분</th>
+          <th>아다마르 곱 ⊙</th>
+          <th>행렬의 곱 ×</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>조건</td><td>두 행렬의 크기가 동일</td><td>A의 열 수 = B의 행 수</td></tr>
+        <tr><td>계산 방법</td><td>같은 위치 성분끼리 곱</td><td>행 × 열 내적 후 합산</td></tr>
+        <tr><td>결과 크기</td><td>입력과 동일 (m×n)</td><td>m×n × n×p = m×p</td></tr>
+        <tr><td>교환법칙</td><td>✅ A ⊙ B = B ⊙ A</td><td>❌ AB ≠ BA (일반적으로)</td></tr>
+        <tr><td>CNN에서 사용</td><td>합성곱층 (필터 적용)</td><td>완전연결층 (분류)</td></tr>
+      </tbody>
+    </table>
+    <!-- CNN 흐름 코드 블록 -->
+    <div class="math" style="font-size:0.76rem;line-height:2.1;">
+// CNN 합성곱 한 칸의 계산 순서
+Step 1.  픽셀 창과 커널을 아다마르 곱 ⊙ → 자리별 곱셈 행렬
+Step 2.  곱셈 행렬의 모든 성분을 합산 (Σ) → 출력값 하나
+Step 3.  필터를 한 칸 이동 → Step 1 반복
+// 이 두 단계를 묶으면
+출력값 Y = Σᵢⱼ (Kᵢⱼ × Xᵢⱼ)  ← 아다마르 곱의 총합 = 내적
+    </div>
+    <!-- info 박스: 합성곱 = 아다마르 곱의 전체 합 = 내적 -->
+    <div class="info" style="margin-top:1rem;margin-bottom:0;">
+      <strong>정리:</strong> 합성곱의 핵심은 <em>아다마르 곱 → 합산</em>의 두 단계입니다.
+      아다마르 곱으로 "이 위치에 이 특징이 얼마나 있나?"를 자리별로 측정하고,
+      합산으로 그 정도를 하나의 숫자로 압축합니다.
+      즉, <strong>합성곱 = 아다마르 곱의 전체 합 = 두 행렬의 내적</strong>입니다.
+    </div>
   </div>
 
   <!-- ═══ Interactive Eye vs CNN comparison ═══ -->
