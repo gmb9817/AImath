@@ -2,11 +2,18 @@
 //  NAVIGATION (SPA-style)
 // ═══════════════════════════════════════════
 let currentView='home';
+// init flags (must be defined before first go() call; supports direct hash navigation)
+// filter image buffer (avoid TDZ when opening #filter directly)
+let srcImg=null;
 function go(v,pushState=true){
+  // view element guard (prevents crash if a view file is missing)
+  let viewEl=document.getElementById('v-'+v);
+  if(!viewEl){v='home';viewEl=document.getElementById('v-home');}
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
-  document.getElementById('v-'+v).classList.add('active');
+  viewEl.classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelector(`.nav-btn[data-v="${v}"]`).classList.add('active');
+  const navBtn=document.querySelector(`.nav-btn[data-v="${v}"]`);
+  if(navBtn)navBtn.classList.add('active');
   window.scrollTo(0,0);
   currentView=v;
   initToggles(document.getElementById('v-'+v));
@@ -306,8 +313,6 @@ uBmp=Array(bSz*bSz).fill(0);
 rBmp();
 rRef();
 initHGuessUI();
-(bSz*bSz).fill(0);rBmp();rRef();
-
 // ═══════════════════════════════════════════
 //  EDIT GRID HELPER
 // ═══════════════════════════════════════════
@@ -407,7 +412,7 @@ const FL={
   'Sharpen':{k:[[0,-1,0],[-1,5,-1],[0,-1,0]],d:'경계를 또렷하게 선명화합니다.'},
   'Edge':{k:[[-1,-1,-1],[-1,8,-1],[-1,-1,-1]],d:'윤곽선만 추출합니다.'},
 };
-let aF='Identity',srcImg=null,cK=[[0,0,0],[0,1,0],[0,0,0]];
+let aF='Identity',cK=[[0,0,0],[0,1,0],[0,0,0]];
 'Identity',srcImg=null,cK=[[0,0,0],[0,1,0],[0,0,0]];
 
 function bldFC(){
@@ -722,8 +727,6 @@ function pcDrawGraph(curX,curY){
 }
 
 // Lazy init on first visit
-let pcInited=false;
-
 function ttab(n,el){document.querySelectorAll('#v-text .tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.querySelectorAll('#v-text .tpanel').forEach(p=>p.classList.remove('on'));document.getElementById('tt'+n).classList.add('on');}
 
 // ═══════════════════════════════════════════
