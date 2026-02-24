@@ -115,6 +115,20 @@ h3{font-size:1.05rem;font-weight:600;margin-bottom:0.5rem;}
 .hb .fl{height:100%;border-radius:9999px;transition:width 0.5s cubic-bezier(0.22,1,0.36,1);background:var(--fg);}
 .hb .fl.best{background:var(--green);}
 .hb .dv{font-family:var(--mono);font-size:0.65rem;color:var(--muted);width:5rem;text-align:right;}
+.hb input.hguess{
+  width:3.4rem;
+  height:1.6rem;
+  border:1px solid var(--border);
+  border-radius:0.55rem;
+  padding:0 0.4rem;
+  font-family:var(--mono);
+  font-size:0.72rem;
+  text-align:center;
+  background:var(--bg);
+  color:var(--fg);
+}
+.hb input.hguess:focus{outline:2px solid rgba(0,0,0,0.12);}
+
 
 /* ── CHIPS ── */
 .chips{display:flex;flex-wrap:wrap;gap:0.35rem;margin:0.8rem 0;}
@@ -156,9 +170,11 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
   #v-perceptron>div{grid-template-columns:1fr !important;}
 }
 
-.tgl-head{cursor:pointer;user-select:none;position:relative;padding-right:1.4rem;}
-.tgl-head::after{content:'▸';position:absolute;right:0;top:0;color:var(--muted);font-weight:700;}
+.tgl-head{cursor:pointer;user-select:none;position:relative;padding-right:1.8rem;display:block;width:100%;line-height:1.35;}
+.tgl-head::after{content:'▸';position:absolute;right:0.15rem;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:700;}
 .tgl-head.open::after{content:'▾';}
+.info .tgl-head{padding:0.35rem 0.15rem;}
+.card .tgl-head{padding:0.15rem 0;}
 .tgl-body{display:none;margin-top:0.55rem;}
 .tgl-body.open{display:block;}
 
@@ -176,13 +192,14 @@ footer .inner{max-width:68rem;margin:0 auto;padding:1.1rem 1.5rem;display:flex;j
   <nav>
     <a href="#" class="logo" onclick="go('home');return false;">AI 수학</a>
     <button class="nav-btn active" data-v="home">홈</button>
+    <button class="nav-btn" data-v="perceptron">퍼셉트론</button>
+    <button class="nav-btn" data-v="text">텍스트 데이터</button>
     <button class="nav-btn" data-v="mnist">숫자 인식</button>
+    <button class="nav-btn" data-v="quickdraw">Quick, Draw!</button>
     <button class="nav-btn" data-v="hamming">해밍 거리</button>
     <button class="nav-btn" data-v="conv">합성곱</button>
     <button class="nav-btn" data-v="filter">필터 실습</button>
     <button class="nav-btn" data-v="pool">풀링 · 정규화</button>
-    <button class="nav-btn" data-v="perceptron">퍼셉트론</button>
-    <button class="nav-btn" data-v="text">텍스트 데이터</button>
     <button class="nav-btn" data-v="detect">객체 탐지</button>
   </nav>
 </header>

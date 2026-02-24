@@ -82,6 +82,7 @@ rHD();
 //  BITMAP
 // ═══════════════════════════════════════════
 let bSz=6,uBmp=[],isDraw=false,dVal=1;
+let hGuess=new Array(10).fill('');
 const REFS={};
 REFS[6]=[
   [0,1,1,1,1,0,1,1,0,0,1,1,1,0,0,0,0,1,1,0,0,0,0,1,1,1,0,0,1,1,0,1,1,1,1,0],
@@ -109,7 +110,21 @@ REFS[8]=[
 ];
 REFS[12]=(()=>{const r=[];for(let d=0;d<10;d++){const s=REFS[6][d],o=[];for(let y=0;y<6;y++){const r1=[],r2=[];for(let x=0;x<6;x++){const v=s[y*6+x];r1.push(v,v);r2.push(v,v);}o.push(...r1,...r2);}r.push(o);}return r;})();
 
-function setSz(n,el){bSz=n;uBmp=Array(n*n).fill(0);isDraw=false;dVal=1;document.querySelectorAll('.bsz').forEach(b=>b.classList.remove('active'));el.classList.add('active');rBmp();document.getElementById('hbars').innerHTML='<p style="font-size:0.8rem;color:var(--muted);">숫자를 그린 후 계산 버튼을 누르세요.</p>';document.getElementById('hbest').textContent='';document.getElementById('hoverlap').innerHTML='';document.getElementById('refpreview').innerHTML='';rRef();}
+function setSz(n,el){
+  bSz=n;
+  uBmp=Array(n*n).fill(0);
+  hGuess=new Array(10).fill('');
+  isDraw=false;
+  dVal=1;
+  document.querySelectorAll('.bsz').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  rBmp();
+  initHGuessUI();
+  document.getElementById('hbest').textContent='';
+  document.getElementById('hoverlap').innerHTML='';
+  document.getElementById('refpreview').innerHTML='';
+  rRef();
+}
 
 function rBmp(){
   const g=document.getElementById('ubmp');const cs=bSz<=6?'2rem':bSz<=8?'1.6rem':'1.2rem';
@@ -169,14 +184,97 @@ function showRefPreview(digit){
   box.innerHTML=html;
 }
 
+
+function initHGuessUI(){
+  const box=document.getElementById('hbars');
+  if(!box) return;
+  box.innerHTML='';
+  for(let d=0; d<10; d++){
+    const row=document.createElement('div');
+    row.className='hb';
+    row.dataset.digit=d;
+    row.innerHTML = `
+      <span class="dl">${d}</span>
+      <div class="tk"><div class="fl" style="width:0%"></div></div>
+      <input class="hguess" type="number" inputmode="numeric" placeholder="내 답" aria-label="digit ${d} hamming guess">
+      <span class="dv"></span>
+    `;
+    box.appendChild(row);
+  }
+  const hint=document.createElement('p');
+  hint.style.fontSize='0.72rem';
+  hint.style.color='var(--muted)';
+  hint.style.marginTop='0.5rem';
+  hint.textContent='각 숫자(0~9)와의 해밍 거리를 직접 계산해 입력한 뒤, “해밍 거리 계산”을 눌러 채점해보세요.';
+  box.appendChild(hint);
+
+  // restore guesses
+  box.querySelectorAll('input.hguess').forEach(inp=>{
+    const d=parseInt(inp.parentElement.dataset.digit);
+    inp.value = (hGuess[d] ?? '');
+    inp.addEventListener('input', ()=>{
+      hGuess[d]=inp.value;
+      const dl=inp.parentElement.querySelector('.dl');
+      if(dl) dl.style.color='';
+    });
+  });
+}
 function clrBmp(){uBmp=Array(bSz*bSz).fill(0);rBmp();document.getElementById('hbars').innerHTML='<p style="font-size:0.8rem;color:var(--muted);">숫자를 그린 후 계산 버튼을 누르세요.</p>';document.getElementById('hbest').textContent='';document.getElementById('hoverlap').innerHTML='';document.getElementById('refpreview').innerHTML='';}
 
 function calcH(){
-  const refs=REFS[bSz];if(!refs)return;const tot=bSz*bSz;
-  const ds=refs.map((ref,i)=>{let d=0;for(let j=0;j<tot;j++)d+=(uBmp[j]^ref[j]);return{digit:i,dist:d,sim:((tot-d)/tot*100).toFixed(1)};});
-  const mx=Math.max(...ds.map(d=>d.dist),1),mn=Math.min(...ds.map(d=>d.dist));
-  const box=document.getElementById('hbars');box.innerHTML='';
-  ds.forEach(({digit,dist,sim})=>{const e=document.createElement('div');e.className='hb';e.innerHTML=`<span class="dl">${digit}</span><div class="tk"><div class="fl ${dist===mn?'best':''}" style="width:${dist/mx*100}%"></div></div><span class="dv">${dist} (${sim}%)</span>`;box.appendChild(e);});
+  const refs=REFS[bSz];
+  if(!refs) return;
+  const tot=bSz*bSz;
+
+  const ds=refs.map((ref,i)=>{
+    let d=0;
+    for(let j=0;j<tot;j++) d+=(uBmp[j]^ref[j]);
+    return {digit:i,dist:d,sim:((tot-d)/tot*100).toFixed(1)};
+  });
+  const mx=Math.max(...ds.map(d=>d.dist),1);
+  const mn=Math.min(...ds.map(d=>d.dist));
+
+  const box=document.getElementById('hbars');
+  if(!box) return;
+
+  // read guesses first
+  const guessMap={};
+  box.querySelectorAll('.hb').forEach(row=>{
+    const digit=parseInt(row.dataset.digit);
+    const inp=row.querySelector('input.hguess');
+    if(inp) guessMap[digit]=inp.value;
+  });
+
+  box.innerHTML='';
+  ds.forEach(({digit,dist,sim})=>{
+    const e=document.createElement('div');
+    e.className='hb';
+    e.dataset.digit=digit;
+
+    const g = (guessMap[digit] ?? '').toString().trim();
+    const gNum = g==='' ? null : Number(g);
+
+    const isOk = (gNum!==null && Number.isFinite(gNum) && gNum===dist);
+
+    e.innerHTML = `
+      <span class="dl" style="${gNum===null?'':(isOk?'color:var(--green);':'color:var(--red);')}">${digit}</span>
+      <div class="tk"><div class="fl ${dist===mn?'best':''}" style="width:${(dist/mx*100)}%"></div></div>
+      <input class="hguess" type="number" inputmode="numeric" placeholder="내 답" value="${g}">
+      <span class="dv">${dist} (${sim}%)</span>
+    `;
+    box.appendChild(e);
+  });
+
+  // re-bind inputs to keep guesses editable
+  box.querySelectorAll('input.hguess').forEach(inp=>{
+    const d=parseInt(inp.parentElement.dataset.digit);
+    inp.addEventListener('input', ()=>{
+      hGuess[d]=inp.value;
+      const dl=inp.parentElement.querySelector('.dl');
+      if(dl) dl.style.color='';
+    });
+  });
+
   const best=ds.reduce((a,b)=>a.dist<b.dist?a:b);
   document.getElementById('hbest').textContent=`가장 유사: ${best.digit} (거리 ${best.dist}, 유사도 ${best.sim}%)`;
 
@@ -189,10 +287,10 @@ function calcH(){
   for(let i=0;i<tot;i++){
     const u=uBmp[i],r=bestRef[i];
     let cls;
-    if(u===1&&r===1) cls='both';       // 둘 다 검정
-    else if(u===0&&r===0) cls='match';  // 둘 다 흰색
-    else if(u===1&&r===0) cls='only-user'; // 내 그림에만 있음
-    else cls='only-ref';                // 참조에만 있음
+    if(u===1&&r===1) cls='both';
+    else if(u===0&&r===0) cls='match';
+    else if(u===1&&r===0) cls='only-user';
+    else cls='only-ref';
     ovHtml+=`<div class="oc ${cls}" style="width:${cs};height:${cs};"></div>`;
   }
   ovHtml+=`</div>`;
@@ -204,7 +302,11 @@ function calcH(){
   ovBox.innerHTML=ovHtml;
 }
 
-uBmp=Array(bSz*bSz).fill(0);rBmp();rRef();
+uBmp=Array(bSz*bSz).fill(0);
+rBmp();
+rRef();
+initHGuessUI();
+(bSz*bSz).fill(0);rBmp();rRef();
 
 // ═══════════════════════════════════════════
 //  EDIT GRID HELPER
@@ -299,13 +401,14 @@ function aReset(){if(aIv){clearInterval(aIv);aIv=null;}ap=-1;ar=Array(9).fill('?
 // ═══════════════════════════════════════════
 const FL={
   'Identity':{k:[[0,0,0],[0,1,0],[0,0,0]],d:'원본 그대로 출력합니다.'},
+  'Box Blur':{k:[[1,1,1],[1,1,1],[1,1,1]],d:'주변 9픽셀 평균으로 흐리게 합니다.',n:9},
   'Sobel X':{k:[[-1,0,1],[-2,0,2],[-1,0,1]],d:'세로선(수직 경계)을 검출합니다.'},
   'Sobel Y':{k:[[-1,-2,-1],[0,0,0],[1,2,1]],d:'가로선(수평 경계)을 검출합니다.'},
   'Sharpen':{k:[[0,-1,0],[-1,5,-1],[0,-1,0]],d:'경계를 또렷하게 선명화합니다.'},
-  'Box Blur':{k:[[1,1,1],[1,1,1],[1,1,1]],d:'주변 9픽셀 평균으로 흐리게 합니다.',n:9},
   'Edge':{k:[[-1,-1,-1],[-1,8,-1],[-1,-1,-1]],d:'윤곽선만 추출합니다.'},
 };
 let aF='Identity',srcImg=null,cK=[[0,0,0],[0,1,0],[0,0,0]];
+'Identity',srcImg=null,cK=[[0,0,0],[0,1,0],[0,0,0]];
 
 function bldFC(){
   const box=document.getElementById('fc');box.innerHTML='';
@@ -313,7 +416,13 @@ function bldFC(){
     ch.onclick=()=>{aF=n;document.querySelectorAll('#fc .chip').forEach(c=>c.classList.remove('on'));ch.classList.add('on');cK=FL[n].k.map(r=>[...r]);rFK();applyF();};
     box.appendChild(ch);});
 }
-function rFK(){mkEG('fk',cK,3,3);const f=FL[aF];document.getElementById('fd').textContent=f?f.d:'커스텀 커널';}
+function rFK(){
+  mkEG('fk',cK,3,3);
+  const f=FL[aF];
+  const m=document.getElementById('fmult');
+  if(m) m.textContent = (f && f.n) ? `1/${f.n} ×` : '';
+  document.getElementById('fd').textContent=f?f.d:'커스텀 커널';
+}
 function applyCustom(){aF='Custom';document.querySelectorAll('#fc .chip').forEach(c=>c.classList.remove('on'));document.getElementById('fd').textContent='사용자 정의 커널 적용';applyF();}
 
 function createDefImg(){

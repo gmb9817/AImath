@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ai-math-v2';
+const CACHE_NAME = 'ai-math-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -6,13 +6,14 @@ const ASSETS = [
   './core.js',
   './manifest.json',
   './views/home.html',
+  './views/perceptron.html',
+  './views/text.html',
   './views/mnist.html',
+  './views/quickdraw.html',
   './views/hamming.html',
   './views/conv.html',
   './views/filter.html',
   './views/pool.html',
-  './views/perceptron.html',
-  './views/text.html',
   './views/detect.html',
 ];
 

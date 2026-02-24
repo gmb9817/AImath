@@ -17,80 +17,14 @@
       그리고 QR 코드의 오류 복원 등 다양한 분야에서 활용됩니다.</p>
   </div>
 
-  <div class="tabs">
+    <div class="tabs">
     <button class="tab on" onclick="htab(0,this)">탐구 게임</button>
     <button class="tab" onclick="htab(1,this)">XOR 원리</button>
     <button class="tab" onclick="htab(2,this)">비트맵 실습</button>
   </div>
 
-  <!-- TAB 1: XOR -->
-  <div class="tpanel" id="ht1">
-    <div class="card">
-      <h3>XOR 연산 진리표</h3>
-      <p>두 비트가 서로 다를 때 1, 같을 때 0을 출력합니다.</p>
-      <div class="math">0 ⊕ 0 = 0   (같음)
-0 ⊕ 1 = 1   (다름)
-1 ⊕ 0 = 1   (다름)
-1 ⊕ 1 = 0   (같음)
-
-해밍 거리 d(A,B) = Σ (Aᵢ ⊕ Bᵢ)</div>
-    </div>
-
-    <div class="card">
-      <h3>직접 해보기 — 비트를 클릭하여 값을 바꿔보세요</h3>
-      <p style="margin-bottom:0.8rem;">각 비트를 클릭하면 0과 1이 토글됩니다. XOR 결과와 해밍 거리가 실시간으로 계산됩니다.</p>
-      <div id="hd-box" style="display:flex;flex-direction:column;gap:0.5rem;align-items:center;"></div>
-      <div id="hd-res" class="status" style="text-align:center;font-size:0.85rem;font-weight:600;"></div>
-    </div>
-
-    <div class="info">
-      <strong>대칭차집합과의 관계:</strong>
-      XOR 연산은 대칭차집합 <span class="mi">(A∪B)−(A∩B)</span>과 동일한 결과를 보입니다.
-      이 연산에 최소 2단계가 필요하므로, 다층 퍼셉트론에서 은닉층이 2개 이상 필요한 이유와 연결됩니다.
-    </div>
-  </div>
-
-  <!-- TAB 2: BITMAP -->
-  <div class="tpanel" id="ht2">
-    <p class="desc" style="margin-bottom:1rem;">
-      격자에 숫자를 직접 그려보세요. 클릭/드래그로 흑백을 토글합니다.
-      참조 데이터(0~9)와의 해밍 거리를 계산하여 가장 유사한 숫자를 자동 분류합니다.
-    </p>
-
-    <div style="display:flex;gap:0.3rem;margin-bottom:1rem;">
-      <button class="btn bsz active" onclick="setSz(6,this)">6×6</button>
-      <button class="btn bsz" onclick="setSz(8,this)">8×8</button>
-      <button class="btn bsz" onclick="setSz(12,this)">12×12</button>
-    </div>
-
-    <div style="display:flex;flex-wrap:wrap;gap:2rem;align-items:flex-start;">
-      <div>
-        <p class="mat-label">나만의 숫자 그리기</p>
-        <div id="ubmp" class="bmp"></div>
-        <div class="btn-row">
-          <button class="btn" onclick="clrBmp()">초기화</button>
-          <button class="btn pri" onclick="calcH()">해밍 거리 계산</button>
-        </div>
-        <p style="font-size:0.72rem;color:var(--muted);margin-top:0.3rem;">참조 숫자 미리보기</p>
-        <div class="btn-row" id="rbtn"></div>
-        <div id="refpreview" style="margin-top:0.5rem;"></div>
-      </div>
-      <div style="flex:1;min-width:14rem;">
-        <p class="mat-label">분류 결과</p>
-        <div id="hbars"><p style="font-size:0.8rem;color:var(--muted);">숫자를 그린 후 계산 버튼을 누르세요.</p></div>
-        <div id="hbest" class="status" style="font-weight:600;"></div>
-        <div id="hoverlap" style="margin-top:1rem;"></div>
-      </div>
-    </div>
-
-    <div class="info" style="margin-top:1.5rem;">
-      <strong>한계점:</strong> 해밍 거리는 위치 이동, 크기 변화, 획의 굵기 차이에 취약합니다.
-      이를 개선하기 위해 전처리, 데이터 증강, 그리고 CNN 같은 딥러닝이 사용됩니다.
-    </div>
-  </div>
-
-  <!-- TAB 0: 탐구 게임 -->
-  <div class="tpanel on" id="ht0">
+  <!-- TAB 0: GAME -->
+<div class="tpanel on" id="ht0">
     <div class="status" id="hdg-progBox" style="margin-bottom:1rem;">탐구 진행도: <span id="hdg-progTxt">1</span> / 10</div>
 
 <style>
@@ -373,3 +307,72 @@
 
 
 </div>
+  <!-- TAB 1: XOR -->
+<div class="tpanel" id="ht1">
+    <div class="card">
+      <h3>XOR 연산 진리표</h3>
+      <p>두 비트가 서로 다를 때 1, 같을 때 0을 출력합니다.</p>
+      <div class="math">0 ⊕ 0 = 0   (같음)
+0 ⊕ 1 = 1   (다름)
+1 ⊕ 0 = 1   (다름)
+1 ⊕ 1 = 0   (같음)
+
+해밍 거리 d(A,B) = Σ (Aᵢ ⊕ Bᵢ)</div>
+    </div>
+
+    <div class="card">
+      <h3>직접 해보기 — 비트를 클릭하여 값을 바꿔보세요</h3>
+      <p style="margin-bottom:0.8rem;">각 비트를 클릭하면 0과 1이 토글됩니다. XOR 결과와 해밍 거리가 실시간으로 계산됩니다.</p>
+      <div id="hd-box" style="display:flex;flex-direction:column;gap:0.5rem;align-items:center;"></div>
+      <div id="hd-res" class="status" style="text-align:center;font-size:0.85rem;font-weight:600;"></div>
+    </div>
+
+    <div class="info">
+      <strong>대칭차집합과의 관계:</strong>
+      XOR 연산은 대칭차집합 <span class="mi">(A∪B)−(A∩B)</span>과 동일한 결과를 보입니다.
+      이 연산에 최소 2단계가 필요하므로, 다층 퍼셉트론에서 은닉층이 2개 이상 필요한 이유와 연결됩니다.
+    </div>
+  </div>
+
+  <!-- TAB 1: BITMAP -->
+  
+  <!-- TAB 2: BITMAP -->
+<div class="tpanel" id="ht2">
+    <p class="desc" style="margin-bottom:1rem;">
+      격자에 숫자를 직접 그려보세요. 클릭/드래그로 흑백을 토글합니다.
+      참조 데이터(0~9)와의 해밍 거리를 계산하여 가장 유사한 숫자를 자동 분류합니다.
+    </p>
+
+    <div style="display:flex;gap:0.3rem;margin-bottom:1rem;">
+      <button class="btn bsz active" onclick="setSz(6,this)">6×6</button>
+      <button class="btn bsz" onclick="setSz(8,this)">8×8</button>
+      <button class="btn bsz" onclick="setSz(12,this)">12×12</button>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:2rem;align-items:flex-start;">
+      <div>
+        <p class="mat-label">나만의 숫자 그리기</p>
+        <div id="ubmp" class="bmp"></div>
+        <div class="btn-row">
+          <button class="btn" onclick="clrBmp()">초기화</button>
+          <button class="btn pri" onclick="calcH()">해밍 거리 계산</button>
+        </div>
+        <p style="font-size:0.72rem;color:var(--muted);margin-top:0.3rem;">참조 숫자 미리보기</p>
+        <div class="btn-row" id="rbtn"></div>
+        <div id="refpreview" style="margin-top:0.5rem;"></div>
+      </div>
+      <div style="flex:1;min-width:14rem;">
+        <p class="mat-label">분류 결과</p>
+        <div id="hbars"><p style="font-size:0.8rem;color:var(--muted);">숫자를 그린 후 계산 버튼을 누르세요.</p></div>
+        <div id="hbest" class="status" style="font-weight:600;"></div>
+        <div id="hoverlap" style="margin-top:1rem;"></div>
+      </div>
+    </div>
+
+    <div class="info" style="margin-top:1.5rem;">
+      <strong>한계점:</strong> 해밍 거리는 위치 이동, 크기 변화, 획의 굵기 차이에 취약합니다.
+      이를 개선하기 위해 전처리, 데이터 증강, 그리고 CNN 같은 딥러닝이 사용됩니다.
+    </div>
+  </div>
+
+  

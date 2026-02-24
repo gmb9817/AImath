@@ -30,7 +30,10 @@
 
   <div class="card" style="text-align:center;">
     <p class="mono" style="margin-bottom:0.4rem;">적용 커널 — 값을 편집할 수 있습니다</p>
-    <div class="eg" id="fk" style="grid-template-columns:repeat(3,1fr);display:inline-grid;"></div>
+    <div style="display:flex;justify-content:center;align-items:center;gap:0.45rem;flex-wrap:wrap;">
+      <span id="fmult" class="mono" style="font-size:0.8rem;color:var(--muted);"></span>
+      <div class="eg" id="fk" style="grid-template-columns:repeat(3,1fr);display:inline-grid;"></div>
+    </div>
     <p id="fd" style="font-size:0.78rem;color:var(--muted);margin-top:0.6rem;max-width:30rem;margin-left:auto;margin-right:auto;"></p>
     <div class="btn-row" style="justify-content:center;margin-top:0.5rem;">
       <button class="btn pri" onclick="applyCustom()">커스텀 커널 적용</button>
