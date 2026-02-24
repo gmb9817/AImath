@@ -1,6 +1,8 @@
 let currentView='home';
 let mnInited=false;
 let hbInited=false;
+let pcInited=false;
+let srcImg=null;
 
 function go(v,pushState=true){
   const viewEl=document.getElementById('v-'+v);
@@ -633,8 +635,8 @@ const FL={
   'Sharpen':{k:[[0,-1,0],[-1,5,-1],[0,-1,0]],d:'경계를 또렷하게 선명화합니다.'},
   'Edge':{k:[[-1,-1,-1],[-1,8,-1],[-1,-1,-1]],d:'윤곽선만 추출합니다.'},
 };
-let aF='Identity',srcImg=null,cK=[[0,0,0],[0,1,0],[0,0,0]];
-'Identity',srcImg=null,cK=[[0,0,0],[0,1,0],[0,0,0]];
+let aF='Identity',cK=[[0,0,0],[0,1,0],[0,0,0]];
+'Identity',cK=[[0,0,0],[0,1,0],[0,0,0]];
 
 function bldFC(){
   const box=document.getElementById('fc');box.innerHTML='';
@@ -920,8 +922,6 @@ function pcDrawGraph(curX,curY){
   const fname=pcAct==='step'?'계단 함수':pcAct==='relu'?'ReLU':'시그모이드';
   ctx.fillText('f(x) = '+fname,pad+4,pad-8);
 }
-
-let pcInited=false;
 
 function ttab(n,el){document.querySelectorAll('#v-text .tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.querySelectorAll('#v-text .tpanel').forEach(p=>p.classList.remove('on'));document.getElementById('tt'+n).classList.add('on');}
 
