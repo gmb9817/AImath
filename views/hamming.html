@@ -18,13 +18,13 @@
   </div>
 
   <div class="tabs">
-    <button class="tab on" onclick="htab(0,this)">XOR 원리</button>
-    <button class="tab" onclick="htab(1,this)">비트맵 실습</button>
-    <button class="tab" onclick="htab(2,this)">탐구 게임</button>
+    <button class="tab on" onclick="htab(0,this)">탐구 게임</button>
+    <button class="tab" onclick="htab(1,this)">XOR 원리</button>
+    <button class="tab" onclick="htab(2,this)">비트맵 실습</button>
   </div>
 
-  <!-- TAB 0: XOR -->
-  <div class="tpanel on" id="ht0">
+  <!-- TAB 1: XOR -->
+  <div class="tpanel" id="ht1">
     <div class="card">
       <h3>XOR 연산 진리표</h3>
       <p>두 비트가 서로 다를 때 1, 같을 때 0을 출력합니다.</p>
@@ -33,7 +33,7 @@
 1 ⊕ 0 = 1   (다름)
 1 ⊕ 1 = 0   (같음)
 
-해밍거리 d(A,B) = Σ (Aᵢ ⊕ Bᵢ)</div>
+해밍 거리 d(A,B) = Σ (Aᵢ ⊕ Bᵢ)</div>
     </div>
 
     <div class="card">
@@ -50,8 +50,8 @@
     </div>
   </div>
 
-  <!-- TAB 1: BITMAP -->
-  <div class="tpanel" id="ht1">
+  <!-- TAB 2: BITMAP -->
+  <div class="tpanel" id="ht2">
     <p class="desc" style="margin-bottom:1rem;">
       격자에 숫자를 직접 그려보세요. 클릭/드래그로 흑백을 토글합니다.
       참조 데이터(0~9)와의 해밍 거리를 계산하여 가장 유사한 숫자를 자동 분류합니다.
@@ -89,41 +89,42 @@
     </div>
   </div>
 
-  <div class="tpanel" id="ht2">
+  <!-- TAB 0: 탐구 게임 -->
+  <div class="tpanel on" id="ht0">
     <div class="status" id="hdg-progBox" style="margin-bottom:1rem;">탐구 진행도: <span id="hdg-progTxt">1</span> / 10</div>
 
 <style>
-      #v-hamming #ht2 .hdg-stage { display:none; overflow:hidden; border:1px solid var(--border); border-radius:var(--radius); background:var(--card); }
-      #v-hamming #ht2 .hdg-stage.on { display:block; animation: hdgFade 0.25s ease; }
-      #v-hamming #ht2 .hdg-res { display:none; }
-      #v-hamming #ht2 .hdg-res.on { display:block; animation: hdgFade 0.25s ease; }
+      #v-hamming #ht0 .hdg-stage { display:none; overflow:hidden; border:1px solid var(--border); border-radius:var(--radius); background:var(--card); }
+      #v-hamming #ht0 .hdg-stage.on { display:block; animation: hdgFade 0.25s ease; }
+      #v-hamming #ht0 .hdg-res { display:none; }
+      #v-hamming #ht0 .hdg-res.on { display:block; animation: hdgFade 0.25s ease; }
       @keyframes hdgFade { from { opacity:0; transform: translateY(6px);} to { opacity:1; transform: translateY(0);} }
 
-      #v-hamming #ht2 .hdg-shead { background:var(--card-h); color:var(--fg); padding:0.9rem 1rem; font-weight:700; border-bottom:1px solid var(--border); }
-      #v-hamming #ht2 .hdg-sbody { padding:1rem; }
+      #v-hamming #ht0 .hdg-shead { background:var(--card-h); color:var(--fg); padding:0.9rem 1rem; font-weight:700; border-bottom:1px solid var(--border); }
+      #v-hamming #ht0 .hdg-sbody { padding:1rem; }
 
-      #v-hamming #ht2 .hdg-desc { color:var(--fg); line-height:1.6; margin-bottom:0.9rem; word-break: keep-all; }
+      #v-hamming #ht0 .hdg-desc { color:var(--fg); line-height:1.6; margin-bottom:0.9rem; word-break: keep-all; }
 
-      #v-hamming #ht2 .hdg-wrap { display:flex; justify-content:center; align-items:center; gap:0.9rem; margin-bottom:0.9rem; flex-wrap:wrap; }
-      #v-hamming #ht2 .hdg-grid {
+      #v-hamming #ht0 .hdg-wrap { display:flex; justify-content:center; align-items:center; gap:0.9rem; margin-bottom:0.9rem; flex-wrap:wrap; }
+      #v-hamming #ht0 .hdg-grid {
         display:grid; gap:3px; background:var(--border); padding:5px; border-radius:6px; width:max-content; margin:0 auto;
       }
-      #v-hamming #ht2 .hdg-g3 { grid-template-columns: repeat(3, 2.2rem); grid-template-rows: repeat(3, 2.2rem); }
-      #v-hamming #ht2 .hdg-g4 { grid-template-columns: repeat(4, 1.75rem); grid-template-rows: repeat(4, 1.75rem); }
+      #v-hamming #ht0 .hdg-g3 { grid-template-columns: repeat(3, 2.2rem); grid-template-rows: repeat(3, 2.2rem); }
+      #v-hamming #ht0 .hdg-g4 { grid-template-columns: repeat(4, 1.75rem); grid-template-rows: repeat(4, 1.75rem); }
 
-      #v-hamming #ht2 .hdg-cell{
+      #v-hamming #ht0 .hdg-cell{
         background:var(--bg);
         display:flex; align-items:center; justify-content:center;
         font-family:var(--mono); font-size:0.85rem; font-weight:700;
         border:1px solid var(--border); border-radius:4px;
         user-select:none;
       }
-      #v-hamming #ht2 .hdg-cell.on { background:var(--fg); color:var(--bg); }
-      #v-hamming #ht2 .hdg-interactive .hdg-cell{ cursor:pointer; background:var(--bg); }
-      #v-hamming #ht2 .hdg-interactive .hdg-cell:hover{ filter: brightness(0.97); }
-      #v-hamming #ht2 .hdg-interactive .hdg-cell.on{ background:var(--red); color:#fff; border-color: var(--red); }
+      #v-hamming #ht0 .hdg-cell.on { background:var(--fg); color:var(--bg); }
+      #v-hamming #ht0 .hdg-interactive .hdg-cell{ cursor:pointer; background:var(--bg); }
+      #v-hamming #ht0 .hdg-interactive .hdg-cell:hover{ filter: brightness(0.97); }
+      #v-hamming #ht0 .hdg-interactive .hdg-cell.on{ background:var(--red); color:#fff; border-color: var(--red); }
 
-      #v-hamming #ht2 .hdg-opt{
+      #v-hamming #ht0 .hdg-opt{
         display:block; width:100%;
         padding:0.75rem 0.9rem; margin:0.5rem 0;
         background:var(--bg);
@@ -135,10 +136,10 @@
         font-family: var(--sans);
         color: var(--fg);
       }
-      #v-hamming #ht2 .hdg-opt:hover{ background:var(--card-h); border-color:var(--accent); }
-      #v-hamming #ht2 .hdg-act { margin-top:0.5rem; }
+      #v-hamming #ht0 .hdg-opt:hover{ background:var(--card-h); border-color:var(--accent); }
+      #v-hamming #ht0 .hdg-act { margin-top:0.5rem; }
 
-      #v-hamming #ht2 .hdg-in{
+      #v-hamming #ht0 .hdg-in{
         width:8rem; padding:0.55rem 0.65rem;
         border-radius:var(--radius);
         border:1.5px solid var(--border);
@@ -149,18 +150,18 @@
         text-align:center;
       }
 
-      #v-hamming #ht2 canvas{ background:var(--bg); border-radius:var(--radius); cursor:pointer; border:1px solid var(--border); display:block; margin:0.6rem auto; }
+      #v-hamming #ht0 canvas{ background:var(--bg); border-radius:var(--radius); cursor:pointer; border:1px solid var(--border); display:block; margin:0.6rem auto; }
 
-      #v-hamming #ht2 .hdg-fb{ display:none; margin-top:0.9rem; padding:0.9rem; border-radius:var(--radius); line-height:1.6; }
-      #v-hamming #ht2 .hdg-fb.succ{ display:block; background: rgba(90,122,90,0.12); border:1px solid rgba(90,122,90,0.35); color: var(--fg); }
-      #v-hamming #ht2 .hdg-fb.err{ display:block; background: rgba(180,65,51,0.10); border:1px solid rgba(180,65,51,0.28); color: var(--fg); }
+      #v-hamming #ht0 .hdg-fb{ display:none; margin-top:0.9rem; padding:0.9rem; border-radius:var(--radius); line-height:1.6; }
+      #v-hamming #ht0 .hdg-fb.succ{ display:block; background: rgba(90,122,90,0.12); border:1px solid rgba(90,122,90,0.35); color: var(--fg); }
+      #v-hamming #ht0 .hdg-fb.err{ display:block; background: rgba(180,65,51,0.10); border:1px solid rgba(180,65,51,0.28); color: var(--fg); }
 
-      #v-hamming #ht2 .hdg-score { background:var(--card-h); padding:1rem; border-radius:var(--radius); text-align:center; border:1px solid var(--border); }
-      #v-hamming #ht2 .hdg-score .big { font-family:var(--mono); font-size:1.6rem; font-weight:800; }
-      #v-hamming #ht2 .hdg-wrong { background:var(--bg); border:1px solid rgba(180,65,51,0.35); border-left:4px solid var(--red); padding:0.75rem; margin:0.6rem 0; border-radius:var(--radius); }
-      #v-hamming #ht2 .hdg-vec { background:var(--bg); padding:0.8rem; border-radius:var(--radius); border:1px solid var(--border); font-family:var(--mono); letter-spacing:1px; text-align:center; }
-      #v-hamming #ht2 .hdg-nav { display:flex; gap:0.6rem; margin-top:1rem; }
-      #v-hamming #ht2 .hdg-nav .btn{ flex:1; }
+      #v-hamming #ht0 .hdg-score { background:var(--card-h); padding:1rem; border-radius:var(--radius); text-align:center; border:1px solid var(--border); }
+      #v-hamming #ht0 .hdg-score .big { font-family:var(--mono); font-size:1.6rem; font-weight:800; }
+      #v-hamming #ht0 .hdg-wrong { background:var(--bg); border:1px solid rgba(180,65,51,0.35); border-left:4px solid var(--red); padding:0.75rem; margin:0.6rem 0; border-radius:var(--radius); }
+      #v-hamming #ht0 .hdg-vec { background:var(--bg); padding:0.8rem; border-radius:var(--radius); border:1px solid var(--border); font-family:var(--mono); letter-spacing:1px; text-align:center; }
+      #v-hamming #ht0 .hdg-nav { display:flex; gap:0.6rem; margin-top:1rem; }
+      #v-hamming #ht0 .hdg-nav .btn{ flex:1; }
     </style>
 
     <div id="hdg-root">
