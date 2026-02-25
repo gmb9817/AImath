@@ -1,5 +1,5 @@
 (async function () {
-  const order = ['home','perceptron','text','mnist','hamming','conv','quickdraw','filter','pool','detect'];
+  const order = ['home','perceptron','text','mnist','hamming','conv','quickdraw','filter','pool','pipeline','detect'];
   const container = document.getElementById('views');
   if (!container) return;
 
