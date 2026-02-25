@@ -1893,7 +1893,16 @@ const hdg_exp={
 
 function hdg_el(id){return document.getElementById(id);}
 function hdg_hasRoot(){return !!hdg_el('hdg-root');}
-function hdg_mark(s,isC){if(isC){hdg_first[s]=true;}else{if(hdg_first[s]!==true)hdg_first[s]=false;}}
+function hdg_mark(s,isC){
+  if(isC){
+    // once solved, allow moving to the next stage
+    hdg_first[s]=true;
+    hdg_solved[s]=true;
+  }else{
+    // keep first-try correctness, but don't revoke solved state
+    if(hdg_first[s]!==true)hdg_first[s]=false;
+  }
+}
 
 function hdg_setFb(s,isC,msg){
   const fb=hdg_el('hdg-fb'+s);
@@ -1957,10 +1966,10 @@ function hdg_move(dir){
   if(next>=1 && next<=hdg_tot){
     hdg_cur=next;
     hdg_showStage(hdg_cur);
-    hdg_el('ht2')?.scrollIntoView({behavior:'smooth',block:'start'});
+    (hdg_el('hdg-root')||hdg_el('ht0'))?.scrollIntoView({behavior:'smooth',block:'start'});
   }else{
     hdg_showRes();
-    hdg_el('ht2')?.scrollIntoView({behavior:'smooth',block:'start'});
+    (hdg_el('hdg-root')||hdg_el('ht0'))?.scrollIntoView({behavior:'smooth',block:'start'});
   }
 }
 function hdg_renderGrid(id,data,isInteractive,targetArray){
