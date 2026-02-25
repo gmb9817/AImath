@@ -7,36 +7,88 @@
     필터가 이미지 위를 한 칸씩 이동하며 이 연산을 반복하여 특징 맵을 생성합니다.
   </p>
 
-  <div class="card">
-    <h3>아다마르 곱 ⊙ 과 행렬의 곱 ×</h3>
-    <p>
-      CNN을 처음 배우면 “곱”이라는 말이 자주 나오는데,
-      실제로는 <b>아다마르 곱(같은 위치끼리)</b>과 <b>행렬의 곱(행×열 내적)</b>이 각각 다른 역할을 합니다.
-      합성곱은 ‘패치와 커널을 같은 위치끼리 곱한 뒤 합’이라는 점에서 아다마르 곱과 닮아 있고,
-      분류 단계에서는 행렬의 곱이 등장합니다.
+  <div class="card" style="border-left:4px solid var(--blue);">
+    <h3>📐 아다마르 곱 vs 행렬의 곱 — 어떻게 다를까?</h3>
+    <p style="margin-bottom:1.1rem;">
+      행렬을 다루는 “곱”은 크게 두 가지가 있습니다.
+      생긴 건 비슷해 보이지만 <b>계산 방법</b>도 다르고 <b>의미</b>도 완전히 달라요.
+      특히 합성곱은 <span class="mi">아다마르 곱 → 합산</span> 구조로 이해하면 가장 빨리 감이 잡힙니다.
     </p>
 
-    <div class="cmp">
-      <div class="cmp-c">
-        <h4>아다마르 곱 ⊙</h4>
-        <div class="cr"><strong>조건</strong> — 두 행렬의 크기가 같아야 합니다.</div>
-        <div class="cr"><strong>규칙</strong> — (i,j) 위치의 값끼리만 곱합니다.</div>
-        <div class="math" style="font-size:0.74rem;line-height:2;">(A ⊙ B)ᵢⱼ = Aᵢⱼ × Bᵢⱼ</div>
-        <div class="cr" style="margin-top:0.6rem;"><strong>CNN에서</strong> — 입력의 작은 창(패치)과 커널을 같은 위치끼리 곱해 ‘점수’를 만들고, 그 점수들을 합쳐 출력값 1개를 만듭니다.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem;">
+      <!-- Hadamard -->
+      <div style="background:var(--bg);border-radius:var(--radius);padding:1.05rem;border:1.5px solid var(--blue);">
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--blue);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.5rem;">Hadamard Product</div>
+        <div style="font-size:0.95rem;font-weight:700;margin-bottom:0.55rem;">같은 위치끼리 곱하기 ⊙</div>
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.8rem;">
+          두 행렬의 <strong>크기가 반드시 같아야</strong> 하고,
+          (i, j) <strong>같은 위치 성분끼리만</strong> 곱합니다. 결과 크기는 입력과 동일합니다.
+        </p>
+        <div class="math" style="font-size:0.74rem;line-height:2;">
+(A ⊙ B)ᵢⱼ  =  Aᵢⱼ × Bᵢⱼ
+
+예)  A = [1  2]    B = [5  6]
+         [3  4]        [7  8]
+A ⊙ B = [1×5   2×6]
+        [3×7   4×8]
+        </div>
+        <div class="cr" style="margin-top:0.7rem;">
+          <strong>CNN에서</strong> — 이미지의 작은 창(패치)과 커널을 <b>자리별로 곱</b>해 “얼마나 닮았는지”를 먼저 계산합니다.
+        </div>
       </div>
-      <div class="cmp-c">
-        <h4>행렬의 곱 ×</h4>
-        <div class="cr"><strong>조건</strong> — A의 열 수 = B의 행 수</div>
-        <div class="cr"><strong>규칙</strong> — 행과 열을 곱해 더한 값(Σ)으로 원소를 만듭니다.</div>
-        <div class="math" style="font-size:0.74rem;line-height:2;">(AB)ᵢⱼ = Σₖ Aᵢₖ × Bₖⱼ</div>
-        <div class="cr" style="margin-top:0.6rem;"><strong>CNN에서</strong> — 마지막 분류(완전연결층)는 특징 벡터와 가중치 행렬을 곱해 각 클래스 점수(logit)를 계산합니다.</div>
+
+      <!-- Matmul -->
+      <div style="background:var(--bg);border-radius:var(--radius);padding:1.05rem;border:1.5px solid var(--red);">
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--red);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.5rem;">Matrix Multiplication</div>
+        <div style="font-size:0.95rem;font-weight:700;margin-bottom:0.55rem;">행 × 열 내적 ×</div>
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.8rem;">
+          앞 행렬의 <strong>열 수 = 뒤 행렬의 행 수</strong>여야 하며,
+          각 원소는 <strong>행과 열의 내적(곱해서 더하기)</strong>으로 만들어집니다. 결과 크기가 달라질 수 있어요.
+        </p>
+        <div class="math" style="font-size:0.74rem;line-height:2;">
+(AB)ᵢⱼ  =  Σₖ Aᵢₖ × Bₖⱼ
+
+예)  A = [1  2]    B = [5  6]
+         [3  4]        [7  8]
+AB = [1×5+2×7   1×6+2×8]
+     [3×5+4×7   3×6+4×8]
+        </div>
+        <div class="cr" style="margin-top:0.7rem;">
+          <strong>CNN에서</strong> — 마지막 분류(완전연결층)는 특징 벡터와 가중치 행렬을 곱해 <b>클래스 점수(logit)</b>를 만듭니다.
+        </div>
       </div>
     </div>
 
-    <div class="math" style="font-size:0.76rem;line-height:2.1;margin-top:1rem;">
-Y = Σᵢ Σⱼ (Kᵢⱼ × Xᵢⱼ)
+    <table style="border-collapse:collapse;width:100%;font-size:0.82rem;overflow:hidden;border-radius:0.6rem;border:1px solid var(--border);">
+      <thead>
+        <tr style="background:var(--fg);color:var(--bg);">
+          <th style="padding:0.55rem 0.6rem;text-align:left;">구분</th>
+          <th style="padding:0.55rem 0.6rem;text-align:left;">아다마르 곱 ⊙</th>
+          <th style="padding:0.55rem 0.6rem;text-align:left;">행렬의 곱 ×</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="padding:0.55rem 0.6rem;border-top:1px solid var(--border);">조건</td><td style="padding:0.55rem 0.6rem;border-top:1px solid var(--border);">두 행렬의 크기가 동일</td><td style="padding:0.55rem 0.6rem;border-top:1px solid var(--border);">A의 열 수 = B의 행 수</td></tr>
+        <tr><td style="padding:0.55rem 0.6rem;border-top:1px solid var(--border);">계산</td><td style="padding:0.55rem 0.6rem;border-top:1px solid var(--border);">같은 위치 성분끼리 곱</td><td style="padding:0.55rem 0.6rem;border-top:1px solid var(--border);">행×열 내적 후 합산</td></tr>
+        <tr><td style="padding:0.55rem 0.6rem;border-top:1px solid var(--border);">결과 크기</td><td style="padding:0.55rem 0.6rem;border-top:1px solid var(--border);">입력과 동일 (m×n)</td><td style="padding:0.55rem 0.6rem;border-top:1px solid var(--border);">m×n · n×p → m×p</td></tr>
+        <tr><td style="padding:0.55rem 0.6rem;border-top:1px solid var(--border);">교환법칙</td><td style="padding:0.55rem 0.6rem;border-top:1px solid var(--border);">✅ A ⊙ B = B ⊙ A</td><td style="padding:0.55rem 0.6rem;border-top:1px solid var(--border);">❌ AB ≠ BA (일반적)</td></tr>
+        <tr><td style="padding:0.55rem 0.6rem;border-top:1px solid var(--border);">CNN에서</td><td style="padding:0.55rem 0.6rem;border-top:1px solid var(--border);">합성곱층(필터 적용)</td><td style="padding:0.55rem 0.6rem;border-top:1px solid var(--border);">완전연결층(분류)</td></tr>
+      </tbody>
+    </table>
 
-K: 커널(필터)  X: 입력의 일부(패치)  Y: 출력값
+    <div class="math" style="font-size:0.76rem;line-height:2.1;margin-top:1rem;">
+// 합성곱 한 칸의 계산 순서
+Step 1.  픽셀 창과 커널을 아다마르 곱 ⊙ → 자리별 곱셈
+Step 2.  곱셈 결과를 모두 합산 (Σ) → 출력값 하나
+Step 3.  필터를 한 칸 이동 → Step 1 반복
+
+출력값 Y = Σᵢⱼ (Kᵢⱼ × Xᵢⱼ)
+    </div>
+
+    <div class="info" style="margin-top:1rem;margin-bottom:0;">
+      <strong>정리:</strong> 합성곱의 핵심은 <em>아다마르 곱 → 합산</em>의 두 단계입니다.
+      자리별로 “얼마나 닮았는지”를 측정하고, 그 값을 하나의 숫자로 압축합니다.
+      즉, <strong>합성곱 = 아다마르 곱의 전체 합 = 두 행렬의 내적</strong>으로 이해할 수 있습니다.
     </div>
   </div>
 

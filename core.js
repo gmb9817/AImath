@@ -349,6 +349,7 @@ function rHD(){
 rHD();
 
 let bSz=6,uBmp=[],isDraw=false,dVal=1;
+let curRefDigit=null;
 let hGuess=new Array(10).fill('');
 const REFS={};
 REFS[6]=[
@@ -383,6 +384,7 @@ function setSz(n,el){
   hGuess=new Array(10).fill('');
   isDraw=false;
   dVal=1;
+  curRefDigit=null;
   document.querySelectorAll('.bsz').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
   rBmp();
@@ -390,6 +392,8 @@ function setSz(n,el){
   document.getElementById('hbest').textContent='';
   document.getElementById('hoverlap').innerHTML='';
   document.getElementById('refpreview').innerHTML='';
+  const ov=document.getElementById('ovpreview');
+  if(ov) ov.innerHTML='';
   rRef();
 }
 
@@ -407,6 +411,7 @@ function rBmp(){
 function rBmpVisual(){
   const cells=document.getElementById('ubmp').children;
   for(let i=0;i<cells.length;i++){cells[i].className='bc'+(uBmp[i]?' on':'');}
+  renderOverlapPreview();
 }
 
 function bindTouch(){
@@ -434,9 +439,38 @@ function bindTouch(){
 }
 document.addEventListener('mouseup',()=>{isDraw=false;});
 
-function rRef(){const b=document.getElementById('rbtn');b.innerHTML='';for(let d=0;d<10;d++){const e=document.createElement('button');e.className='btn';e.textContent=d;e.style.padding='0.35rem 0.55rem';e.onclick=()=>showRefPreview(d);b.appendChild(e);}}
+function rRef(){
+  const b=document.getElementById('rbtn');
+  if(!b) return;
+  b.innerHTML='';
+  for(let d=0;d<10;d++){
+    const e=document.createElement('button');
+    e.className='btn'+(curRefDigit===d?' pri':'');
+    e.textContent=d;
+    e.style.padding='0.35rem 0.55rem';
+    e.onclick=()=>showRefPreview(d);
+    b.appendChild(e);
+  }
+}
+
+function renderOverlapPreview(){
+  const box=document.getElementById('ovpreview');
+  if(!box) return;
+  if(curRefDigit===null || !REFS[bSz] || !REFS[bSz][curRefDigit]){box.innerHTML='';return;}
+  const ref=REFS[bSz][curRefDigit];
+  const cs=bSz<=6?'1.2rem':bSz<=8?'1rem':'0.7rem';
+  let html=`<p class="mat-label" style="margin-bottom:0.3rem;">겹친 부분 (내 그림 ∧ 참조)</p>`;
+  html+=`<div class="bmp" style="grid-template-columns:repeat(${bSz},1fr);cursor:default;">`;
+  for(let i=0;i<bSz*bSz;i++){
+    const on=(uBmp[i]===1 && ref[i]===1);
+    html+=`<div class="bc${on?' on':''}" style="width:${cs};height:${cs};pointer-events:none;"></div>`;
+  }
+  html+=`</div>`;
+  box.innerHTML=html;
+}
 
 function showRefPreview(digit){
+  curRefDigit=digit;
   const ref=REFS[bSz][digit];
   const cs=bSz<=6?'1.2rem':bSz<=8?'1rem':'0.7rem';
   const box=document.getElementById('refpreview');
@@ -447,6 +481,8 @@ function showRefPreview(digit){
   }
   html+=`</div>`;
   box.innerHTML=html;
+  renderOverlapPreview();
+  rRef();
 }
 
 function hbInit(){
@@ -494,7 +530,18 @@ function initHGuessUI(){
     });
   });
 }
-function clrBmp(){uBmp=Array(bSz*bSz).fill(0);rBmp();try{initHGuessUI();}catch(e){}document.getElementById('hbest').textContent='';document.getElementById('hoverlap').innerHTML='';document.getElementById('refpreview').innerHTML='';}
+function clrBmp(){
+  uBmp=Array(bSz*bSz).fill(0);
+  rBmp();
+  try{initHGuessUI();}catch(e){}
+  document.getElementById('hbest').textContent='';
+  document.getElementById('hoverlap').innerHTML='';
+  document.getElementById('refpreview').innerHTML='';
+  const ov=document.getElementById('ovpreview');
+  if(ov) ov.innerHTML='';
+  curRefDigit=null;
+  rRef();
+}
 
 function calcH(){
   const refs=REFS[bSz];
