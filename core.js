@@ -489,10 +489,12 @@ function hbInit(){
   if(!uBmp || !uBmp.length) uBmp = Array(bSz*bSz).fill(0);
   try{rBmp();rRef();}catch(e){}
   try{initHGuessUI();}catch(e){}
+  try{hdgInit();}catch(e){}
 }
 function hbRefresh(){
   try{rBmp();rRef();}catch(e){}
   try{initHGuessUI();}catch(e){}
+  try{hdgInit();}catch(e){}
 }
 
 
@@ -1879,6 +1881,7 @@ let hdg_cur=1;
 const hdg_tot=9;
 let hdg_first=new Array(hdg_tot+1).fill(null);
 let hdg_solved=new Array(hdg_tot+1).fill(false);
+
 const hdg_exp={
   1:"행렬 A와 B의 같은 위치 숫자가 서로 다른 곳은 1행 2열과 3행 2열(총 2곳)입니다. 이렇게 다른 부분을 1로 추출하는 것이 XOR 연산의 기초입니다.",
   2:"배타적 논리합(XOR)은 입력된 두 값이 '서로 다를 때만' 1을 반환합니다. 같을 때는 0을 반환하여 공통 데이터를 지웁니다.",
@@ -1890,26 +1893,16 @@ const hdg_exp={
   8:"4x4 행렬 비교 시, 입력 T와 S1은 4개의 픽셀이 다르고(거리 4), T와 S2는 1개의 픽셀만 다릅니다(거리 1). 따라서 거리가 더 짧은 S2로 분류됩니다.",
   9:"이진화는 임계값(Threshold)을 기준으로 데이터를 0과 1로 단순화합니다. 128 이상인 숫자(150, 200, 255) 위치만 클릭하여 1로 바꾸면 됩니다."
 };
-
 function hdg_el(id){return document.getElementById(id);}
 function hdg_hasRoot(){return !!hdg_el('hdg-root');}
-function hdg_mark(s,isC){
-  if(isC){
-    // once solved, allow moving to the next stage
-    hdg_first[s]=true;
-    hdg_solved[s]=true;
-  }else{
-    // keep first-try correctness, but don't revoke solved state
-    if(hdg_first[s]!==true)hdg_first[s]=false;
-  }
-}
+function hdg_mark(s,isC){if(isC){hdg_first[s]=true;hdg_solved[s]=true;}else{if(hdg_first[s]!==true)hdg_first[s]=false;}}
 
 function hdg_setFb(s,isC,msg){
   const fb=hdg_el('hdg-fb'+s);
   if(!fb)return;
   if(isC){
     fb.className='hdg-fb succ';
-    fb.innerHTML=`<b>✅ 정답!</b><br>${msg}<br><br><span style="font-size:0.9em;color:var(--muted);">[풀이] ${hdg_exp[s]}</span>`;
+    fb.innerHTML=`<b>✅ 정답!</b><br>${msg}<br><br><span style="font-size:0.9em;color:var(--muted);">[풀이] ${hdg_exp[s]||''}</span>`;
   }else{
     fb.className='hdg-fb err';
     fb.innerHTML=`<b>❌ 오답!</b><br>${msg}<br><br><span style="font-size:0.9em;color:var(--muted);">[힌트를 확인하고 다시 수정해 보세요]</span>`;
@@ -1936,10 +1929,7 @@ function hdg_showStage(n){
 function hdg_showRes(){
   const prog=hdg_el('hdg-progBox');
   if(prog)prog.style.display='none';
-  for(let i=1;i<=hdg_tot;i++){
-    const st=hdg_el('hdg-st'+i);
-    if(st)st.classList.remove('on');
-  }
+  for(let i=1;i<=hdg_tot;i++){const st=hdg_el('hdg-st'+i);if(st)st.classList.remove('on');}
   const res=hdg_el('hdg-stRes');
   if(res)res.classList.add('on');
 
@@ -1951,7 +1941,7 @@ function hdg_showRes(){
   let score=0;let wHtml='';
   for(let i=1;i<=hdg_tot;i++){
     if(hdg_first[i]===true) score++;
-    else wHtml+=`<div class="hdg-wrong"><div style="font-weight:800;color:var(--red);margin-bottom:0.25rem;">탐구 ${i}번 오답 해설</div><div>${hdg_exp[i]}</div></div>`;
+    else wHtml+=`<div class="hdg-wrong"><div style="font-weight:800;color:var(--red);margin-bottom:0.25rem;">탐구 ${i}번 오답 해설</div><div>${hdg_exp[i]||''}</div></div>`;
   }
   const fin=hdg_el('hdg-finScore');
   if(fin)fin.textContent=String(score);
@@ -1963,15 +1953,11 @@ function hdg_showRes(){
 function hdg_move(dir){
   if(!hdg_hasRoot())return;
   const next=hdg_cur+dir;
-  if(next>=1 && next<=hdg_tot){
-    hdg_cur=next;
-    hdg_showStage(hdg_cur);
-    (hdg_el('hdg-root')||hdg_el('ht0'))?.scrollIntoView({behavior:'smooth',block:'start'});
-  }else{
-    hdg_showRes();
-    (hdg_el('hdg-root')||hdg_el('ht0'))?.scrollIntoView({behavior:'smooth',block:'start'});
-  }
+  if(next>=1 && next<=hdg_tot){hdg_cur=next;hdg_showStage(hdg_cur);}
+  else{hdg_showRes();}
+  hdg_el('hdg-root')?.scrollIntoView({behavior:'smooth',block:'start'});
 }
+
 function hdg_renderGrid(id,data,isInteractive,targetArray){
   const container=hdg_el(id);
   if(!container)return;
@@ -1994,6 +1980,7 @@ function hdg_renderGrid(id,data,isInteractive,targetArray){
     container.appendChild(cell);
   }
 }
+
 const hdg_s1_o=[1,0,1,0,0,0,1,1,1];
 const hdg_s1_c=[1,1,1,0,0,0,1,0,1];
 let hdg_s1_a=[0,0,0,0,0,0,0,0,0];
@@ -2011,6 +1998,7 @@ function hdg_chk1(){
   if(isC) hdg_setFb(1,true,'두 행렬에서 차이가 발생하는 위치를 정확히 도출했습니다.');
   else hdg_setFb(1,false,'숫자가 다른 2곳의 위치를 클릭하여 1로 만드세요.');
 }
+
 function hdg_chk2(idx,isC,btn){
   const st=hdg_el('hdg-st2');
   st?.querySelectorAll('.hdg-opt').forEach(b=>b.style.borderColor='var(--border)');
@@ -2019,6 +2007,7 @@ function hdg_chk2(idx,isC,btn){
   if(isC) hdg_setFb(2,true,'XOR의 정의를 정확히 이해했습니다.');
   else hdg_setFb(2,false,'같을 때는 0이 되어야 합니다.');
 }
+
 let hdg_states={a:false,b:false,i:false};
 
 function hdg_drawVenn(){
@@ -2029,19 +2018,7 @@ function hdg_drawVenn(){
   cx.clearRect(0,0,cv.width,cv.height);
   const id=cx.createImageData(cv.width,cv.height);
 
-  for(let y=0;y<cv.height;y++){
-    for(let x=0;x<cv.width;x++){
-      const dA=Math.hypot(x-cA.x,y-cA.y)<=cA.r;
-      const dB=Math.hypot(x-cB.x,y-cB.y)<=cB.r;
-      const f=(dA&&!dB&&hdg_states.a)||(!dA&&dB&&hdg_states.b)||(dA&&dB&&hdg_states.i);
-      const i=(y*cv.width+x)*4;
-      if(f){
-        id.data[i]=180; id.data[i+1]=65; id.data[i+2]=51; id.data[i+3]=160; // red-ish
-      }else{
-        id.data[i]=245; id.data[i+1]=240; id.data[i+2]=234; id.data[i+3]=255; // bg-ish
-      }
-    }
-  }
+  for(let y=0;y<cv.height;y++){for(let x=0;x<cv.width;x++){const dA=Math.hypot(x-cA.x,y-cA.y)<=cA.r;const dB=Math.hypot(x-cB.x,y-cB.y)<=cB.r;const f=(dA&&!dB&&hdg_states.a)||(!dA&&dB&&hdg_states.b)||(dA&&dB&&hdg_states.i);const i=(y*cv.width+x)*4;if(f){id.data[i]=180;id.data[i+1]=65;id.data[i+2]=51;id.data[i+3]=160;}else{id.data[i]=245;id.data[i+1]=240;id.data[i+2]=234;id.data[i+3]=255;}}}
   cx.putImageData(id,0,0);
 
   cx.lineWidth=2;
@@ -2069,7 +2046,6 @@ function hdg_initStage3(){
     if(dA&&!dB) hdg_states.a=!hdg_states.a;
     else if(!dA&&dB) hdg_states.b=!hdg_states.b;
     else if(dA&&dB) hdg_states.i=!hdg_states.i;
-
     hdg_drawVenn();
   };
 }
@@ -2093,6 +2069,7 @@ function hdg_chk4(idx,isC,btn){
   if(isC) hdg_setFb(4,true,'올바르지 않은 식을 잘 찾았습니다.');
   else hdg_setFb(4,false,'고르신 식은 대칭차집합의 올바른 수식입니다.');
 }
+
 function hdg_chk5(){
   const v=hdg_el('hdg-i5')?.value?.trim()||'';
   const isC=(v==='01100');
@@ -2100,6 +2077,7 @@ function hdg_chk5(){
   if(isC) hdg_setFb(5,true,'정확한 벡터 연산입니다.');
   else hdg_setFb(5,false,'각 자리별로 (1⊕1=0, 0⊕1=1) 계산해 보세요.');
 }
+
 function hdg_chk6(){
   const v=hdg_el('hdg-i6')?.value;
   const isC=(String(v)==='2');
@@ -2107,6 +2085,7 @@ function hdg_chk6(){
   if(isC) hdg_setFb(6,true,'해밍 거리를 바르게 구했습니다.');
   else hdg_setFb(6,false,'결과값 01100에 포함된 1의 개수를 세어보세요.');
 }
+
 const hdg_s7_o=[1,1,0,0,0,0,1,0,1];
 const hdg_s7_c=[1,0,0,0,1,0,1,0,1];
 let hdg_s7_a=[0,0,0,0,0,0,0,0,0];
@@ -2116,6 +2095,7 @@ function hdg_initStage7(){
   hdg_renderGrid('hdg-g7_cor', hdg_s7_c, false);
   hdg_renderGrid('hdg-g7_ans', hdg_s7_a, true, hdg_s7_a);
 }
+
 function hdg_chk7(){
   let isC=true;
   for(let i=0;i<9;i++){ if(hdg_s7_a[i] !== (hdg_s7_o[i]^hdg_s7_c[i])){isC=false;break;} }
@@ -2123,6 +2103,7 @@ function hdg_chk7(){
   if(isC) hdg_setFb(7,true,'마스크 행렬 복원에 성공했습니다!');
   else hdg_setFb(7,false,'행렬 P와 Q의 숫자가 변한 곳을 클릭하세요.');
 }
+
 const hdg_t_d=[1,1,0,0,1,1,0,0,0,0,1,1,0,0,1,1];
 const hdg_s1_d=[1,0,0,0,1,0,0,0,0,0,1,1,0,0,1,1];
 const hdg_s2_d=[1,1,0,0,1,1,0,0,0,0,1,1,0,1,1,1];
@@ -2132,6 +2113,7 @@ function hdg_initStage8(){
   hdg_renderGrid('hdg-g8_s1', hdg_s1_d, false);
   hdg_renderGrid('hdg-g8_s2', hdg_s2_d, false);
 }
+
 function hdg_chk8(idx,isC,btn){
   const st=hdg_el('hdg-st8');
   st?.querySelectorAll('.hdg-opt').forEach(b=>b.style.borderColor='var(--border)');
@@ -2140,6 +2122,7 @@ function hdg_chk8(idx,isC,btn){
   if(isC) hdg_setFb(8,true,'가장 해밍 거리가 짧은 표본을 찾았습니다.');
   else hdg_setFb(8,false,'T와 다른 픽셀이 가장 적은 것을 고르세요.');
 }
+
 const hdg_s9_o=[45,150,200,80,128,90,255,30,100];
 let hdg_s9_a=[0,0,0,0,0,0,0,0,0];
 
@@ -2159,25 +2142,27 @@ function hdg_initStage9(){
   }
   hdg_renderGrid('hdg-g9_ans', hdg_s9_a, true, hdg_s9_a);
 }
+
 function hdg_chk9(){
   let isC=true;
-  for(let i=0;i<9;i++){
-    const target=hdg_s9_o[i]>=128?1:0;
-    if(hdg_s9_a[i]!==target){isC=false;break;}
-  }
+  for(let i=0;i<9;i++){const target=hdg_s9_o[i]>=128?1:0;if(hdg_s9_a[i]!==target){isC=false;break;}}
   hdg_mark(9,isC);
   if(isC) hdg_setFb(9,true,'임계값(128)을 기준으로 완벽하게 이진화했습니다.');
   else hdg_setFb(9,false,'128 이상인 숫자만 클릭하여 1로 만들어야 합니다.');
 }
-(function hdg_init(){
+
+let hdg_inited=false;
+function hdgInit(){
+  if(hdg_inited) return;
   if(!hdg_hasRoot()) return;
+  hdg_inited=true;
   hdg_initStage1();
   hdg_initStage3();
   hdg_initStage7();
   hdg_initStage8();
   hdg_initStage9();
   hdg_showStage(hdg_cur);
-})();
+}
 
 
 (function startRouter(){
