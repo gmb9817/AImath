@@ -69,6 +69,7 @@ function initToggles(root){
   const scope=root||document;
   scope.querySelectorAll('.card,.info').forEach(el=>{
     if(el.dataset.tglDone==='1') return;
+    if(el.closest && el.closest('[data-no-toggle=\"1\"]')) return;
 
     const isCard=el.classList.contains('card');
 
@@ -493,7 +494,7 @@ function initHGuessUI(){
     });
   });
 }
-function clrBmp(){uBmp=Array(bSz*bSz).fill(0);rBmp();document.getElementById('hbars').innerHTML='<p style="font-size:0.8rem;color:var(--muted);">숫자를 그린 후 계산 버튼을 누르세요.</p>';document.getElementById('hbest').textContent='';document.getElementById('hoverlap').innerHTML='';document.getElementById('refpreview').innerHTML='';}
+function clrBmp(){uBmp=Array(bSz*bSz).fill(0);rBmp();try{initHGuessUI();}catch(e){}document.getElementById('hbest').textContent='';document.getElementById('hoverlap').innerHTML='';document.getElementById('refpreview').innerHTML='';}
 
 function calcH(){
   const refs=REFS[bSz];
@@ -524,9 +525,8 @@ function calcH(){
     e.className='hb';
     e.dataset.digit=digit;
 
-    const g = (guessMap[digit] ?? '').toString().trim();
-    const gNum = g==='' ? null : Number(g);
-
+    const g=(guessMap[digit] ?? '').toString().trim();
+    const gNum = g==='' ? null : Number(String(g).trim());
     const isOk = (gNum!==null && Number.isFinite(gNum) && gNum===dist);
 
     e.innerHTML = `
@@ -548,29 +548,46 @@ function calcH(){
   });
 
   const best=ds.reduce((a,b)=>a.dist<b.dist?a:b);
-  document.getElementById('hbest').textContent=`가장 유사: ${best.digit} (거리 ${best.dist}, 유사도 ${best.sim}%)`;
+  const bestEl=document.getElementById('hbest');
+  if(bestEl) bestEl.textContent=`가장 유사: ${best.digit} (거리 ${best.dist}, 유사도 ${best.sim}%)`;
 
   const ovBox=document.getElementById('hoverlap');
-  const bestRef=refs[best.digit];
-  const cs=bSz<=6?'1.4rem':bSz<=8?'1.1rem':'0.8rem';
-  let ovHtml=`<p class="mat-label" style="margin-bottom:0.4rem;">내 그림 vs 숫자 ${best.digit} 겹침 비교</p>`;
-  ovHtml+=`<div class="ovlap" style="grid-template-columns:repeat(${bSz},1fr);">`;
-  for(let i=0;i<tot;i++){
-    const u=uBmp[i],r=bestRef[i];
-    let cls;
-    if(u===1&&r===1) cls='both';
-    else if(u===0&&r===0) cls='match';
-    else if(u===1&&r===0) cls='only-user';
-    else cls='only-ref';
-    ovHtml+=`<div class="oc ${cls}" style="width:${cs};height:${cs};"></div>`;
+  if(ovBox){
+    const cs=bSz<=6?'1.05rem':bSz<=8?'0.92rem':'0.72rem';
+
+    let html=`<p class="mat-label" style="margin-bottom:0.45rem;">내 그림 vs 모든 숫자 겹침 비교</p>`;
+    html+=`<div style="display:flex;flex-wrap:wrap;gap:0.8rem;align-items:flex-start;">`;
+
+    ds.forEach(({digit,dist,sim})=>{
+      const ref=refs[digit];
+      const isBest = digit===best.digit;
+      html+=`<div style="background:var(--bg);border:1px solid ${isBest?'var(--fg)':'var(--border)'};border-radius:var(--radius);padding:0.65rem;flex:1 1 230px;max-width:300px;">`;
+      html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.45rem;">`;
+      html+=`<span style="font-family:var(--mono);font-weight:800;color:${isBest?'var(--fg)':'var(--muted)'};">숫자 ${digit}${isBest?' · BEST':''}</span>`;
+      html+=`<span style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);">거리 ${dist} · ${sim}%</span>`;
+      html+=`</div>`;
+      html+=`<div class="ovlap" style="grid-template-columns:repeat(${bSz},1fr);">`;
+      for(let i=0;i<tot;i++){
+        const u=uBmp[i], r=ref[i];
+        let cls;
+        if(u===1&&r===1) cls='both';
+        else if(u===0&&r===0) cls='match';
+        else if(u===1&&r===0) cls='only-user';
+        else cls='only-ref';
+        html+=`<div class="oc ${cls}" style="width:${cs};height:${cs};"></div>`;
+      }
+      html+=`</div></div>`;
+    });
+
+    html+=`</div>`;
+    html+=`<div style="display:flex;gap:0.8rem;margin-top:0.6rem;flex-wrap:wrap;">`;
+    html+=`<span style="font-size:0.62rem;color:var(--muted);display:flex;align-items:center;gap:0.25rem;"><span style="display:inline-block;width:0.6rem;height:0.6rem;background:var(--fg);border-radius:2px;"></span>둘 다 1</span>`;
+    html+=`<span style="font-size:0.62rem;color:var(--muted);display:flex;align-items:center;gap:0.25rem;"><span style="display:inline-block;width:0.6rem;height:0.6rem;background:var(--card);border:1px solid var(--border);border-radius:2px;"></span>둘 다 0</span>`;
+    html+=`<span style="font-size:0.62rem;color:var(--muted);display:flex;align-items:center;gap:0.25rem;"><span style="display:inline-block;width:0.6rem;height:0.6rem;background:var(--red);opacity:0.7;border-radius:2px;"></span>내 그림에만</span>`;
+    html+=`<span style="font-size:0.62rem;color:var(--muted);display:flex;align-items:center;gap:0.25rem;"><span style="display:inline-block;width:0.6rem;height:0.6rem;background:var(--blue);opacity:0.7;border-radius:2px;"></span>참조에만</span>`;
+    html+=`</div>`;
+    ovBox.innerHTML=html;
   }
-  ovHtml+=`</div>`;
-  ovHtml+=`<div style="display:flex;gap:0.8rem;margin-top:0.5rem;flex-wrap:wrap;">`;
-  ovHtml+=`<span style="font-size:0.62rem;color:var(--muted);display:flex;align-items:center;gap:0.25rem;"><span style="display:inline-block;width:0.6rem;height:0.6rem;background:var(--fg);border-radius:2px;"></span>일치 (둘 다 검정)</span>`;
-  ovHtml+=`<span style="font-size:0.62rem;color:var(--muted);display:flex;align-items:center;gap:0.25rem;"><span style="display:inline-block;width:0.6rem;height:0.6rem;background:var(--red);opacity:0.7;border-radius:2px;"></span>내 그림에만</span>`;
-  ovHtml+=`<span style="font-size:0.62rem;color:var(--muted);display:flex;align-items:center;gap:0.25rem;"><span style="display:inline-block;width:0.6rem;height:0.6rem;background:var(--blue);opacity:0.7;border-radius:2px;"></span>참조에만</span>`;
-  ovHtml+=`</div>`;
-  ovBox.innerHTML=ovHtml;
 }
 function mkEG(id,data,rows,cols,onCh){
   const g=document.getElementById(id);g.innerHTML='';g.style.gridTemplateColumns=`repeat(${cols},1fr)`;
@@ -1812,7 +1829,7 @@ console.log('%c도움을 준 사람들: nflight11, frozenca, wizardrabbit, cubic
 
 
 let hdg_cur=1;
-const hdg_tot=10;
+const hdg_tot=9;
 let hdg_first=new Array(hdg_tot+1).fill(null);
 let hdg_solved=new Array(hdg_tot+1).fill(false);
 const hdg_exp={
@@ -1824,8 +1841,7 @@ const hdg_exp={
   6:"탐구 5의 결과 '01100'에는 숫자 1이 2개 포함되어 있으므로 두 데이터 사이의 해밍 거리는 2입니다.",
   7:"P ⊕ X = Q 의 양변에 P를 ⊕ 연산하면 X = P ⊕ Q 가 됩니다. 따라서 원본 P와 손상된 Q를 비교하여 숫자가 바뀐 위치(1행 2열, 2행 3열)가 마스크 행렬이 됩니다.",
   8:"4x4 행렬 비교 시, 입력 T와 S1은 4개의 픽셀이 다르고(거리 4), T와 S2는 1개의 픽셀만 다릅니다(거리 1). 따라서 거리가 더 짧은 S2로 분류됩니다.",
-  9:"해밍 거리는 항상 '같은 위치'의 픽셀끼리만 1:1로 비교합니다. 따라서 사물이 1칸만 옆으로 이동해도 위치가 어긋나 매우 다른 이미지로 잘못 측정됩니다.",
-  10:"이진화는 임계값(Threshold)을 기준으로 데이터를 0과 1로 단순화합니다. 128 이상인 숫자(150, 200, 255) 위치만 클릭하여 1로 바꾸면 됩니다."
+  9:"이진화는 임계값(Threshold)을 기준으로 데이터를 0과 1로 단순화합니다. 128 이상인 숫자(150, 200, 255) 위치만 클릭하여 1로 바꾸면 됩니다."
 };
 
 function hdg_el(id){return document.getElementById(id);}
@@ -2068,42 +2084,34 @@ function hdg_chk8(idx,isC,btn){
   if(isC) hdg_setFb(8,true,'가장 해밍 거리가 짧은 표본을 찾았습니다.');
   else hdg_setFb(8,false,'T와 다른 픽셀이 가장 적은 것을 고르세요.');
 }
-function hdg_chk9(idx,isC,btn){
-  const st=hdg_el('hdg-st9');
-  st?.querySelectorAll('.hdg-opt').forEach(b=>b.style.borderColor='var(--border)');
-  if(btn) btn.style.borderColor='var(--accent)';
-  hdg_mark(9,isC);
-  if(isC) hdg_setFb(9,true,'해밍 거리의 치명적 한계점을 잘 이해했습니다.');
-  else hdg_setFb(9,false,'사물이 이동하면 픽셀 위치가 어긋나 매우 다르게 측정됩니다.');
-}
-const hdg_s10_o=[45,150,200,80,128,90,255,30,100];
-let hdg_s10_a=[0,0,0,0,0,0,0,0,0];
+const hdg_s9_o=[45,150,200,80,128,90,255,30,100];
+let hdg_s9_a=[0,0,0,0,0,0,0,0,0];
 
-function hdg_initStage10(){
-  const g10=hdg_el('hdg-g10_org');
-  if(g10){
-    g10.innerHTML='';
+function hdg_initStage9(){
+  const g9=hdg_el('hdg-g9_org');
+  if(g9){
+    g9.innerHTML='';
     for(let i=0;i<9;i++){
       const c=document.createElement('div');
       c.className='hdg-cell';
-      c.textContent=hdg_s10_o[i];
+      c.textContent=hdg_s9_o[i];
       c.style.fontSize='0.75rem';
-      c.style.background=`rgb(${hdg_s10_o[i]},${hdg_s10_o[i]},${hdg_s10_o[i]})`;
-      c.style.color=(hdg_s10_o[i]<128)?'#ffffff':'#000000';
-      g10.appendChild(c);
+      c.style.background=`rgb(${hdg_s9_o[i]},${hdg_s9_o[i]},${hdg_s9_o[i]})`;
+      c.style.color=(hdg_s9_o[i]<128)?'#ffffff':'#000000';
+      g9.appendChild(c);
     }
   }
-  hdg_renderGrid('hdg-g10_ans', hdg_s10_a, true, hdg_s10_a);
+  hdg_renderGrid('hdg-g9_ans', hdg_s9_a, true, hdg_s9_a);
 }
-function hdg_chk10(){
+function hdg_chk9(){
   let isC=true;
   for(let i=0;i<9;i++){
-    const target=hdg_s10_o[i]>=128?1:0;
-    if(hdg_s10_a[i]!==target){isC=false;break;}
+    const target=hdg_s9_o[i]>=128?1:0;
+    if(hdg_s9_a[i]!==target){isC=false;break;}
   }
-  hdg_mark(10,isC);
-  if(isC) hdg_setFb(10,true,'임계값(128)을 기준으로 완벽하게 이진화했습니다.');
-  else hdg_setFb(10,false,'128 이상인 숫자만 클릭하여 1로 만들어야 합니다.');
+  hdg_mark(9,isC);
+  if(isC) hdg_setFb(9,true,'임계값(128)을 기준으로 완벽하게 이진화했습니다.');
+  else hdg_setFb(9,false,'128 이상인 숫자만 클릭하여 1로 만들어야 합니다.');
 }
 (function hdg_init(){
   if(!hdg_hasRoot()) return;
@@ -2111,7 +2119,7 @@ function hdg_chk10(){
   hdg_initStage3();
   hdg_initStage7();
   hdg_initStage8();
-  hdg_initStage10();
+  hdg_initStage9();
   hdg_showStage(hdg_cur);
 })();
 

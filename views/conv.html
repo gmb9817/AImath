@@ -51,10 +51,78 @@
       </div>
     </div>
   </div>
+
+  <!-- ═══ 아다마르 곱 vs 행렬의 곱 ═══ -->
+  <div class="card" style="border-left:4px solid var(--blue);">
+    <h3>아다마르 곱 ⊙ 과 행렬의 곱 × — 무엇이 다를까?</h3>
+    <p style="margin-bottom:1rem;">
+      CNN에서 말하는 “곱”은 보통 <b>아다마르 곱(같은 위치끼리)</b>과,
+      분류 단계에서 쓰는 <b>행렬의 곱(행×열 내적)</b>이 함께 등장합니다.
+      이름이 비슷해 보여도 규칙과 의미가 완전히 다릅니다.
+    </p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem;">
+      <div style="background:var(--bg);border-radius:var(--radius);padding:1.05rem;border:1.5px solid var(--blue);">
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--blue);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.45rem;">
+          Hadamard Product ⊙
+        </div>
+        <div style="font-size:0.95rem;font-weight:800;margin-bottom:0.55rem;">같은 위치끼리 곱하기</div>
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.8rem;">
+          두 행렬의 <b>크기가 같아야</b> 하고, (i,j) 위치의 값끼리만 곱합니다.
+          결과의 크기도 그대로 유지됩니다.
+        </p>
+        <div class="math" style="font-size:0.75rem;line-height:2;">
+(A ⊙ B)ᵢⱼ = Aᵢⱼ × Bᵢⱼ
+        </div>
+        <div class="info" style="margin-top:0.75rem;margin-bottom:0;">
+          <strong>CNN에서:</strong> 합성곱 한 칸의 계산은 “창(패치) ⊙ 커널”을 한 뒤, 그 결과를 모두 더해 출력값 1개를 만듭니다.
+        </div>
+      </div>
+
+      <div style="background:var(--bg);border-radius:var(--radius);padding:1.05rem;border:1.5px solid var(--red);">
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--red);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.45rem;">
+          Matrix Multiplication ×
+        </div>
+        <div style="font-size:0.95rem;font-weight:800;margin-bottom:0.55rem;">행 × 열 내적</div>
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.8rem;">
+          앞 행렬의 <b>열 수</b>와 뒤 행렬의 <b>행 수</b>가 같아야 하며,
+          각 원소는 “곱해서 더한 값(Σ)”으로 만들어집니다.
+        </p>
+        <div class="math" style="font-size:0.75rem;line-height:2;">
+(AB)ᵢⱼ = Σₖ Aᵢₖ × Bₖⱼ
+        </div>
+        <div class="info" style="margin-top:0.75rem;margin-bottom:0;">
+          <strong>CNN에서:</strong> 마지막 분류(완전연결층)는 특징 벡터와 가중치 행렬을 곱해 점수(logit)를 만드는 단계입니다.
+        </div>
+      </div>
+    </div>
+
+    <table style="border-collapse:collapse;width:100%;font-size:0.82rem;">
+      <thead>
+        <tr style="background:var(--fg);color:var(--bg);">
+          <th style="padding:0.45rem 0.55rem;text-align:left;">구분</th>
+          <th style="padding:0.45rem 0.55rem;text-align:left;">아다마르 곱 ⊙</th>
+          <th style="padding:0.45rem 0.55rem;text-align:left;">행렬의 곱 ×</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="padding:0.45rem 0.55rem;border-bottom:1px solid var(--border);">조건</td><td style="padding:0.45rem 0.55rem;border-bottom:1px solid var(--border);">크기 동일</td><td style="padding:0.45rem 0.55rem;border-bottom:1px solid var(--border);">A의 열 = B의 행</td></tr>
+        <tr><td style="padding:0.45rem 0.55rem;border-bottom:1px solid var(--border);">방법</td><td style="padding:0.45rem 0.55rem;border-bottom:1px solid var(--border);">같은 위치끼리 곱</td><td style="padding:0.45rem 0.55rem;border-bottom:1px solid var(--border);">행×열 곱해 더함</td></tr>
+        <tr><td style="padding:0.45rem 0.55rem;border-bottom:1px solid var(--border);">결과 크기</td><td style="padding:0.45rem 0.55rem;border-bottom:1px solid var(--border);">입력과 동일</td><td style="padding:0.45rem 0.55rem;border-bottom:1px solid var(--border);">m×n · n×p → m×p</td></tr>
+        <tr><td style="padding:0.45rem 0.55rem;">CNN에서</td><td style="padding:0.45rem 0.55rem;">합성곱(패치 ⊙ 커널 → 합)</td><td style="padding:0.45rem 0.55rem;">분류(특징 벡터 × 가중치)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="math" style="font-size:0.76rem;line-height:2.1;margin-top:1rem;">
+// 합성곱 “한 칸”을 아주 짧게 쓰면
+Y = Σᵢⱼ (Kᵢⱼ × Xᵢⱼ)
+// 즉: (패치 ⊙ 커널) 의 모든 원소를 더한 값
+    </div>
+  </div>
+
 <div class="tabs">
     <button class="tab on" onclick="ctab(0,this)">직접 계산</button>
     <button class="tab" onclick="ctab(1,this)">단계별 시각화</button>
-    <button class="tab" onclick="ctab(2,this)">CNN 체험</button>
   </div>
 
   <!-- TAB 0: manual -->
@@ -100,76 +168,6 @@
     </div>
     <div id="ast" class="status" style="text-align:center;"></div>
     <div id="acalc" class="info" style="text-align:center;">시작 버튼을 눌러 연산 과정을 확인하세요.</div>
-  </div>
-
-  <!-- TAB 2: CNN Pipeline -->
-  <div class="tpanel" id="ct2">
-    <div class="card">
-      <h3>CNN 파이프라인 체험</h3>
-      <p>이미지를 업로드하면 CNN(합성곱 신경망)이 처리하는 각 단계를 시각적으로 확인할 수 있습니다.</p>
-      <div class="upz" id="cnn-upz" style="margin-top:0.8rem;">
-        <p style="font-weight:500;color:var(--fg);margin-bottom:0.2rem;">이미지를 드래그하거나 클릭하여 업로드</p>
-        <p style="font-size:0.7rem;margin-top:0.15rem;">jpg, png 등 이미지 파일</p>
-        <input type="file" id="cnn-fup" accept="image/*">
-      </div>
-      <div id="cnn-status" class="status"></div>
-    </div>
-
-    <div id="cnn-controls" style="display:none;">
-      <div id="cnn-timeline" style="display:flex;gap:2px;margin-bottom:0.8rem;overflow-x:auto;padding:0.3rem 0;">
-        <button class="cnn-tl-btn" onclick="cnnShowStep(0)" data-step="0">입력<br>이미지</button>
-        <button class="cnn-tl-btn" onclick="cnnShowStep(1)" data-step="1">Conv2D<br>합성곱</button>
-        <button class="cnn-tl-btn" onclick="cnnShowStep(2)" data-step="2">ReLU<br>활성화</button>
-        <button class="cnn-tl-btn" onclick="cnnShowStep(3)" data-step="3">MaxPool<br>풀링</button>
-        <button class="cnn-tl-btn" onclick="cnnShowStep(4)" data-step="4">Deep<br>깊은 층</button>
-        <button class="cnn-tl-btn" onclick="cnnShowStep(5)" data-step="5">Softmax<br>분류</button>
-      </div>
-      <div style="display:flex;justify-content:center;gap:1rem;margin-bottom:1rem;">
-        <button class="btn" onclick="cnnPrevStep()">← 이전</button>
-        <button class="btn pri" onclick="cnnNextStep()">다음 →</button>
-      </div>
-    </div>
-
-    <div id="cnn-step-0" class="cnn-step" style="display:none;">
-      <div class="card"><h3>1단계: 입력</h3>
-      <p>이미지를 224×224로 조정하고 RGB 값을 정규화합니다.</p>
-      <div style="text-align:center;margin:1rem 0;">
-        <canvas id="cnn-input-cv" width="224" height="224" style="border-radius:var(--radius);border:1px solid var(--border);max-width:224px;"></canvas>
-        <p style="font-size:0.78rem;color:var(--muted);margin-top:0.4rem;">224 × 224 × 3 (RGB)</p>
-      </div></div>
-    </div>
-    <div id="cnn-step-1" class="cnn-step" style="display:none;">
-      <div class="card"><h3>2단계: 합성곱 — 저수준 특징 추출</h3>
-      <p>12개의 필터(커널)가 이미지에서 기본 패턴(가장자리, 방향, 질감)을 감지합니다. 밝은 영역 = 해당 특징이 강하게 존재하는 곳.</p>
-      <div id="cnn-conv1-maps" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:1rem;justify-content:center;"></div>
-      <p style="font-size:0.78rem;color:var(--muted);margin-top:0.5rem;text-align:center;" id="cnn-conv1-info"></p></div>
-    </div>
-    <div id="cnn-step-2" class="cnn-step" style="display:none;">
-      <div class="card"><h3>3단계: ReLU 활성화</h3>
-      <p>음수를 0으로 바꿔 "특징 있음/없음"으로 단순화합니다. 2단계와 비교하면 어두운(음수) 부분이 완전한 검정으로 바뀝니다.</p>
-      <div class="math" style="text-align:center;">ReLU(x) = max(0, x)</div>
-      <div id="cnn-relu-maps" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:1rem;justify-content:center;"></div></div>
-    </div>
-    <div id="cnn-step-3" class="cnn-step" style="display:none;">
-      <div class="card"><h3>4단계: 맥스 풀링</h3>
-      <p>2×2 영역에서 최대값만 선택하여 크기를 절반으로 줄입니다. (224×224 → 112×112)</p>
-      <div id="cnn-pool-maps" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:1rem;justify-content:center;"></div>
-      <p style="font-size:0.78rem;color:var(--muted);margin-top:0.5rem;text-align:center;" id="cnn-pool-info"></p></div>
-    </div>
-    <div id="cnn-step-4" class="cnn-step" style="display:none;">
-      <div class="card"><h3>5단계: 깊은 층 — 고수준 특징</h3>
-      <p>Conv→ReLU→Pool을 반복하면 점점 추상적인 패턴(눈, 바퀴, 꽃잎)을 인식합니다.</p>
-      <div id="cnn-deep-maps" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:1rem;justify-content:center;"></div>
-      <p style="font-size:0.78rem;color:var(--muted);margin-top:0.5rem;text-align:center;" id="cnn-deep-info"></p></div>
-    </div>
-    <div id="cnn-step-5" class="cnn-step" style="display:none;">
-      <div class="card"><h3>6단계: Softmax 분류</h3>
-      <p>모든 특징을 종합하여 각 클래스의 확률을 계산합니다.</p>
-      <div class="math" style="text-align:center;font-size:0.72rem;">Softmax(zᵢ) = exp(zᵢ) / Σ exp(zⱼ)</div>
-      <div id="cnn-predictions" style="margin-top:1rem;">
-        <p style="color:var(--muted);font-size:0.85rem;">이미지를 업로드하면 분류 결과가 표시됩니다.</p>
-      </div></div>
-    </div>
   </div>
 
   <div class="math" style="margin-top:2rem;">Y = Σᵢ Σⱼ (Kᵢⱼ × Xᵢⱼ)

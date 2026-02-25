@@ -24,7 +24,7 @@
 
   <!-- TAB 0: GAME -->
 <div class="tpanel on" id="ht0">
-    <div class="status" id="hdg-progBox" style="margin-bottom:1rem;">탐구 진행도: <span id="hdg-progTxt">1</span> / 10</div>
+    <div class="status" id="hdg-progBox" style="margin-bottom:1rem;">탐구 진행도: <span id="hdg-progTxt">1</span> / 9</div>
 
 <style>
       #v-hamming #ht0 .hdg-stage { display:none; overflow:hidden; border:1px solid var(--border); border-radius:var(--radius); background:var(--card); }
@@ -249,19 +249,7 @@
       </div>
 
       <div class="hdg-stage" id="hdg-st9">
-        <div class="hdg-shead">탐구 9. 해밍 거리 측정의 한계</div>
-        <div class="hdg-sbody">
-          <div class="hdg-desc">
-            해밍 거리는 같은 위치의 픽셀끼리만 비교합니다. 다음 중 사람의 눈에는 같지만 <b>해밍 거리로는 매우 멀게 잘못 측정</b>되는 오류 상황은?
-          </div>
-          <button class="hdg-opt" onclick="hdg_chk9(1,true,this)">① 사물이 원래 형태를 유지한 채 오른쪽으로 1칸 이동(Shift)한 경우</button>
-          <button class="hdg-opt" onclick="hdg_chk9(2,false,this)">② 이미지의 흑백 색상을 완전히 반전시킨 경우</button>
-          <div id="hdg-fb9" class="hdg-fb"></div>
-        </div>
-      </div>
-
-      <div class="hdg-stage" id="hdg-st10">
-        <div class="hdg-shead">탐구 10. 단원 확장: 이미지 이진화(Binarization)</div>
+        <div class="hdg-shead">탐구 9. 단원 확장: 이미지 이진화(Binarization)</div>
         <div class="hdg-sbody">
           <div class="hdg-desc">
             XOR 연산 전, 인공지능은 0~255 명도 값을 0과 1로 단순화하는 <b>이진화</b>를 거칩니다.<br>
@@ -270,16 +258,16 @@
           <div class="hdg-wrap">
             <div style="text-align:center;">
               <span style="font-size:0.78rem;font-weight:700;color:var(--muted);">명도 행렬</span>
-              <div class="hdg-grid hdg-g3" id="hdg-g10_org"></div>
+              <div class="hdg-grid hdg-g3" id="hdg-g9_org"></div>
             </div>
             <span style="font-family:var(--mono);color:var(--muted);font-size:1.1rem;">➔</span>
             <div style="text-align:center;">
               <span style="font-size:0.78rem;font-weight:800;color:var(--red);">이진화 행렬</span>
-              <div class="hdg-grid hdg-g3 hdg-interactive" id="hdg-g10_ans"></div>
+              <div class="hdg-grid hdg-g3 hdg-interactive" id="hdg-g9_ans"></div>
             </div>
           </div>
-          <button class="btn pri hdg-act" onclick="hdg_chk10()">결과 확인</button>
-          <div id="hdg-fb10" class="hdg-fb"></div>
+          <button class="btn pri hdg-act" onclick="hdg_chk9()">결과 확인</button>
+          <div id="hdg-fb9" class="hdg-fb"></div>
         </div>
       </div>
 
@@ -288,7 +276,7 @@
         <div class="hdg-sbody">
           <div class="hdg-score">
             <div style="font-weight:700;">나의 최종 정답률</div>
-            <div class="big"><span id="hdg-finScore">0</span> / 10</div>
+            <div class="big"><span id="hdg-finScore">0</span> / 9</div>
             <div style="font-size:0.72rem;color:var(--muted);margin-top:0.35rem;">* 각 탐구를 최종적으로 정답 처리한 결과를 바탕으로 산출되었습니다.</div>
           </div>
 
@@ -370,11 +358,6 @@
         <div id="hbest" class="status" style="font-weight:600;"></div>
         <div id="hoverlap" style="margin-top:1rem;"></div>
       </div>
-    </div>
-
-    <div class="info" style="margin-top:1.5rem;">
-      <strong>한계점:</strong> 해밍 거리는 위치 이동, 크기 변화, 획의 굵기 차이에 취약합니다.
-      이를 개선하기 위해 전처리, 데이터 증강, 그리고 CNN 같은 딥러닝이 사용됩니다.
     </div>
   </div>
 
